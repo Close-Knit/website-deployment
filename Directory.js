@@ -5,42 +5,48 @@ const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co'; // Replace with 
 const supabaseKey =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q'; // Replace with your anon key
 
-// Ensure the Supabase client library is loaded (from index.html) before this runs
-// The library creates a global 'supabase' object
-const { createClient } = supabase; // Destructure the function from the global object
-const supabaseClient = createClient(supabaseUrl, supabaseKey); // Create the client instance
+const { createClient } = supabase;
+const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
 // ======================================================================
-// Helper to display error messages
+// Helper to display error messages (Optional - can integrate better later)
 // ======================================================================
 function displayError(message) {
-  const errorElement = document.getElementById('error-message');
-  if (errorElement) {
-    errorElement.textContent = message;
-  }
-  // Clear results if there's an error
+  // You might want to display errors differently now,
+  // maybe above the results list or log to console.
+  console.error("Directory Error:", message);
   const resultsList = document.getElementById('results');
-  if (resultsList) {
-    resultsList.innerHTML = '';
-  }
+   if (resultsList) {
+      // Use list item for error message to fit structure
+      resultsList.innerHTML = `<li style="color: red; font-weight: bold;">${message}</li>`;
+   }
 }
 
 // ======================================================================
-// Fetch Data from Supabase
+// Fetch Data from Supabase (Sorted for Grouping)
 // ======================================================================
-async function fetchTableData(tableName) {
-  // Clear previous errors
-  displayError('');
+async function fetchTableData(tableName, searchTerm = null) {
+  // Clear previous errors (maybe just log now)
+  // displayError(''); // Or handle errors differently
 
-  // Use the initialized supabaseClient
-  const { data, error } = await supabaseClient
+  let query = supabaseClient
     .from(tableName)
-    .select('*') // Adjust columns as needed
-    .order('name', { ascending: true });
+    .select('*');
+
+  // Apply search filter if searchTerm is provided
+  if (searchTerm) {
+      query = query.or(`name.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`);
+  }
+
+  // Always sort by category first, then by name for consistent grouping
+  query = query.order('category', { ascending: true, nullsFirst: false }) // Group null categories last
+               .order('name', { ascending: true });
+
+  const { data, error } = await query;
 
   if (error) {
-    console.error(`Error fetching data from ${tableName}:`, error);
-    displayError(`Error fetching directory data. Please check console (F12) for details.`);
+    console.error(`Error fetching/searching ${tableName}:`, error);
+    displayError(`Error fetching directory data. Details in console (F12).`);
     return []; // Return empty array on error
   }
 
@@ -48,46 +54,61 @@ async function fetchTableData(tableName) {
 }
 
 // ======================================================================
-// Render Entries (Generic function)
+// Render Entries with Category Grouping
 // ======================================================================
-function renderEntries(entries) {
+function renderGroupedEntries(entries) {
     const resultsList = document.getElementById('results');
-    if (!resultsList) return; // Exit if results container doesn't exist
+    if (!resultsList) {
+        console.error("Results container element (#results) not found.");
+        return;
+    }
 
     if (!entries || entries.length === 0) {
-      resultsList.innerHTML = '<p>No matching entries found.</p>';
+      resultsList.innerHTML = '<li>No matching entries found.</li>'; // Use <li> for consistency
       return;
     }
 
-    // Using Listings structure for rendering as an example
-    resultsList.innerHTML = entries
-    .map(
-      (entry) => `
-      <div class="entry">
-        <h3>${entry.name || 'No Name'}</h3>
-        <p>Category: ${entry.category || 'No category available'}</p>
-        <p>Contact Info: ${entry.contact_info || 'No contact info available'}</p>
-        ${entry.description ? `<p>Description: ${entry.description}</p>` : ''}  </div>
-    `
-    )
-    .join('');
+    let htmlContent = '';
+    let currentCategory = null;
+
+    entries.forEach(entry => {
+        // Check if category changed (or if it's the first entry)
+        // Handle null/empty categories gracefully
+        const entryCategory = entry.category || 'Uncategorized'; // Treat null/empty as 'Uncategorized'
+
+        if (entryCategory !== currentCategory) {
+            currentCategory = entryCategory;
+            // Add category heading list item
+            htmlContent += `<li class="category-heading">${currentCategory}</li>`;
+        }
+
+        // Add directory entry list item using the correct classes
+        // Make phone number clickable if it looks like one (basic check)
+        let contactDisplay = entry.contact_info || ''; // Default to empty string if null
+        // Simple check if it contains digits - enhance if needed
+        if (/\d/.test(contactDisplay)) {
+             // Remove non-digits for tel: link, keep original for display
+             const telLink = contactDisplay.replace(/[^0-9+]/g, '');
+             contactDisplay = `<a href="tel:${telLink}">${contactDisplay}</a>`;
+        }
+
+        htmlContent += `
+            <li class="directory-entry">
+                <span class="name">${entry.name || 'No Name'}</span>
+                <span class="phone">${contactDisplay}</span>
+            </li>
+        `;
+    });
+
+    resultsList.innerHTML = htmlContent;
 }
 
-
 // ======================================================================
-// Display Listings Data (or initial load)
+// Initial Load / Display All Listings
 // ======================================================================
-async function displayListings() {
-  const entries = await fetchTableData('Listings');
-  renderEntries(entries); // Use the render function
-}
-
-// ======================================================================
-// Display Communities Data (If needed later)
-// ======================================================================
-async function displayCommunities() {
-  const entries = await fetchTableData('Communities');
-  renderEntries(entries); // Use the render function (adjust mapping if needed)
+async function displayAllListings() {
+  const entries = await fetchTableData('Listings'); // Fetch sorted data
+  renderGroupedEntries(entries); // Use the grouping render function
 }
 
 // ======================================================================
@@ -96,33 +117,13 @@ async function displayCommunities() {
 const searchBox = document.getElementById('searchBox');
 if (searchBox) {
   searchBox.addEventListener('input', async (event) => {
-    const searchTerm = event.target.value.trim().toLowerCase(); // Trim whitespace
-    const tableName = 'Listings'; // Or 'Communities' depending on what you search
+    const searchTerm = event.target.value.trim().toLowerCase();
 
-    // Clear previous errors
-    displayError('');
+    // Fetch filtered AND sorted data
+    const filteredEntries = await fetchTableData('Listings', searchTerm);
 
-    // If search term is empty, display all listings again
-    if (searchTerm === '') {
-      displayListings();
-      return;
-    }
-
-    // Use the initialized supabaseClient
-    const { data, error } = await supabaseClient
-      .from(tableName)
-      .select('*')
-      // Ensure your columns exist for the ILIKE search
-      .or(`name.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`); // Case-insensitive search
-
-    if (error) {
-      console.error(`Error searching ${tableName}:`, error);
-      displayError(`Error searching directory. Please check console (F12) for details.`);
-      renderEntries([]); // Clear results on error
-      return;
-    }
-
-    renderEntries(data); // Render the filtered data
+    // Render the filtered and grouped results
+    renderGroupedEntries(filteredEntries);
   });
 } else {
     console.error("Search box element not found.");
@@ -130,15 +131,13 @@ if (searchBox) {
 
 
 // ======================================================================
-// Initial Load
+// Initial Load Trigger
 // ======================================================================
 window.addEventListener('DOMContentLoaded', () => {
-  // Ensure the results div exists before trying to load data
   if (document.getElementById('results')) {
-    // Change to displayCommunities() if you want to show Communities by default
-    displayListings();
+    displayAllListings(); // Load initial grouped list
   } else {
     console.error("Results container element not found on initial load.");
-    displayError("Page structure error: Results container missing.");
+    // displayError might not work if #results isn't there yet
   }
 });

@@ -1,60 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cluculz Lake Directory</title>
-  <style>
-    /* Basic styling */
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .entry {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    #results {
-      margin-top: 20px;
-    }
-    #error-message {
-      color: red;
-      font-weight: bold;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cluculz Lake Community Directory</title> <!-- Updated Title -->
+    <style>
+        /* --- Styles copied directly from your provided target HTML --- */
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        #logo {
+            display: block;
+            margin: 0 auto 15px auto;
+            max-width: 150px; /* Use max-width for responsiveness */
+            height: auto;
+        }
+        h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+        .search-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        /* Label styling (optional, but good practice) */
+        .search-container label {
+             display: block; /* Put label on its own line */
+             margin-bottom: 5px; /* Space between label and input */
+             font-weight: bold; /* Make label slightly more prominent */
+        }
+        #searchBox {
+            padding: 8px;
+            width: 90%;
+            max-width: 300px;
+            /* display: inline-block; - Not needed if label is block */
+            /* vertical-align: middle; */
+            box-sizing: border-box; /* Include padding in width */
+        }
+        #results {
+             padding-left: 0;
+             margin-top: 15px;
+             list-style: none;
+             border-top: 1px solid #ccc;
+             padding-top: 15px;
+        }
+        .category-heading {
+            background-color: #F5F1E6;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            padding: 6px 5px;
+            border-bottom: 2px solid #888;
+            list-style: none; /* Ensure no bullet point */
+        }
+        #results li.category-heading:first-child {
+            margin-top: 0px;
+        }
+        #results li.directory-entry {
+             list-style: none; /* Ensure no bullet point */
+             padding: 6px 0 6px 5px;
+             border-bottom: 1px solid #eee;
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             flex-wrap: wrap; /* Allow wrapping on small screens */
+        }
+        #results li.directory-entry:last-child { border-bottom: none; }
+        .name {
+            font-weight: bold;
+            margin-right: 15px; /* Space between name and phone */
+            flex-basis: 60%; /* Give name more initial space */
+            flex-grow: 1; /* Allow name to grow */
+         }
+        .phone {
+            color: #555;
+            white-space: nowrap; /* Prevent phone number wrapping */
+            flex-shrink: 0; /* Prevent phone number shrinking */
+            text-align: right; /* Align phone to the right */
+         }
+         .phone a, .phone a:visited {
+             color: #1a0dab; /* Standard link blue */
+             text-decoration: none;
+         }
+         .phone a:hover, .phone a:focus {
+             text-decoration: underline;
+         }
+        .notice {
+            font-size: 0.8em;
+            color: grey;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        /* --- Styles for Print Button --- */
+        .print-container {
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 30px;
+        }
+
+        #printButton {
+            background: none;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            color: #333;
+            font-family: inherit;
+            text-align: center;
+        }
+
+        #printButton:hover {
+             opacity: 0.7;
+        }
+
+        .print-icon {
+            font-size: 2.5em;
+            display: block;
+            margin-bottom: 3px;
+            line-height: 1;
+        }
+
+        .print-text {
+            font-size: 0.9em;
+            display: block;
+        }
+
+
+        /* --- Print Specific CSS --- */
+        @media print {
+            body {
+                padding: 10px;
+                font-family: sans-serif; /* Ensure font is set for printing */
+            }
+            #logo,
+            .search-container,
+            .print-container,
+            .notice {
+                display: none !important;
+            }
+            h1 { /* Optional: Style heading for print */
+                font-size: 16pt;
+                text-align: left;
+                margin-bottom: 15px;
+            }
+            #results {
+                border-top: none;
+                padding-top: 0;
+                margin-top: 0;
+            }
+            .category-heading {
+                background-color: #eee !important; /* Ensure background prints */
+                color: #000 !important;
+                padding: 4px 2px;
+                font-size: 12pt;
+                font-weight: bold;
+                margin-top: 15px;
+                border-bottom: 1px solid #888;
+                page-break-after: avoid; /* Prevent page breaks right after heading */
+            }
+             #results li.category-heading:first-child {
+                margin-top: 0px;
+            }
+            #results li.directory-entry {
+                font-size: 10pt;
+                padding: 3px 0;
+                border-bottom: 1px solid #ccc;
+                display: flex; /* Keep flex for alignment */
+                justify-content: space-between;
+                flex-wrap: nowrap; /* Prevent wrapping on print */
+            }
+            #results li.directory-entry:last-child {
+                border-bottom: none;
+            }
+            .name {
+                 /* display: inline-block; - Flex handles this */
+                 margin-right: 10px;
+                 font-weight: normal; /* Adjust if needed */
+                 flex-basis: auto; /* Reset flex basis */
+                 flex-grow: 1;
+            }
+            .phone, .phone a {
+                 color: #000 !important;
+                 text-decoration: none !important;
+                 /* display: inline-block; - Flex handles this */
+                 white-space: nowrap;
+                 flex-shrink: 0;
+                 text-align: right;
+            }
+            /* Ensure list items don't break across pages if possible */
+            #results li {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <img src="Logo.jpg" alt="Cluculz Lake Logo" width="150">
-    <h1>Cluculz Lake Directory</h1>
-  </header>
 
-  <p>This directory is for community members only. Information included with consent.</p>
-  <p>To update or remove your listing, please contact [Your Name/Contact Info].</p>
+    <!-- === LOGO: Make sure src matches your actual file name === -->
+    <img id="logo" src="Logo.png" alt="Cluculz Lake BC Logo">
 
-  <!-- Search Box -->
-  <label for="searchBox">Search by Name or Category:</label>
-  <input type="text" id="searchBox" placeholder="Type to search...">
+    <h1>Cluculz Lake Community Directory</h1>
 
-  <!-- Error Message -->
-  <p id="error-message"></p> <!-- Keep this to potentially display errors later -->
+    <div class="search-container">
+        <!-- Use label for accessibility -->
+        <label for="searchBox">Search by Name or Category:</label>
+        <input type="text" id="searchBox" placeholder="Enter name or category...">
+    </div>
 
-  <!-- Results Container -->
-  <div id="results">
-    <!-- Directory entries will be dynamically inserted here -->
-    <p>Loading directory...</p> <!-- Optional loading message -->
-  </div>
+    <!-- === PRINT BUTTON AREA === -->
+    <div class="print-container">
+        <button id="printButton" title="Print or Save Directory as PDF">
+            <span class="print-icon"></span> <!-- Printer Unicode Character -->
+            <span class="print-text">Print Directory</span>
+        </button>
+    </div>
+    <!-- ============================== -->
 
-  <!-- Include Supabase Client Library -->
-  <!-- Make sure this line is BEFORE Directory.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- === RESULTS CONTAINER: Must be a UL for the JS === -->
+    <ul id="results">
+        <!-- Directory listings will appear here -->
+        <li>Loading directory...</li> <!-- Optional initial message -->
+    </ul>
 
-  <!-- Include your directory script -->
-  <script src="Directory.js"></script>
+    <!-- === NOTICE TEXT === -->
+    <p class="notice">
+        This directory is for community members only. Information included with consent.
+        To update or remove your listing, please contact [Your Name/Contact Info]. <!-- <<< UPDATE THIS -->
+    </p>
+
+    <!-- === SCRIPT LOADING AREA === -->
+    <!-- Load Supabase Client FIRST -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Load Your Directory Logic SECOND -->
+    <script src="Directory.js"></script>
+    <!-- Load Print Button Logic LAST (or combine into Directory.js) -->
+    <script>
+        // Add Print Button functionality
+        const printBtn = document.getElementById('printButton');
+        if (printBtn) {
+            printBtn.addEventListener('click', () => {
+                window.print(); // Triggers the browser's print dialog
+            });
+        }
+    </script>
+    <!-- ========================= -->
+
 </body>
 </html>
