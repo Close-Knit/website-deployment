@@ -5,20 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cluculz Lake Directory</title>
   <style>
-    /* Add any necessary CSS styling here */
+    /* Basic styling */
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
     }
     .entry {
       border: 1px solid #ccc;
       padding: 10px;
       margin-bottom: 10px;
     }
+    #results {
+      margin-top: 20px;
+    }
+    #error-message {
+      color: red;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <h1>Cluculz Lake Directory</h1>
+  <header>
+    <img src="Logo.jpg" alt="Cluculz Lake Logo" width="150">
+    <h1>Cluculz Lake Directory</h1>
+  </header>
+
   <p>This directory is for community members only. Information included with consent.</p>
   <p>To update or remove your listing, please contact [Your Name/Contact Info].</p>
 
@@ -26,12 +41,15 @@
   <label for="searchBox">Search by Name or Category:</label>
   <input type="text" id="searchBox" placeholder="Type to search...">
 
+  <!-- Error Message -->
+  <p id="error-message"></p>
+
   <!-- Results Container -->
   <div id="results">
     <!-- Directory entries will be dynamically inserted here -->
   </div>
 
   <!-- Include directory.js -->
-  <script src="directory.js"></script>
+  <script src="Directory.js"></script>
 </body>
 </html>

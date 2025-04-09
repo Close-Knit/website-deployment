@@ -2,8 +2,7 @@
 // Initialize Supabase
 // ======================================================================
 const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co'; // Replace with your actual Supabase URL
-const supabaseKey =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q'; // Replace with your anon key
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q'; // Replace with your anon key
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // ======================================================================
@@ -17,6 +16,7 @@ async function fetchDirectoryData() {
 
   if (error) {
     console.error('Error fetching data:', error);
+    displayError('Failed to load directory. Please try again later.');
     return [];
   }
 
@@ -26,7 +26,12 @@ async function fetchDirectoryData() {
 // ======================================================================
 // Display Directory Entries
 // ======================================================================
-const resultsList = document.getElementById('results'); // Reference to the HTML element where results will be displayed
+const resultsList = document.getElementById('results');
+const errorMessage = document.getElementById('error-message');
+
+function displayError(message) {
+  errorMessage.textContent = message;
+}
 
 async function displayDirectory() {
   const entries = await fetchDirectoryData();
@@ -63,7 +68,7 @@ searchBox.addEventListener('input', async (event) => {
 
   if (error) {
     console.error('Error searching data:', error);
-    resultsList.innerHTML = '<p>Error searching directory.</p>';
+    displayError('Error searching directory.');
     return;
   }
 
