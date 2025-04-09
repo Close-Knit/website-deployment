@@ -42,14 +42,19 @@
   <input type="text" id="searchBox" placeholder="Type to search...">
 
   <!-- Error Message -->
-  <p id="error-message"></p>
+  <p id="error-message"></p> <!-- Keep this to potentially display errors later -->
 
   <!-- Results Container -->
   <div id="results">
     <!-- Directory entries will be dynamically inserted here -->
+    <p>Loading directory...</p> <!-- Optional loading message -->
   </div>
 
-  <!-- Include directory.js -->
+  <!-- Include Supabase Client Library -->
+  <!-- Make sure this line is BEFORE Directory.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Include your directory script -->
   <script src="Directory.js"></script>
 </body>
 </html>
