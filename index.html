@@ -1,37 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cluculz Lake Directory</title>
-  <style>
-    /* Add any necessary CSS styling here */
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    .entry {
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lake Community Directory</title>
+    <style>
+        /* --- Existing styles from previous steps --- */
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        #logo {
+            display: block;
+            margin: 0 auto 15px auto;
+            max-width: 150px;
+            height: auto;
+        }
+        h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+        .search-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .search-container p {
+            display: inline-block;
+            margin: 0 10px 0 0;
+            vertical-align: middle;
+        }
+        #searchBox {
+            padding: 8px;
+            width: 90%;
+            max-width: 300px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        #results {
+             padding-left: 0;
+             margin-top: 15px;
+             list-style: none;
+             border-top: 1px solid #ccc;
+             padding-top: 15px;
+        }
+        .category-heading {
+            background-color: #F5F1E6;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            padding: 6px 5px;
+            border-bottom: 2px solid #888;
+            list-style: none;
+        }
+        #results li.category-heading:first-child {
+            margin-top: 0px;
+        }
+        #results li.directory-entry {
+             list-style: none;
+             padding: 6px 0 6px 5px;
+             border-bottom: 1px solid #eee;
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             flex-wrap: wrap;
+        }
+        #results li.directory-entry:last-child { border-bottom: none; }
+        .name {
+            font-weight: bold;
+            margin-right: 15px;
+            flex-grow: 1;
+         }
+        .phone {
+            color: #555;
+            white-space: nowrap;
+            flex-shrink: 0;
+         }
+         .phone a, .phone a:visited {
+             color: #1a0dab;
+             text-decoration: none;
+         }
+         .phone a:hover, .phone a:focus {
+             text-decoration: underline;
+         }
+        .notice {
+            font-size: 0.8em;
+            color: grey;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        /* --- NEW/MODIFIED Styles for Print Button --- */
+        .print-container {
+            text-align: center; /* Center the button */
+            margin-top: 10px;  /* Space below search */
+            margin-bottom: 30px; /* Space above results */
+        }
+
+        #printButton {
+            background: none; /* Remove default background */
+            border: none; /* Remove default border */
+            padding: 5px 10px; /* Add some padding */
+            cursor: pointer; /* Indicate it's clickable */
+            color: #333; /* Set a text color */
+            font-family: inherit; /* Use the body font */
+            text-align: center; /* Center content within button */
+        }
+
+        #printButton:hover {
+             opacity: 0.7; /* Slight fade on hover */
+        }
+
+        .print-icon {
+            font-size: 2.5em; /* Make the icon larger */
+            display: block; /* Put icon on its own line */
+            margin-bottom: 3px; /* Space between icon and text */
+            line-height: 1; /* Adjust line height for icon */
+        }
+
+        .print-text {
+            font-size: 0.9em; /* Text size */
+            display: block; /* Ensure it's on its own line */
+        }
+
+
+        /* --- Print Specific CSS --- */
+        @media print {
+            body {
+                padding: 10px;
+            }
+            #logo,
+            .search-container,
+            .print-container, /* === HIDE THE ENTIRE PRINT CONTAINER === */
+            .notice {
+                display: none !important;
+            }
+            #results {
+                border-top: none;
+                padding-top: 0;
+                margin-top: 0;
+            }
+            .category-heading {
+                background-color: #eee !important;
+                color: #000 !important;
+                padding: 4px 2px;
+                font-size: 12pt;
+                margin-top: 15px;
+                page-break-after: avoid;
+            }
+            #results li.directory-entry {
+                font-size: 10pt;
+                padding: 3px 0;
+                border-bottom: 1px solid #ccc;
+                display: block;
+            }
+            #results li.directory-entry:last-child {
+                border-bottom: none;
+            }
+            .name {
+                 display: inline-block;
+                 margin-right: 10px;
+                 font-weight: bold; /* Ensure name is bold on print */
+            }
+            .phone, .phone a {
+                 color: #000 !important;
+                 text-decoration: none !important;
+                 display: inline-block;
+            }
+            #results li {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
 </head>
 <body>
-  <h1>Cluculz Lake Directory</h1>
-  <p>This directory is for community members only. Information included with consent.</p>
-  <p>To update or remove your listing, please contact [Your Name/Contact Info].</p>
 
-  <!-- Search Box -->
-  <label for="searchBox">Search by Name or Category:</label>
-  <input type="text" id="searchBox" placeholder="Type to search...">
+    <img id="logo" src="logo.png" alt="Cluculz Lake BC Logo">
 
-  <!-- Results Container -->
-  <div id="results">
-    <!-- Directory entries will be dynamically inserted here -->
-  </div>
+    <h1>Cluculz Lake Community Directory</h1>
 
-  <!-- Include directory.js -->
-  <script src="directory.js"></script>
+    <div class="search-container">
+        <p>Search by Name or Category:</p>
+        <input type="text" id="searchBox" placeholder="Enter name or category...">
+    </div>
+
+    <!-- === UPDATED PRINT BUTTON AREA === -->
+    <div class="print-container">
+        <button id="printButton" title="Print or Save Directory as PDF">
+            <span class="print-icon">&#128424;</span> <!-- Printer Unicode Character -->
+            <span class="print-text">Print Directory</span>
+        </button>
+    </div>
+    <!-- ============================== -->
+
+    <ul id="results">
+        <!-- Directory listings will appear here -->
+    </ul>
+
+    <p class="notice">
+        This directory is for community members only. Information included with consent.
+        To update or remove your listing, please contact [Your Name/Contact Info].
+    </p>
+
+    <script src="directory.js"></script>
+    <script>
+        // Add Print Button functionality
+        const printBtn = document.getElementById('printButton');
+        if (printBtn) {
+            printBtn.addEventListener('click', () => {
+                window.print(); // Triggers the browser's print dialog
+            });
+        }
+    </script>
 </body>
 </html>
