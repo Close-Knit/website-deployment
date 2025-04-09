@@ -30,9 +30,8 @@ async function fetchTableData(tableName, searchTerm = null) {
     .select('*');
 
   if (searchTerm) {
+      // Consider adding phone_number to search if needed
       query = query.or(`name.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%`);
-      // Add other searchable fields if desired, e.g.,
-      // query = query.or(`name.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,notes.ilike.%${searchTerm}%`);
   }
 
   query = query.order('category', { ascending: true, nullsFirst: false })
@@ -50,7 +49,7 @@ async function fetchTableData(tableName, searchTerm = null) {
 }
 
 // ======================================================================
-// Render Entries with Category Grouping ( *** MODIFIED SECTION *** )
+// Render Entries with Category Grouping ( *** phone_number SECTION MODIFIED *** )
 // ======================================================================
 function renderGroupedEntries(entries) {
     const resultsList = document.getElementById('results');
@@ -75,47 +74,45 @@ function renderGroupedEntries(entries) {
             htmlContent += `<li class="category-heading">${currentCategory}</li>`;
         }
 
-        // --- Start Building the Name/Person/Notes Span ---
+        // --- Build the Name/Person/Notes Span (No changes here) ---
         let nameDisplayContent = '';
         if (entry.name) {
-            // Use textContent to prevent potential HTML injection if data isn't sanitized
             const nameSpan = document.createElement('span');
             nameSpan.textContent = entry.name;
-            nameDisplayContent += nameSpan.outerHTML; // Add the main name (bolded by CSS)
+            nameDisplayContent += nameSpan.outerHTML;
         } else {
-            nameDisplayContent += 'No Name Provided'; // Placeholder
+            nameDisplayContent += 'No Name Provided';
         }
-
-        // Add contact_person if available (e.g., in parentheses)
         if (entry.contact_person) {
             const personSpan = document.createElement('span');
-            personSpan.textContent = ` (${entry.contact_person})`; // Add space and parentheses
+            personSpan.textContent = ` (${entry.contact_person})`;
             nameDisplayContent += personSpan.outerHTML;
         }
-
-        // Add notes if available (e.g., italicized with a separator)
         if (entry.notes) {
-            const notesSpan = document.createElement('i'); // Use <i> for italics
-            notesSpan.textContent = ` - ${entry.notes}`; // Add separator and notes
+            const notesSpan = document.createElement('i');
+            notesSpan.textContent = ` - ${entry.notes}`;
             nameDisplayContent += notesSpan.outerHTML;
         }
         // --- End Building the Name/Person/Notes Span ---
 
 
-        // --- Build the Phone/Contact Info Span (as before) ---
-        let contactDisplay = ''; // Default empty
-        if (entry.contact_info) {
+        // --- Build the Phone/Contact Info Span ( *** USING phone_number *** ) ---
+        let contactDisplay = '';
+        // *** Use entry.phone_number ***
+        if (entry.phone_number) {
             const phoneLink = document.createElement('a');
-            phoneLink.textContent = entry.contact_info;
-            // Basic check for digits to create tel: link
-             if (/\d/.test(entry.contact_info)) {
-                const telLink = entry.contact_info.replace(/[^0-9+]/g, '');
+            // *** Use entry.phone_number ***
+            phoneLink.textContent = entry.phone_number;
+            // *** Use entry.phone_number ***
+             if (/\d/.test(entry.phone_number)) {
+                 // *** Use entry.phone_number ***
+                const telLink = entry.phone_number.replace(/[^0-9+]/g, '');
                 phoneLink.href = `tel:${telLink}`;
              }
              contactDisplay = phoneLink.outerHTML;
         } else {
-            // You might want a placeholder if no contact_info, or just leave it blank
-            // contactDisplay = 'No contact info';
+            // Placeholder if desired
+            // contactDisplay = 'No phone number';
         }
         // --- End Building the Phone/Contact Info Span ---
 
@@ -131,7 +128,6 @@ function renderGroupedEntries(entries) {
     resultsList.innerHTML = htmlContent;
 }
 
-
 // ======================================================================
 // Initial Load / Display All Listings (No changes here)
 // ======================================================================
@@ -141,7 +137,7 @@ async function displayAllListings() {
 }
 
 // ======================================================================
-// Search Functionality (No changes here, but consider adding notes/person to search)
+// Search Functionality (No changes here)
 // ======================================================================
 const searchBox = document.getElementById('searchBox');
 if (searchBox) {
@@ -153,7 +149,6 @@ if (searchBox) {
 } else {
     console.error("Search box element not found.");
 }
-
 
 // ======================================================================
 // Initial Load Trigger (No changes here)
