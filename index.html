@@ -1,69 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Canada Telephone Directory</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <header>
-    <h1>Canada Telephone Directory</h1>
-    <p>This directory is for community members only. Home-based business information included with consent, by request, or provided directly by the business itself.</p>
-  </header>
-  <main id="province-list">
-    <!-- Provinces and communities will be dynamically populated here -->
-  </main>
-  <footer>
-    <p>To update or remove your listing, please see the 'contact us' link.</p>
-  </footer>
-  <script>
-    // Example structure for provinces and communities
-    const provinces = {
-      "British Columbia": [
-        { name: "Cluculz Lake", community_id: 1 },
-        { name: "Dease Lake", community_id: 2 },
-        { name: "Houston", community_id: 3 },
-        { name: "Vanderhoof", community_id: 4 },
-        { name: "Fort St. James", community_id: 5 }
-      ],
-      "Alberta": [
-        { name: "Vermilion", community_id: 6 },
-        { name: "Barrhead", community_id: 7 },
-        { name: "Peace River", community_id: 8 },
-        { name: "Westlock", community_id: 9 },
-        { name: "Devon", community_id: 10 }
-      ]
-      // Add more provinces and communities as needed
-    };
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Directory</title>
+    <style>
+        /* Restored Styles */
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        #logo {
+            display: block;
+            margin: 0 auto 15px auto;
+            max-width: 150px;
+            height: auto;
+        }
+        h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+        .search-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .search-container label {
+             display: block;
+             margin-bottom: 5px;
+             font-weight: bold;
+        }
+        #searchBox {
+            padding: 8px;
+            width: 90%;
+            max-width: 300px;
+            box-sizing: border-box;
+        }
+        #results {
+             padding-left: 0;
+             margin-top: 15px;
+             list-style: none;
+             border-top: 1px solid #ccc;
+             padding-top: 15px;
+        }
+        .category-heading {
+            background-color: #F5F1E6;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            padding: 6px 5px;
+            border-bottom: 2px solid #888;
+            list-style: none; 
+        }
+        #results li.category-heading:first-child {
+            margin-top: 0px;
+        }
+        #results li.directory-entry {
+             list-style: none; 
+             padding: 6px 0 6px 5px; 
+             border-bottom: 1px solid #eee; 
+             display: flex; 
+             justify-content: space-between; 
+             align-items: center; 
+             flex-wrap: wrap; 
+        }
+        #results li.directory-entry:last-child { border-bottom: none; }
+        .name {
+            font-weight: bold; 
+            margin-right: 15px; 
+            flex-basis: 60%; 
+            flex-grow: 1; 
+         }
+        .phone {
+            color: #555; 
+            white-space: nowrap; 
+            flex-shrink: 0; 
+            text-align: right; 
+         }
+         .phone a, .phone a:visited {
+             color: #1a0dab; 
+             text-decoration: none; 
+         }
+         .phone a:hover, .phone a:focus {
+             text-decoration: underline; 
+         }
+        .notice {
+            font-size: 0.8em; 
+            color: grey; 
+            margin-top: 30px; 
+            text-align: center; 
+        }
 
-    // Populate provinces and communities on the home page
-    const provinceList = document.getElementById("province-list");
+        /* Print Button Styles */
+        .print-container {
+            text-align: center; 
+            margin-top: 10px; 
+            margin-bottom: 30px; 
+        }
 
-    Object.keys(provinces).forEach(province => {
-      const provinceSection = document.createElement("section");
-      const provinceHeader = document.createElement("h2");
-      
-      provinceHeader.textContent = province;
-      provinceSection.appendChild(provinceHeader);
-
-      const communityList = document.createElement("ul");
-      
-      provinces[province].forEach(community => {
-        const communityItem = document.createElement("li");
-        const communityLink = document.createElement("a");
-
-        // Link to the community template with query parameters
-        communityLink.href = `community.html?community_id=${encodeURIComponent(community.community_id)}`;
-        communityLink.textContent = community.name;
-
-        communityItem.appendChild(communityLink);
-        communityList.appendChild(communityItem);
-      });
-
-      provinceSection.appendChild(communityList);
-      provinceList.appendChild(provinceSection);
-    });
-  </script>
-</body>
-</html>
+        #printButton {
+            background-color:#f8f9fa ;
+border-radius :10 px
