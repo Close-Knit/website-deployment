@@ -21,6 +21,24 @@ a:hover, a:focus {
      text-decoration: underline;
 }
 
+/* --- Start: Site Logo Styles --- */ /* <--- PUT THE SNIPPET HERE */
+
+#site-logo-link {
+    display: inline-block; 
+    text-decoration: none; 
+    border: none;          
+    margin-bottom: 20px;   
+}
+
+#site-logo {
+    display: block;        
+    width: 150px;          
+    height: auto;          
+    vertical-align: middle;
+}
+
+/* --- End: Site Logo Styles --- */
+
 /* ====================================================================== */
 /* Styles for Home Page List (index.html) */
 /* ====================================================================== */
