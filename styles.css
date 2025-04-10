@@ -159,19 +159,24 @@ a:hover, a:focus {
     margin-top: 15px; /* Adjusted spacing */
     margin-bottom: 30px;
 }
+/* --- Start: Paste this snippet to replace existing #printButton rules --- */
+
 #printButton {
-    padding: 10px 20px; /* Larger button */
+    padding: 8px 15px; /* Adjusted padding slightly */
     font-size: 1em;
     cursor: pointer;
-    background-color: #6c757d; /* Muted gray background */
-    color: white;
-    border: 1px solid #6c757d;
+    background-color: #ffffff; /* White background like original */
+    color: #333;             /* Darker text */
+    border: 1px solid #adb5bd; /* Visible gray border */
     border-radius: 5px;
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 #printButton:hover {
-    background-color: #5a6268; /* Darker gray on hover */
-    border-color: #545b62;
+    background-color: #f8f9fa; /* Optional: Light gray background on hover */
+    border-color: #adb5bd;    /* Keep border consistent on hover */
+}
+
+/* --- End: Paste snippet --- */
 }
 .print-icon {
     margin-right: 8px;
