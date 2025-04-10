@@ -68,7 +68,7 @@ async function fetchAndDisplayListings() {
 
          // Set logo source and alt text if a path was found
          if (logoPath) {
-             logoElement.src = logoPath;
+             logoElement.src = `images/logos/${logoFilename}`; 
              logoElement.alt = logoAlt;
              logoElement.style.display = 'block'; // Show the logo
          } else {
