@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Community Directory - Home</title>
-    <!-- Link to your main stylesheet if you have one -->
-    <link rel="stylesheet" href="styles.css"> 
+    <!-- Link to the central stylesheet -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -13,16 +13,15 @@
 
     <!-- This is the container home.js will populate -->
     <div id="province-list">
-        <!-- Province and community links will appear here -->
+        <p>Loading available communities...</p>
     </div>
-   
+
     <!-- Load Supabase library FIRST -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
-    <!-- IMPORTANT: Link to the home.js script -->
-    <!-- Use 'defer' to ensure HTML is parsed before script runs -->
-    <script src="home.js" defer></script> 
+    <!-- THEN load your script that USES Supabase -->
+    <!-- Use 'defer' to allow HTML parsing before script runs, but DOMContentLoaded in JS is safer -->
+    <script src="home.js" defer></script>
 
 </body>
 </html>

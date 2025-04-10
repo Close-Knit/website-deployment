@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Community Directory</title>
+  <title>Community Directory</title> <!-- Title gets updated by JS -->
+  <!-- Link to the central stylesheet -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
   <!-- Logo dynamically populated -->
-  <img id="logo" src="" alt="Community Logo">
+  <img id="logo" src="" alt="Community Logo" style="display: none;"> <!-- Start hidden until src is set -->
 
   <!-- Heading dynamically populated -->
   <h1 id="community-name">Community Directory</h1>
@@ -22,7 +23,7 @@
   <!-- Print Button -->
   <div class="print-container">
       <button id="printButton" title="Print or Save Directory as PDF">
-          <span class="print-icon">&#128424;</span>
+          <span class="print-icon"></span> <!-- Printer icon -->
           <span class="print-text">Print Directory</span>
       </button>
   </div>
@@ -30,6 +31,7 @@
   <!-- Results container -->
   <ul id="results">
       <!-- Directory listings will appear here -->
+      <li>Loading listings...</li>
   </ul>
 
   <!-- Notice text -->
@@ -39,7 +41,9 @@
   </p>
 
   <!-- Scripts -->
+  <!-- Load Supabase library FIRST -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- THEN load your script that USES Supabase (lowercase 'd') -->
   <script src="directory.js"></script>
 </body>
 </html>
