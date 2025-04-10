@@ -1,5 +1,7 @@
+// --- START OF directory.js (Fixing ReferenceError) ---
+
 // ======================================================================
-// Initialize Supabase
+// Initialize Supabase (Same as before)
 // ======================================================================
 const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
@@ -7,7 +9,7 @@ const { createClient } = supabase;
 const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
 // ======================================================================
-// Helper to display error messages
+// Helper to display error messages (Same as before)
 // ======================================================================
 function displayError(message) {
     console.error("Directory Error:", message);
@@ -19,7 +21,6 @@ function displayError(message) {
      if (communityNameElement) {
           communityNameElement.textContent = "Error Loading Directory";
      }
-     // Hide logo on error
      const logoElement = document.getElementById('logo');
      if(logoElement) logoElement.style.display = 'none';
 }
@@ -44,56 +45,28 @@ async function fetchAndDisplayListings() {
         return;
     }
 
-    // --- Update Page Title/Heading & Set Up Logo ---
-     const baseTitle = `${communityName}, ${provinceName}`;
-     if (communityNameElement) communityNameElement.textContent = `Loading ${baseTitle} Directory...`; // Update during load
+    const baseTitle = `${communityName}, ${provinceName}`;
+     if (communityNameElement) communityNameElement.textContent = `Loading ${baseTitle} Directory...`;
      if (pageTitle) pageTitle.textContent = `${baseTitle} Directory`;
-
-     // Set Logo Dynamically - ADJUST PATHS AS NEEDED
-     if (logoElement) {
-         let logoPath = ""; // Default empty
-         let logoAlt = `${communityName} Logo`; // Default alt text
-
-         // Add specific logos based on community/province
-         if (communityName === "Cluculz Lake" && provinceName === "British Columbia") {
-              // *** IMPORTANT: CHANGE THIS PATH to your actual Cluculz Lake logo ***
-              logoPath = "images/logos/cluculz_lake_logo.png";
-              logoAlt = "Cluculz Lake Logo";
-         }
-         // Add more 'else if' blocks here for other specific community logos
-         // else if (communityName === "SomeOtherCommunity" && provinceName === "SomeProvince") {
-         //      logoPath = "images/logos/some_other_logo.png";
-         //      logoAlt = "Some Other Logo";
-         // }
-
-         // Set logo source and alt text if a path was found
-         if (logoPath) {
-             logoElement.src = `images/logos/${logoFilename}`; 
-             logoElement.alt = logoAlt;
-             logoElement.style.display = 'block'; // Show the logo
-         } else {
-             logoElement.style.display = 'none'; // Hide if no specific logo found
-         }
-     }
+     // Hide logo initially until we know if one exists
+     if (logoElement) logoElement.style.display = 'none';
 
 
-    // --- Determine Provincial Table Name ---
-    // Assumes table names match province names (e.g., "British_Columbia", "Ontario")
     const tableName = provinceName.replace(/ /g, '_');
     console.log(`Attempting to load directory for community: "${communityName}", province: "${provinceName}" (Table: "${tableName}")`);
 
     try {
-        // --- Step 1: Get the Community ID from the communities table ---
-        console.log(`Fetching ID for community name: "${communityName}"`);
+        // --- Step 1: Get Community ID AND Logo Filename ---
+        console.log(`Fetching ID and logo for community name: "${communityName}"`);
         const { data: communityData, error: communityError } = await supabaseClient
             .from('communities')
-            .select('id')
+            .select('id, logo_filename') // Select id AND the logo_filename column
             .eq('community_name', communityName)
             .limit(1)
             .single();
 
         if (communityError) {
-            console.error("Supabase error fetching community ID:", communityError);
+            console.error("Supabase error fetching community data:", communityError);
             throw new Error(`Could not verify community "${communityName}". ${communityError.message}`);
         }
 
@@ -102,12 +75,25 @@ async function fetchAndDisplayListings() {
         }
 
         const communityId = communityData.id;
-        console.log(`Found Community ID: ${communityId} for "${communityName}"`);
+        // ***** THIS IS THE CRUCIAL LINE TO ENSURE IS PRESENT *****
+        const logoFilename = communityData.logo_filename; // Get the filename from DB
+        // **********************************************************
+
+        console.log(`Found Community ID: ${communityId}, Logo Filename: ${logoFilename || 'None'}`);
+
+        // --- Set Logo Dynamically using DB value ---
+        if (logoElement && logoFilename) { // Check if logo element exists AND filename is not null/empty
+             // Uses the 'logoFilename' variable declared above
+             logoElement.src = `images/logos/${logoFilename}`;
+             logoElement.alt = `${communityName} Logo`; // Use community name for alt text
+             logoElement.style.display = 'block'; // Show the logo element
+        }
+        // No 'else' needed - logo remains hidden if logoFilename is null/empty
 
 
-        // --- Step 2: Fetch listings using the Community ID ---
+        // --- Step 2: Fetch listings using the Community ID (Same as before) ---
          console.log(`Fetching listings from table "${tableName}" using community_id: ${communityId}`);
-        const { data: listings, error: listingsError } = await supabaseClient
+         const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
             .select('*')
             .eq('community_id', communityId)
@@ -120,45 +106,39 @@ async function fetchAndDisplayListings() {
             });
 
 
-        if (listingsError) {
+        if (listingsError) { // Handle listing fetch errors (same as before)
             console.error("Supabase error fetching listings:", listingsError);
             if (listingsError.code === '42P01') { throw new Error(`Database table "${tableName}" not found.`); }
             if (listingsError.code === '42703') { throw new Error(`Column 'community_id' missing in table "${tableName}".`); }
             throw new Error(`Failed to fetch listings: ${listingsError.message}`);
         }
 
-        // --- Step 3: Group Listings by Category ---
-        resultsList.innerHTML = ''; // Clear loading message
 
-        if (!listings || listings.length === 0) {
+        // --- Step 3 & 4: Group and Render Listings (Same logic as before) ---
+        resultsList.innerHTML = ''; // Clear loading
+
+        if (!listings || listings.length === 0) { // Handle no listings found (same as before)
             resultsList.innerHTML = `<li>No listings found for ${communityName}.</li>`;
-            // Update heading to reflect no listings
             if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (0 listings)`;
             return;
         }
 
-        // Update heading with final count
+        // Update heading with final count (same as before)
         if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (${listings.length} listings)`;
 
-
+        // Grouping logic (same as before)
         const groupedListings = listings.reduce((acc, listing) => {
-            const category = listing.category || 'Uncategorized'; // Group nulls
-            if (!acc[category]) {
-                acc[category] = [];
-            }
+            const category = listing.category || 'Uncategorized';
+            if (!acc[category]) { acc[category] = []; }
             acc[category].push(listing);
             return acc;
         }, {});
-
-        // Sort categories alphabetically, handle "Uncategorized" potentially
         const sortedCategories = Object.keys(groupedListings).sort((a, b) => {
-             if (a === 'Uncategorized') return 1; // Put Uncategorized last
-             if (b === 'Uncategorized') return -1;
-             return a.localeCompare(b); // Standard sort for others
+             if (a === 'Uncategorized') return 1; if (b === 'Uncategorized') return -1;
+             return a.localeCompare(b);
         });
 
-
-        // --- Step 4: Render Grouped Listings ---
+        // Rendering logic (same as before)
         sortedCategories.forEach(category => {
             const categoryHeadingItem = document.createElement('li');
             categoryHeadingItem.className = 'category-heading';
@@ -185,94 +165,62 @@ async function fetchAndDisplayListings() {
 }
 
 // ======================================================================
-// Initialize Search Functionality
+// Initialize Search Functionality (Same as before)
 // ======================================================================
 function initializeSearch() {
-    const searchBox = document.getElementById('searchBox');
+     const searchBox = document.getElementById('searchBox');
     const resultsList = document.getElementById('results');
-
-    if (!searchBox || !resultsList) {
-        console.warn("Search box or results list element not found. Search disabled.");
-        return;
-    }
-
+    if (!searchBox || !resultsList) return;
     searchBox.addEventListener('input', () => {
         const query = searchBox.value.toLowerCase().trim();
         const categoryHeadings = resultsList.querySelectorAll('.category-heading');
         const entries = resultsList.querySelectorAll('.directory-entry');
-        let visibleCategories = new Set(); // Keep track of categories with visible entries
-
-        // Filter individual entries first
+        let visibleCategories = new Set();
         entries.forEach(entry => {
             const name = entry.querySelector('.name')?.textContent.toLowerCase() || '';
             const phone = entry.querySelector('.phone')?.textContent.toLowerCase() || '';
-             // Search category text from the HEADING, not within the entry itself
-            // const category = entry.querySelector('.category')?.textContent.toLowerCase() || ''; // Remove this line
             const notes = entry.querySelector('.notes')?.textContent.toLowerCase() || '';
-
-            // Decide if the entry should be visible
-             // Note: We are NOT filtering by the category text itself here, as it's a heading now.
-             // Users search by name/phone/notes. Category is for browsing.
             const isVisible = name.includes(query) || phone.includes(query) || notes.includes(query);
-
             if (isVisible) {
-                entry.style.display = ''; // Use default display (flex)
-                 // Find the preceding category heading for this visible entry
+                entry.style.display = '';
                  let currentElement = entry;
                  while(currentElement.previousElementSibling) {
                      currentElement = currentElement.previousElementSibling;
                      if (currentElement.classList.contains('category-heading')) {
-                         visibleCategories.add(currentElement); // Mark its category heading as needing to be visible
+                         visibleCategories.add(currentElement);
                          break;
                      }
                  }
-            } else {
-                entry.style.display = 'none';
-            }
+            } else { entry.style.display = 'none'; }
         });
-
-        // Show/hide category headings based on whether they have visible entries
         categoryHeadings.forEach(heading => {
-            if (visibleCategories.has(heading)) {
-                heading.style.display = ''; // Show heading
-            } else {
-                 // Only hide if search query is not empty
-                 if (query.length > 0) {
-                    heading.style.display = 'none'; // Hide heading if no entries match and query exists
-                 } else {
-                     heading.style.display = ''; // Ensure heading is visible if query is empty
-                 }
-
-            }
+            if (visibleCategories.has(heading) || query.length === 0) {
+                heading.style.display = '';
+            } else { heading.style.display = 'none'; }
         });
     });
 }
 
 
 // ======================================================================
-// Initialize Print Functionality
+// Initialize Print Functionality (Same as before)
 // ======================================================================
 function initializePrint() {
     const printButton = document.getElementById('printButton');
-    if (printButton) {
-        printButton.addEventListener('click', () => {
-            window.print(); // Trigger browser's print dialog
-        });
-    } else {
-        console.warn("Print button element not found.");
-    }
+    if (printButton) { printButton.addEventListener('click', () => window.print()); }
 }
 
 
 // ======================================================================
-// Main Execution
+// Main Execution (Same as before)
 // ======================================================================
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
-        displayError("Supabase library not loaded. Check script tag in community.html.");
-        return;
+        displayError("Supabase library not loaded."); return;
     }
-    fetchAndDisplayListings(); // Load listings
-    initializeSearch();        // Set up search
-    initializePrint();         // Set up print
+    fetchAndDisplayListings();
+    initializeSearch();
+    initializePrint();
 });
+
+// --- END OF directory.js (Fixing ReferenceError) ---
