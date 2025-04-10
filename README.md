@@ -1,5 +1,3 @@
-## Architecture Diagram
-
 ```mermaid
 graph TD
     %% Define Main Actors/Services
@@ -9,8 +7,8 @@ graph TD
     Netlify[fa:fa-server Netlify Hosting]
     GitHub[fa:fa-github GitHub Repository]
     Git[fa:fa-code-branch Git Local]
-    Supabase[fa:fa-database Supabase (Backend + DB)]
-    CDN[fa:fa-cloud CDN (Libraries)]
+    Supabase[fa:fa-database Supabase Backend DB]  %% Removed parentheses
+    CDN[fa:fa-cloud CDN Libraries]            %% Removed parentheses
 
     %% Define Components within Browser
     subgraph Browser Client
@@ -32,9 +30,9 @@ graph TD
     Browser -- 4. Executes JS --> JS;
 
     subgraph Data Flow
-      JS -- 5. API Call (Fetch Provinces/Communities) --> Supabase;
-      JS -- 7. API Call (Fetch Community ID/Logo) --> Supabase;
-      JS -- 9. API Call (Fetch Listings) --> Supabase;
+      JS -- 5. API Call Fetch Provinces/Communities --> Supabase; %% Added text to arrows
+      JS -- 7. API Call Fetch Community ID/Logo --> Supabase;
+      JS -- 9. API Call Fetch Listings --> Supabase;
       Supabase -- 6. Returns Province/Community Data --> JS;
       Supabase -- 8. Returns Community ID/Logo Data --> JS;
       Supabase -- 10. Returns Listings Data --> JS;
@@ -47,7 +45,7 @@ graph TD
     Libs -- Used by --> JS;
     Libs -- Used by --> CSS; % FontAwesome CSS
 
-    %% Styling (Optional - GitHub might ignore this, Mermaid Live uses it)
+    %% Styling (Optional - GitHub might ignore this)
     classDef service fill:#f9f,stroke:#333,stroke-width:2px;
     classDef code fill:#ccf,stroke:#333,stroke-width:2px;
     classDef user fill:#9cf,stroke:#333,stroke-width:2px;
