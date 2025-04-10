@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Directory</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Logo dynamically populated -->
+  <img id="logo" src="" alt="Community Logo">
+
+  <!-- Heading dynamically populated -->
+  <h1 id="community-name">Community Directory</h1>
+
+  <div class="search-container">
+      <label for="searchBox">Search by Name or Category:</label>
+      <input type="text" id="searchBox" placeholder="Enter name or category...">
+  </div>
+
+  <!-- Print Button -->
+  <div class="print-container">
+      <button id="printButton" title="Print or Save Directory as PDF">
+          <span class="print-icon">&#128424;</span>
+          <span class="print-text">Print Directory</span>
+      </button>
+  </div>
+
+  <!-- Results container -->
+  <ul id="results">
+      <!-- Directory listings will appear here -->
+  </ul>
+
+  <!-- Notice text -->
+  <p class="notice">
+      This directory is for community members only. Home-based business information included with consent, by request, or provided directly by the business itself.
+      To update or remove your listing, please see the 'contact us' link.
+  </p>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="Directory.js"></script>
+</body>
+</html>

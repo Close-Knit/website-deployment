@@ -1,251 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cluculz Lake Community Directory</title> <!-- Updated Title -->
-    <style>
-        /* --- Styles copied directly from your provided target HTML --- */
-        body {
-            font-family: sans-serif;
-            padding: 20px;
-        }
-        #logo {
-            display: block;
-            margin: 0 auto 15px auto;
-            max-width: 150px; /* Use max-width for responsiveness */
-            height: auto;
-        }
-        h1 {
-            margin-top: 0;
-            text-align: center;
-        }
-        .search-container {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        /* Label styling (optional, but good practice) */
-        .search-container label {
-             display: block; /* Put label on its own line */
-             margin-bottom: 5px; /* Space between label and input */
-             font-weight: bold; /* Make label slightly more prominent */
-        }
-        #searchBox {
-            padding: 8px;
-            width: 90%;
-            max-width: 300px;
-            /* display: inline-block; - Not needed if label is block */
-            /* vertical-align: middle; */
-            box-sizing: border-box; /* Include padding in width */
-        }
-        #results {
-             padding-left: 0;
-             margin-top: 15px;
-             list-style: none;
-             border-top: 1px solid #ccc;
-             padding-top: 15px;
-        }
-        .category-heading {
-            background-color: #F5F1E6;
-            font-size: 1.3em;
-            font-weight: bold;
-            margin-top: 20px;
-            margin-bottom: 8px;
-            padding: 6px 5px;
-            border-bottom: 2px solid #888;
-            list-style: none; /* Ensure no bullet point */
-        }
-        #results li.category-heading:first-child {
-            margin-top: 0px;
-        }
-        #results li.directory-entry {
-             list-style: none; /* Ensure no bullet point */
-             padding: 6px 0 6px 5px;
-             border-bottom: 1px solid #eee;
-             display: flex;
-             justify-content: space-between;
-             align-items: center;
-             flex-wrap: wrap; /* Allow wrapping on small screens */
-        }
-        #results li.directory-entry:last-child { border-bottom: none; }
-        .name {
-            font-weight: bold;
-            margin-right: 15px; /* Space between name and phone */
-            flex-basis: 60%; /* Give name more initial space */
-            flex-grow: 1; /* Allow name to grow */
-         }
-        .phone {
-            color: #555;
-            white-space: nowrap; /* Prevent phone number wrapping */
-            flex-shrink: 0; /* Prevent phone number shrinking */
-            text-align: right; /* Align phone to the right */
-         }
-         .phone a, .phone a:visited {
-             color: #1a0dab; /* Standard link blue */
-             text-decoration: none;
-         }
-         .phone a:hover, .phone a:focus {
-             text-decoration: underline;
-         }
-        .notice {
-            font-size: 0.8em;
-            color: grey;
-            margin-top: 30px;
-            text-align: center;
-        }
-
-        /* --- Styles for Print Button --- */
-        .print-container {
-            text-align: center;
-            margin-top: 10px;
-            margin-bottom: 30px;
-        }
-
-        #printButton {
-            background: none;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            color: #333;
-            font-family: inherit;
-            text-align: center;
-        }
-
-        #printButton:hover {
-             opacity: 0.7;
-        }
-
-        .print-icon {
-            font-size: 2.5em;
-            display: block;
-            margin-bottom: 3px;
-            line-height: 1;
-        }
-
-        .print-text {
-            font-size: 0.9em;
-            display: block;
-        }
-
-
-        /* --- Print Specific CSS --- */
-        @media print {
-            body {
-                padding: 10px;
-                font-family: sans-serif; /* Ensure font is set for printing */
-            }
-            #logo,
-            .search-container,
-            .print-container,
-            .notice {
-                display: none !important;
-            }
-            h1 { /* Optional: Style heading for print */
-                font-size: 16pt;
-                text-align: left;
-                margin-bottom: 15px;
-            }
-            #results {
-                border-top: none;
-                padding-top: 0;
-                margin-top: 0;
-            }
-            .category-heading {
-                background-color: #eee !important; /* Ensure background prints */
-                color: #000 !important;
-                padding: 4px 2px;
-                font-size: 12pt;
-                font-weight: bold;
-                margin-top: 15px;
-                border-bottom: 1px solid #888;
-                page-break-after: avoid; /* Prevent page breaks right after heading */
-            }
-             #results li.category-heading:first-child {
-                margin-top: 0px;
-            }
-            #results li.directory-entry {
-                font-size: 10pt;
-                padding: 3px 0;
-                border-bottom: 1px solid #ccc;
-                display: flex; /* Keep flex for alignment */
-                justify-content: space-between;
-                flex-wrap: nowrap; /* Prevent wrapping on print */
-            }
-            #results li.directory-entry:last-child {
-                border-bottom: none;
-            }
-            .name {
-                 /* display: inline-block; - Flex handles this */
-                 margin-right: 10px;
-                 font-weight: normal; /* Adjust if needed */
-                 flex-basis: auto; /* Reset flex basis */
-                 flex-grow: 1;
-            }
-            .phone, .phone a {
-                 color: #000 !important;
-                 text-decoration: none !important;
-                 /* display: inline-block; - Flex handles this */
-                 white-space: nowrap;
-                 flex-shrink: 0;
-                 text-align: right;
-            }
-            /* Ensure list items don't break across pages if possible */
-            #results li {
-                page-break-inside: avoid;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canada Telephone Directory</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <header>
+    <h1>Canada Telephone Directory</h1>
+    <p>This directory is for community members only. Home-based business information included with consent, by request, or provided directly by the business itself.</p>
+  </header>
+  <main id="province-list">
+    <!-- Provinces and communities will be dynamically populated here -->
+  </main>
+  <footer>
+    <p>To update or remove your listing, please see the 'contact us' link.</p>
+  </footer>
+  <script>
+    // Example structure for provinces and communities
+    const provinces = {
+      "British Columbia": [
+        { name: "Cluculz Lake", community_id: 1 },
+        { name: "Dease Lake", community_id: 2 },
+        { name: "Houston", community_id: 3 },
+        { name: "Vanderhoof", community_id: 4 },
+        { name: "Fort St. James", community_id: 5 }
+      ],
+      "Alberta": [
+        { name: "Vermilion", community_id: 6 },
+        { name: "Barrhead", community_id: 7 },
+        { name: "Peace River", community_id: 8 },
+        { name: "Westlock", community_id: 9 },
+        { name: "Devon", community_id: 10 }
+      ]
+      // Add more provinces and communities as needed
+    };
 
-    <!-- === LOGO: Make sure src matches your actual file name === -->
-    <img id="logo" src="Logo.png" alt="Cluculz Lake BC Logo">
+    // Populate provinces and communities on the home page
+    const provinceList = document.getElementById("province-list");
 
-    <h1>Cluculz Lake Community Directory</h1>
+    Object.keys(provinces).forEach(province => {
+      const provinceSection = document.createElement("section");
+      const provinceHeader = document.createElement("h2");
+      
+      provinceHeader.textContent = province;
+      provinceSection.appendChild(provinceHeader);
 
-    <div class="search-container">
-        <!-- Use label for accessibility -->
-        <label for="searchBox">Search by Name or Category:</label>
-        <input type="text" id="searchBox" placeholder="Enter name or category...">
-    </div>
+      const communityList = document.createElement("ul");
+      
+      provinces[province].forEach(community => {
+        const communityItem = document.createElement("li");
+        const communityLink = document.createElement("a");
 
-    <!-- === PRINT BUTTON AREA === -->
-    <div class="print-container">
-        <button id="printButton" title="Print or Save Directory as PDF">
-            <span class="print-icon">&#128424;</span> <!-- Printer Unicode Character -->
-            <span class="print-text">Print Directory</span>
-        </button>
-    </div>
-    <!-- ============================== -->
+        // Link to the community template with query parameters
+        communityLink.href = `community.html?community_id=${encodeURIComponent(community.community_id)}`;
+        communityLink.textContent = community.name;
 
-    <!-- === RESULTS CONTAINER: Must be a UL for the JS === -->
-    <ul id="results">
-        <!-- Directory listings will appear here -->
-        <li>Loading directory...</li> <!-- Optional initial message -->
-    </ul>
+        communityItem.appendChild(communityLink);
+        communityList.appendChild(communityItem);
+      });
 
-    <!-- === NOTICE TEXT === -->
-    <p class="notice">
-        This directory is for community members only. Home-based business information included with consent, by request, or provided directly by the business itself. All information is used for the purpose it was originally made, which is for contacting local businesses.
-        To update or remove your listing, please see the 'contact us' link. <!-- <<< UPDATE THIS -->
-    </p>
-
-    <!-- === SCRIPT LOADING AREA === -->
-    <!-- Load Supabase Client FIRST -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Load Your Directory Logic SECOND -->
-    <script src="Directory.js"></script>
-    <!-- Load Print Button Logic LAST (or combine into Directory.js) -->
-    <script>
-        // Add Print Button functionality
-        const printBtn = document.getElementById('printButton');
-        if (printBtn) {
-            printBtn.addEventListener('click', () => {
-                window.print(); // Triggers the browser's print dialog
-            });
-        }
-    </script>
-    <!-- ========================= -->
-
+      provinceSection.appendChild(communityList);
+      provinceList.appendChild(provinceSection);
+    });
+  </script>
 </body>
 </html>
