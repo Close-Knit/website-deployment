@@ -3,101 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Community Directory</title>
+    <title>Community Directory - Home</title>
+    <!-- Link to your main stylesheet if you have one -->
+    <link rel="stylesheet" href="styles.css"> 
     <style>
-        /* Restored Styles */
-        body {
-            font-family: sans-serif;
-            padding: 20px;
-        }
-        #logo {
-            display: block;
-            margin: 0 auto 15px auto;
-            max-width: 150px;
-            height: auto;
-        }
-        h1 {
-            margin-top: 0;
-            text-align: center;
-        }
-        .search-container {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .search-container label {
-             display: block;
-             margin-bottom: 5px;
-             font-weight: bold;
-        }
-        #searchBox {
-            padding: 8px;
-            width: 90%;
-            max-width: 300px;
-            box-sizing: border-box;
-        }
-        #results {
-             padding-left: 0;
-             margin-top: 15px;
-             list-style: none;
-             border-top: 1px solid #ccc;
-             padding-top: 15px;
-        }
-        .category-heading {
-            background-color: #F5F1E6;
-            font-size: 1.3em;
-            font-weight: bold;
-            margin-top: 20px;
-            margin-bottom: 8px;
-            padding: 6px 5px;
-            border-bottom: 2px solid #888;
-            list-style: none; 
-        }
-        #results li.category-heading:first-child {
-            margin-top: 0px;
-        }
-        #results li.directory-entry {
-             list-style: none; 
-             padding: 6px 0 6px 5px; 
-             border-bottom: 1px solid #eee; 
-             display: flex; 
-             justify-content: space-between; 
-             align-items: center; 
-             flex-wrap: wrap; 
-        }
-        #results li.directory-entry:last-child { border-bottom: none; }
-        .name {
-            font-weight: bold; 
-            margin-right: 15px; 
-            flex-basis: 60%; 
-            flex-grow: 1; 
-         }
-        .phone {
-            color: #555; 
-            white-space: nowrap; 
-            flex-shrink: 0; 
-            text-align: right; 
-         }
-         .phone a, .phone a:visited {
-             color: #1a0dab; 
-             text-decoration: none; 
-         }
-         .phone a:hover, .phone a:focus {
-             text-decoration: underline; 
-         }
-        .notice {
-            font-size: 0.8em; 
-            color: grey; 
-            margin-top: 30px; 
-            text-align: center; 
-        }
+         /* Basic styles for the home page list */
+         body { font-family: sans-serif; padding: 20px; }
+         h1 { text-align: center; }
+         #province-list section { margin-bottom: 20px; }
+         #province-list h2 { background-color: #eee; padding: 5px; margin-bottom: 10px;}
+         #province-list ul { list-style: none; padding-left: 20px; }
+         #province-list li { margin-bottom: 5px; }
+         #province-list a { text-decoration: none; color: #1a0dab; }
+         #province-list a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
 
-        /* Print Button Styles */
-        .print-container {
-            text-align: center; 
-            margin-top: 10px; 
-            margin-bottom: 30px; 
-        }
+    <h1>Select Your Community</h1>
 
-        #printButton {
-            background-color:#f8f9fa ;
-border-radius :10 px
+    <!-- This is the container home.js will populate -->
+    <div id="province-list">
+        <!-- Province and community links will appear here -->
+    </div>
+
+    <!-- IMPORTANT: Link to the home.js script -->
+    <!-- Use 'defer' to ensure HTML is parsed before script runs -->
+    <script src="home.js" defer></script> 
+
+</body>
+</html>
