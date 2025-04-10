@@ -247,3 +247,39 @@ a:hover, a:focus {
   }
   #province-list { display: none; } /* Hide home page elements if printing */
 }
+/* --- Start: Paste this snippet at the END of styles.css --- */
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 600px) { /* Adjust 600px breakpoint if needed */
+
+    #results li.directory-entry {
+        flex-direction: column; /* Stack items vertically */
+        align-items: stretch;  /* Make items take full width */
+        gap: 3px 0;          /* Adjust vertical gap, remove horizontal */
+        padding-top: 10px;     /* Adjust padding */
+        padding-bottom: 10px;
+    }
+
+    .entry-details {
+        margin-right: 0;    /* Remove side margin */
+        margin-bottom: 4px; /* Add small space below details */
+        order: 1;           /* Ensure details come first visually */
+    }
+
+    .phone {
+        text-align: right;  /* Keep text aligned right */
+        width: 100%;        /* Ensure it spans the full width */
+        margin-top: 4px;    /* Add small space above phone number */
+        order: 2;           /* Ensure phone comes second visually */
+        /* Consider removing white-space: nowrap if numbers ever need to wrap */
+        /* white-space: normal; */ 
+    }
+
+    /* Optional: Slightly smaller font on mobile? */
+    /* body { font-size: 95%; } */
+    /* .name { font-size: 1.05em; } */
+    /* .phone { font-size: 1em; } */
+
+}
+
+/* --- End: Paste snippet --- */
