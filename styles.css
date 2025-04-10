@@ -1,0 +1,219 @@
+/* ====================================================================== */
+/* Global / Shared Styles */
+/* ====================================================================== */
+body {
+    font-family: sans-serif;
+    padding: 20px;
+}
+
+h1 {
+    margin-top: 0;
+    text-align: center;
+}
+
+a, a:visited {
+     color: #1a0dab;
+     text-decoration: none;
+}
+a:hover, a:focus {
+     text-decoration: underline;
+}
+
+/* ====================================================================== */
+/* Styles for Home Page List (index.html) */
+/* ====================================================================== */
+#province-list section {
+    margin-bottom: 20px;
+}
+
+#province-list h2 {
+    background-color: #eee;
+    padding: 5px 10px; /* Added slight horizontal padding */
+    margin-bottom: 10px;
+    font-size: 1.4em; /* Slightly larger */
+    border-bottom: 1px solid #ccc; /* Subtle separator */
+}
+
+#province-list ul {
+    list-style: none;
+    padding-left: 20px;
+}
+
+#province-list li {
+    margin-bottom: 8px; /* Increased spacing slightly */
+}
+
+/* #province-list a styles inherited from global */
+
+
+/* ====================================================================== */
+/* Styles for Community Directory Page (community.html) */
+/* ====================================================================== */
+
+/* Logo */
+#logo {
+    display: block;
+    margin: 0 auto 15px auto;
+    max-width: 150px; /* Or your preferred size */
+    height: auto;
+}
+
+/* Search Area */
+.search-container {
+    text-align: center;
+    margin-bottom: 25px;
+}
+.search-container label {
+     display: block;
+     margin-bottom: 5px;
+     font-weight: bold;
+}
+#searchBox {
+    padding: 8px;
+    width: 90%;
+    max-width: 300px;
+    box-sizing: border-box;
+    border: 1px solid #ccc; /* Added subtle border */
+}
+
+/* Results List */
+#results {
+     padding-left: 0;
+     margin-top: 15px;
+     list-style: none;
+     border-top: 1px solid #ccc;
+     padding-top: 15px;
+}
+/* Optional Category Heading Style (if you implement grouping later) */
+.category-heading {
+    background-color: #F5F1E6;
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    padding: 6px 10px; /* Adjusted padding */
+    border-bottom: 2px solid #888;
+    list-style: none;
+}
+#results li.category-heading:first-child {
+    margin-top: 0px;
+}
+
+/* Individual Directory Entry */
+#results li.directory-entry {
+     list-style: none;
+     padding: 8px 5px; /* Adjusted padding */
+     border-bottom: 1px solid #eee;
+     display: flex;
+     justify-content: space-between;
+     align-items: flex-start; /* Align items to top */
+     flex-wrap: wrap; /* Allow wrapping */
+     gap: 5px 15px; /* Add gap between flex items (row gap, column gap) */
+}
+#results li.directory-entry:last-child {
+     border-bottom: none;
+}
+
+/* Elements within a Directory Entry */
+.name {
+    font-weight: bold;
+    flex-basis: calc(60% - 15px); /* Adjust basis considering gap */
+    flex-grow: 1;
+    /* margin-right: 15px; Removed, using gap instead */
+ }
+.phone {
+    color: #555;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-align: right;
+ }
+/* .phone a styles inherited from global */
+
+.category {
+     flex-basis: 100%; /* Take full width on new line */
+     font-size: 0.85em;
+     color: #777; /* Slightly darker */
+     text-align: left; /* Align with name */
+     margin-top: 2px; /* Small space above */
+     order: 3; /* Ensure it appears below name/phone */
+ }
+.notes {
+     flex-basis: 100%; /* Take full width on new line */
+     font-size: 0.9em;
+     color: #555; /* Slightly darker */
+     margin-top: 4px; /* Space above notes */
+     padding-left: 5px;
+     order: 4; /* Ensure it appears last */
+ }
+
+
+/* Print Button */
+.print-container {
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+#printButton {
+    padding: 8px 15px;
+    font-size: 1em;
+    cursor: pointer;
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
+}
+#printButton:hover {
+    background-color: #e2e6ea;
+}
+.print-icon {
+    margin-right: 5px;
+    vertical-align: middle; /* Align icon better */
+}
+.print-text {
+     vertical-align: middle; /* Align text better */
+}
+
+
+/* Notice Text */
+.notice {
+    font-size: 0.8em;
+    color: grey;
+    margin-top: 30px;
+    text-align: center;
+    padding: 0 10px; /* Add padding so it doesn't touch edges on small screens */
+}
+
+
+/* ====================================================================== */
+/* Print Specific Styles */
+/* ====================================================================== */
+@media print {
+  body {
+    padding: 10px;
+    font-size: 10pt; /* Adjust print font size if needed */
+    color: #000;
+  }
+  h1, #logo, .search-container, .print-container, .notice, #searchBox, label[for="searchBox"] {
+    display: none; /* Hide non-essential elements */
+  }
+  #results {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+  }
+  #results li.directory-entry {
+    border-bottom: 1px solid #aaa; /* Make border clearer for print */
+    padding: 5px 0; /* Adjust padding for print */
+    page-break-inside: avoid;
+  }
+  .name, .phone, .category, .notes {
+      color: #000 !important; /* Ensure black text */
+  }
+  .phone a {
+      color: #000 !important;
+      text-decoration: none !important;
+  }
+  #province-list, #province-list section, #province-list h2, #province-list ul {
+      display: none; /* Hide home page elements if printing from there */
+  }
+}
