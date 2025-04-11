@@ -1,4 +1,4 @@
-// --- START OF UPDATED directory.js (Display Address) ---
+// --- START OF UPDATED directory.js (Address Display Fix) ---
 
 // ======================================================================
 // Initialize Supabase (Same as before)
@@ -88,7 +88,6 @@ async function fetchAndDisplayListings() {
 
         // --- Step 2: Fetch listings using the Community ID ---
          console.log(`Fetching listings from table "${tableName}" using community_id: ${communityId}`);
-         // *** Fetch includes the new 'address' column automatically with SELECT * ***
          const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
             .select('*') 
@@ -121,13 +120,13 @@ async function fetchAndDisplayListings() {
 
         if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (${listings.length} listings)`;
 
-        const groupedListings = listings.reduce((acc, listing) => { /* ... grouping logic ... */ 
+        const groupedListings = listings.reduce((acc, listing) => { 
             const category = listing.category || 'Uncategorized';
             if (!acc[category]) { acc[category] = []; }
             acc[category].push(listing);
             return acc;
         }, {});
-        const sortedCategories = Object.keys(groupedListings).sort((a, b) => { /* ... sorting logic ... */
+        const sortedCategories = Object.keys(groupedListings).sort((a, b) => { 
              if (a === 'Uncategorized') return 1; if (b === 'Uncategorized') return -1;
              return a.localeCompare(b);
         });
@@ -143,16 +142,16 @@ async function fetchAndDisplayListings() {
                 const listItem = document.createElement('li');
                 listItem.className = 'directory-entry';
 
-                // ***** Start: Modified Section (Added Address) *****
+                // ***** Corrected Section (Removed literal comment) *****
                 listItem.innerHTML = `
                     <div class="entry-details">
                          <span class="name">${listing.name || 'N/A'}</span>
-                         ${listing.address ? `<span class="address">${listing.address}</span>` : ''} {/* Conditionally display address */}
+                         ${listing.address ? `<span class="address">${listing.address}</span>` : ''} 
                          ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
                     </div>
                     <span class="phone">${listing.phone_number ? `<a href="tel:${listing.phone_number}">${listing.phone_number}</a>` : ''}</span>
                 `;
-                // ***** End: Modified Section *****
+                // ***** End: Corrected Section *****
 
                 resultsList.appendChild(listItem);
             });
@@ -179,9 +178,7 @@ function initializeSearch() {
             const name = entry.querySelector('.name')?.textContent.toLowerCase() || '';
             const phone = entry.querySelector('.phone')?.textContent.toLowerCase() || '';
             const notes = entry.querySelector('.notes')?.textContent.toLowerCase() || '';
-            // *** NOTE: Address is NOT included in search by default ***
-            // *** To search address, add: const address = entry.querySelector('.address')?.textContent.toLowerCase() || ''; ***
-            // *** And add || address.includes(query) to the condition below ***
+            // NOTE: Address is not searched by default
             const isVisible = name.includes(query) || phone.includes(query) || notes.includes(query);
             if (isVisible) {
                 entry.style.display = '';
@@ -203,6 +200,7 @@ function initializeSearch() {
     });
 }
 
+
 // ======================================================================
 // Initialize Print Functionality (Remains the same)
 // ======================================================================
@@ -210,6 +208,7 @@ function initializePrint() {
     const printButton = document.getElementById('printButton');
     if (printButton) { printButton.addEventListener('click', () => window.print()); }
 }
+
 
 // ======================================================================
 // Main Execution (Remains the same)
