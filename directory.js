@@ -1,4 +1,4 @@
-// --- START OF directory.js (Fixing ReferenceError) ---
+// --- START OF UPDATED directory.js (Includes Suggest Link Logic) ---
 
 // ======================================================================
 // Initialize Supabase (Same as before)
@@ -75,23 +75,32 @@ async function fetchAndDisplayListings() {
         }
 
         const communityId = communityData.id;
-        // ***** THIS IS THE CRUCIAL LINE TO ENSURE IS PRESENT *****
         const logoFilename = communityData.logo_filename; // Get the filename from DB
-        // **********************************************************
 
         console.log(`Found Community ID: ${communityId}, Logo Filename: ${logoFilename || 'None'}`);
 
         // --- Set Logo Dynamically using DB value ---
         if (logoElement && logoFilename) { // Check if logo element exists AND filename is not null/empty
-             // Uses the 'logoFilename' variable declared above
              logoElement.src = `images/logos/${logoFilename}`;
              logoElement.alt = `${communityName} Logo`; // Use community name for alt text
              logoElement.style.display = 'block'; // Show the logo element
         }
-        // No 'else' needed - logo remains hidden if logoFilename is null/empty
+
+        // ***** Start: Added Section (Set Suggest Change Link) *****
+        // Set the link for the "Suggest Change" button/link
+        const suggestChangeLink = document.getElementById('suggestChangeLink');
+        if (suggestChangeLink) {
+            // Construct the URL for the suggestion page, passing necessary context
+            // cid = communityId, prov = provinceName, comm = communityName
+            suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(provinceName)}&comm=${encodeURIComponent(communityName)}`;
+        } else {
+            // Log a warning if the link element isn't found in the HTML
+            console.warn("Suggest change link element (#suggestChangeLink) not found.");
+        }
+        // ***** End: Added Section *****
 
 
-        // --- Step 2: Fetch listings using the Community ID (Same as before) ---
+        // --- Step 2: Fetch listings using the Community ID ---
          console.log(`Fetching listings from table "${tableName}" using community_id: ${communityId}`);
          const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
@@ -106,7 +115,7 @@ async function fetchAndDisplayListings() {
             });
 
 
-        if (listingsError) { // Handle listing fetch errors (same as before)
+        if (listingsError) { // Handle listing fetch errors
             console.error("Supabase error fetching listings:", listingsError);
             if (listingsError.code === '42P01') { throw new Error(`Database table "${tableName}" not found.`); }
             if (listingsError.code === '42703') { throw new Error(`Column 'community_id' missing in table "${tableName}".`); }
@@ -114,19 +123,19 @@ async function fetchAndDisplayListings() {
         }
 
 
-        // --- Step 3 & 4: Group and Render Listings (Same logic as before) ---
+        // --- Step 3 & 4: Group and Render Listings ---
         resultsList.innerHTML = ''; // Clear loading
 
-        if (!listings || listings.length === 0) { // Handle no listings found (same as before)
+        if (!listings || listings.length === 0) { // Handle no listings found
             resultsList.innerHTML = `<li>No listings found for ${communityName}.</li>`;
             if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (0 listings)`;
             return;
         }
 
-        // Update heading with final count (same as before)
+        // Update heading with final count
         if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (${listings.length} listings)`;
 
-        // Grouping logic (same as before)
+        // Grouping logic
         const groupedListings = listings.reduce((acc, listing) => {
             const category = listing.category || 'Uncategorized';
             if (!acc[category]) { acc[category] = []; }
@@ -138,7 +147,7 @@ async function fetchAndDisplayListings() {
              return a.localeCompare(b);
         });
 
-        // Rendering logic (same as before)
+        // Rendering logic
         sortedCategories.forEach(category => {
             const categoryHeadingItem = document.createElement('li');
             categoryHeadingItem.className = 'category-heading';
@@ -223,4 +232,4 @@ document.addEventListener('DOMContentLoaded', () => {
     initializePrint();
 });
 
-// --- END OF directory.js (Fixing ReferenceError) ---
+// --- END OF UPDATED directory.js ---

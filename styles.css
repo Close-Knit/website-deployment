@@ -107,7 +107,49 @@ a:hover, a:focus {
      border-top: 1px solid #dee2e6; /* Match input border */
      padding-top: 15px;
 }
+/* --- Start: Paste this snippet AFTER Search Area styles --- */
 
+/* Action Buttons Container (Print & Suggest) */
+.action-buttons {
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 30px;
+    display: flex; /* Use flexbox for spacing */
+    justify-content: center; /* Center buttons */
+    align-items: center;
+    gap: 20px; /* Space between buttons */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+/* Generic Button Style for Links (e.g., Suggest Change) */
+.button-style {
+    display: inline-block; /* Allow padding etc. */
+    padding: 8px 15px; 
+    font-size: 1em;
+    cursor: pointer;
+    background-color: #28a745; /* Example: Green color */
+    color: white;
+    border: 1px solid #28a745;
+    border-radius: 5px;
+    text-decoration: none; /* Remove underline from link */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.button-style:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+    color: white; /* Keep text white on hover */
+}
+.button-style i { /* Style icon within the link */
+    margin-right: 6px;
+}
+
+/* Adjust existing Print Button styles if needed - */
+/* Ensure #printButton also looks okay within flex container */
+/* Its specific styles are defined elsewhere, but you might adjust margin/padding if needed */
+
+/* --- End: Paste snippet --- */
 /* Category Heading */
 .category-heading {
     background-color: #f5f1e6; /* Beige/Brown */
