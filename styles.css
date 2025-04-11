@@ -21,22 +21,25 @@ a:hover, a:focus {
      text-decoration: underline;
 }
 
-/* --- Start: Site Logo Styles --- */ /* <--- PUT THE SNIPPET HERE */
-
+/* --- Start: Site Logo Styles --- */
 #site-logo-link {
     display: inline-block; 
     text-decoration: none; 
     border: none;          
     margin-bottom: 20px;   
+    /* Added for layout refinement */
+    position: absolute; 
+    top: 15px;          
+    left: 15px;         
+    z-index: 10;        
 }
 
 #site-logo {
     display: block;        
-    width: 150px;          
+    width: 60px;  /* Adjusted width for top-left */         
     height: auto;          
     vertical-align: middle;
 }
-
 /* --- End: Site Logo Styles --- */
 
 /* ====================================================================== */
@@ -70,13 +73,28 @@ a:hover, a:focus {
 /* Styles for Community Directory Page (community.html) */
 /* ====================================================================== */
 
-/* Logo */
-#logo {
-    display: block; /* Will be overridden by JS if src is set */
-    margin: 0 auto 20px auto; /* Increased bottom margin */
-    max-width: 180px; /* Adjusted size */
-    height: auto;
+/* --- Start: Community Header Styles --- */
+.community-header {
+    text-align: center; 
+    padding-top: 40px;  /* Added padding to clear absolute Bizly logo */
+    margin-bottom: 25px;
 }
+
+#logo { /* Community Logo */
+    display: block; 
+    margin: 0 auto 10px auto; /* Center horizontally, space below */
+    max-width: 150px;         /* Max width on desktop */
+    height: auto;
+    /* style="display: none;" is handled by JS */
+}
+
+#community-name { /* H1 */
+    margin-top: 0; 
+    margin-bottom: 0; 
+    text-align: center; 
+}
+/* --- End: Community Header Styles --- */
+
 
 /* Search Area */
 .search-container {
@@ -90,154 +108,69 @@ a:hover, a:focus {
      color: #555;
 }
 #searchBox {
-    padding: 10px 12px; /* Increased padding */
+    padding: 10px 12px; 
     width: 90%;
-    max-width: 350px; /* Slightly wider */
+    max-width: 350px; 
     box-sizing: border-box;
-    border: 1px solid #ced4da; /* Standard input border color */
+    border: 1px solid #ced4da; 
     border-radius: 4px;
     font-size: 1em;
 }
 
-/* Results List Container */
-#results {
-     padding-left: 0;
-     margin-top: 20px;
-     list-style: none;
-     border-top: 1px solid #dee2e6; /* Match input border */
-     padding-top: 15px;
-}
-/* --- Start: Paste this snippet AFTER Search Area styles --- */
-
+/* --- Start: Action Button Styles --- */
 /* Action Buttons Container (Print & Suggest) */
 .action-buttons {
     text-align: center;
     margin-top: 15px;
     margin-bottom: 30px;
-    display: flex; /* Use flexbox for spacing */
-    justify-content: center; /* Center buttons */
+    display: flex; 
+    justify-content: center; 
     align-items: center;
-    gap: 20px; /* Space between buttons */
-    flex-wrap: wrap; /* Allow wrapping on small screens */
+    gap: 20px; 
+    flex-wrap: wrap; 
 }
 
-/* Generic Button Style for Links (e.g., Suggest Change) */
+/* Generic Button Style for Links (Matching Print Button) */
 .button-style {
-    display: inline-block; /* Allow padding etc. */
+    display: inline-block; 
     padding: 8px 15px; 
     font-size: 1em;
     cursor: pointer;
-    background-color: #28a745; /* Example: Green color */
-    color: white;
-    border: 1px solid #28a745;
-    border-radius: 5px;
-    text-decoration: none; /* Remove underline from link */
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    white-space: nowrap; /* Prevent text wrapping */
-}
-
-.button-style:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
-    color: white; /* Keep text white on hover */
-}
-.button-style i { /* Style icon within the link */
-    margin-right: 6px;
-}
-
-/* Adjust existing Print Button styles if needed - */
-/* Ensure #printButton also looks okay within flex container */
-/* Its specific styles are defined elsewhere, but you might adjust margin/padding if needed */
-
-/* --- End: Paste snippet --- */
-/* Category Heading */
-.category-heading {
-    background-color: #f5f1e6; /* Beige/Brown */
-    font-size: 1.4em; /* Larger category heading */
-    font-weight: bold;
-    color: #495057; /* Darker gray text */
-    margin-top: 25px; /* More space above headings */
-    margin-bottom: 10px;
-    padding: 10px 15px; /* Increased padding */
-    border-bottom: 2px solid #dee2e6;
-    list-style: none;
-    border-radius: 4px; /* Rounded corners */
-}
-#results li.category-heading:first-child {
-    margin-top: 0px; /* No extra space before the very first heading */
-}
-
-/* Individual Directory Entry */
-#results li.directory-entry {
-     list-style: none;
-     padding: 12px 10px; /* Increased padding */
-     border-bottom: 1px solid #eee; /* Lighter separator */
-     display: flex;
-     justify-content: space-between; /* Push phone to right */
-     align-items: center; /* Vertically align items */
-     flex-wrap: wrap; /* Allow wrapping on small screens */
-     gap: 5px 15px; /* Space between name/details and phone */
-}
-#results li.directory-entry:last-child {
-     border-bottom: none;
-}
-
-/* Elements within a Directory Entry */
-.entry-details {
-    flex-grow: 1; /* Allow this to take available space */
-    margin-right: 15px; /* Ensure space before phone */
-}
-.name {
-    font-weight: bold;
-    font-size: 1.1em; /* Slightly larger name */
-    display: block; /* Ensure it's on its own line */
-    color: #212529; /* Darker text for name */
-}
-.notes {
-     display: block; /* Ensure notes are below name */
-     font-size: 0.9em;
-     color: #6c757d; /* Standard muted text color */
-     margin-top: 4px;
-}
-.phone {
-    color: #333; /* Match body text */
-    white-space: nowrap;
-    flex-shrink: 0; /* Prevent phone number from shrinking */
-    text-align: right;
-    font-size: 1.05em; /* Slightly larger phone number */
-}
-.phone a {
-     color: #007bff; /* Standard bootstrap blue for links */
-     font-weight: 500; /* Slightly bolder phone link */
-}
-.phone a:visited { color: #0056b3; } /* Darker blue for visited */
-
-
-/* Print Button */
-.print-container {
-    text-align: center;
-    margin-top: 15px; /* Adjusted spacing */
-    margin-bottom: 30px;
-}
-/* --- Start: Paste this snippet to replace existing #printButton rules --- */
-
-#printButton {
-    padding: 8px 15px; /* Adjusted padding slightly */
-    font-size: 1em;
-    cursor: pointer;
-    background-color: #ffffff; /* White background like original */
+    /* Match Print Button styles */
+    background-color: #ffffff; /* White background */
     color: #333;             /* Darker text */
     border: 1px solid #adb5bd; /* Visible gray border */
+    border-radius: 5px;
+    text-decoration: none; 
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap; 
+}
+.button-style:hover {
+    /* Match Print Button hover styles */
+    background-color: #f8f9fa; /* Light gray background on hover */
+    border-color: #adb5bd;    /* Keep border consistent */
+    color: #333;             /* Keep text dark on hover */
+}
+.button-style i { 
+    margin-right: 6px; /* Keep icon spacing */
+}
+
+/* Print Button Specific styles (Already defined) */
+#printButton {
+    padding: 8px 15px; 
+    font-size: 1em;
+    cursor: pointer;
+    background-color: #ffffff; 
+    color: #333;             
+    border: 1px solid #adb5bd; 
     border-radius: 5px;
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 #printButton:hover {
-    background-color: #f8f9fa; /* Optional: Light gray background on hover */
-    border-color: #adb5bd;    /* Keep border consistent on hover */
+    background-color: #f8f9fa; 
+    border-color: #adb5bd;    
 }
-
-/* --- End: Paste snippet --- */
-}
+/* NOTE: Removed duplicate closing brace that was causing syntax error */
 .print-icon {
     margin-right: 8px;
     vertical-align: middle;
@@ -245,17 +178,108 @@ a:hover, a:focus {
 .print-text {
      vertical-align: middle;
 }
+/* --- End: Action Button Styles --- */
+
+
+/* Results List Container */
+#results {
+     padding-left: 0;
+     margin-top: 20px;
+     list-style: none;
+     border-top: 1px solid #dee2e6; 
+     padding-top: 15px;
+}
+
+/* Category Heading */
+.category-heading {
+    background-color: #f5f1e6; /* Beige/Brown */
+    font-size: 1.4em; 
+    font-weight: bold;
+    color: #495057; 
+    margin-top: 25px; 
+    margin-bottom: 10px;
+    padding: 10px 15px; 
+    border-bottom: 2px solid #dee2e6;
+    list-style: none;
+    border-radius: 4px; 
+}
+#results li.category-heading:first-child {
+    margin-top: 0px; 
+}
+
+/* Individual Directory Entry */
+#results li.directory-entry {
+     list-style: none;
+     padding: 12px 10px; 
+     border-bottom: 1px solid #eee; 
+     display: flex;
+     justify-content: space-between; 
+     align-items: center; 
+     flex-wrap: wrap; 
+     gap: 5px 15px; 
+}
+#results li.directory-entry:last-child {
+     border-bottom: none;
+}
+
+/* Elements within a Directory Entry */
+.entry-details {
+    flex-grow: 1; 
+    margin-right: 15px; 
+}
+.name {
+    font-weight: bold;
+    font-size: 1.1em; 
+    display: block; 
+    color: #212529; 
+}
+.notes {
+     display: block; 
+     font-size: 0.9em;
+     color: #6c757d; 
+     margin-top: 4px;
+}
+.phone {
+    color: #333; 
+    white-space: nowrap;
+    flex-shrink: 0; 
+    text-align: right;
+    font-size: 1.05em; 
+}
+.phone a {
+     color: #007bff; 
+     font-weight: 500; 
+}
+.phone a:visited { color: #0056b3; } 
 
 
 /* Notice Text */
 .notice {
-    font-size: 0.85em; /* Slightly larger notice */
-    color: #6c757d; /* Muted text color */
-    margin-top: 40px; /* More space above notice */
+    font-size: 0.85em; 
+    color: #6c757d; 
+    margin-top: 40px; 
     text-align: center;
     padding: 0 15px;
     line-height: 1.4;
 }
+
+/* ====================================================================== */
+/* Form Styles (for suggest_change.html) */
+/* ====================================================================== */
+#suggestion-form { max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #eee; border-radius: 5px; background-color: #f9f9f9; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+.form-group input[type="text"],
+.form-group input[type="tel"],
+.form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+.form-group input[type="radio"] { margin-right: 5px; }
+.form-group div { margin-bottom: 5px; } /* Spacing for radio buttons */
+#suggestion-form button[type="submit"] { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; }
+#suggestion-form button[type="submit"]:hover { background-color: #0056b3; }
+.form-message { margin-top: 15px; padding: 10px; border-radius: 4px; display: none; /* Hidden by default */ }
+.form-message.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.form-message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+#form-context { font-size: 1.1em; color: #555; text-align: center; margin-bottom: 20px; }
 
 
 /* ====================================================================== */
@@ -267,8 +291,12 @@ a:hover, a:focus {
     font-size: 10pt;
     color: #000;
   }
-  h1, #logo, .search-container, .print-container, .notice, #searchBox, label[for="searchBox"] {
-    display: none;
+  /* Hide non-essential elements for printing */
+  h1, #logo, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], #site-logo-link {
+    display: none !important; /* Use !important to ensure hiding */
+  }
+  .community-header { /* Hide community header wrapper */
+      display: none !important;
   }
   #results {
     border-top: none;
@@ -276,13 +304,13 @@ a:hover, a:focus {
     padding-top: 0;
   }
   .category-heading {
-      background-color: #eee !important; /* Simple background for print */
+      background-color: #eee !important; 
       color: #000 !important;
       border-bottom: 1px solid #ccc !important;
       padding: 5px;
       margin-top: 15px;
       font-size: 12pt;
-      border-radius: 0; /* No rounding for print */
+      border-radius: 0; 
   }
    #results li.category-heading:first-child {
        margin-top: 0;
@@ -291,15 +319,24 @@ a:hover, a:focus {
     border-bottom: 1px solid #ccc;
     padding: 4px 0;
     page-break-inside: avoid;
-    display: flex; /* Ensure flex layout prints */
+    display: flex; 
     justify-content: space-between;
+    align-items: flex-start; /* Align top for print */
+  }
+  .entry-details {
+      margin-right: 10px; /* Ensure some space */
+      flex-grow: 1;
   }
   .name, .phone, .category, .notes, .entry-details {
       color: #000 !important;
-      font-size: 10pt; /* Reset font size */
+      font-size: 10pt; 
   }
    .name { font-weight: bold;}
    .notes { font-size: 9pt; margin-top: 2px;}
+  .phone {
+      text-align: right;
+      flex-shrink: 0;
+  }
   .phone a {
       color: #000 !important;
       text-decoration: none !important;
@@ -307,39 +344,63 @@ a:hover, a:focus {
   }
   #province-list { display: none; } /* Hide home page elements if printing */
 }
-/* --- Start: Paste this snippet at the END of styles.css --- */
 
+/* ====================================================================== */
 /* Responsive adjustments for smaller screens */
-@media (max-width: 600px) { /* Adjust 600px breakpoint if needed */
+/* ====================================================================== */
+@media (max-width: 600px) { 
 
+    /* --- Mobile Logo Centering --- */
+    #site-logo-link {
+        position: static;   
+        display: block;     
+        text-align: center; 
+        margin-bottom: 10px;
+        top: auto;          
+        left: auto;         
+    }
+    #site-logo {
+         width: 80px;  
+         margin: 0 auto; 
+    }
+    .community-header {
+        padding-top: 0;   
+        text-align: center; 
+        margin-bottom: 20px; 
+    }
+    #logo { /* Community Logo */
+        max-width: 100px; 
+        margin-bottom: 8px; 
+    }
+    #community-name { /* H1 */
+        font-size: 1.5em; 
+    }
+    /* --- End Mobile Logo Centering --- */
+
+
+    /* --- Other Mobile Styles --- */
     #results li.directory-entry {
-        flex-direction: column; /* Stack items vertically */
-        align-items: stretch;  /* Make items take full width */
-        gap: 3px 0;          /* Adjust vertical gap, remove horizontal */
-        padding-top: 10px;     /* Adjust padding */
+        flex-direction: column; 
+        align-items: stretch;  
+        gap: 3px 0;          
+        padding-top: 10px;     
         padding-bottom: 10px;
     }
-
     .entry-details {
-        margin-right: 0;    /* Remove side margin */
-        margin-bottom: 4px; /* Add small space below details */
-        order: 1;           /* Ensure details come first visually */
+        margin-right: 0;    
+        margin-bottom: 4px; 
+        order: 1;           
     }
-
     .phone {
-        text-align: right;  /* Keep text aligned right */
-        width: 100%;        /* Ensure it spans the full width */
-        margin-top: 4px;    /* Add small space above phone number */
-        order: 2;           /* Ensure phone comes second visually */
-        /* Consider removing white-space: nowrap if numbers ever need to wrap */
-        /* white-space: normal; */ 
+        text-align: right;  
+        width: 100%;        
+        margin-top: 4px;    
+        order: 2;           
+        white-space: normal; /* Allow phone numbers to wrap if needed */
     }
 
-    /* Optional: Slightly smaller font on mobile? */
-    /* body { font-size: 95%; } */
-    /* .name { font-size: 1.05em; } */
-    /* .phone { font-size: 1em; } */
+    .action-buttons {
+        gap: 10px; /* Reduce gap between buttons on mobile */
+    }
 
 }
-
-/* --- End: Paste snippet --- */
