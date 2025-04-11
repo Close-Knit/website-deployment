@@ -1,5 +1,7 @@
+// --- START OF UPDATED home.js (Province Columns + Max 5 + View More) ---
+
 // ======================================================================
-// Initialize Supabase (Make sure these are correct)
+// Initialize Supabase (Same as before)
 // ======================================================================
 const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
@@ -7,134 +9,146 @@ const { createClient } = supabase;
 const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
 // ======================================================================
-// Helper to display error messages on the home page
+// Helper to display error messages (Same as before)
 // ======================================================================
 function displayHomeError(message) {
     console.error("Home Page Error:", message);
-    const provinceListElement = document.getElementById("province-list");
-    if (provinceListElement) {
-        provinceListElement.innerHTML = `<p style="color: red;">Error loading data: ${message}</p>`;
+    const regionContainer = document.getElementById("province-list"); 
+    if (regionContainer) {
+        regionContainer.innerHTML = `<p style="color: red;">Error loading data: ${message}</p>`;
     }
 }
 
 // ======================================================================
-// Fetch Provinces and Communities and Populate the List
+// Define Territories (Same as before)
+// ======================================================================
+const territoryNames = ["Yukon", "Northwest Territories", "Nunavut"];
+
+// ======================================================================
+// Max Communities to Display Initially
+// ======================================================================
+const MAX_COMMUNITIES_VISIBLE = 5;
+
+// ======================================================================
+// Fetch Provinces/Territories and Communities and Populate the List
 // ======================================================================
 async function populateHomePage() {
-    const provinceListElement = document.getElementById("province-list");
-    if (!provinceListElement) {
-        console.error("Fatal Error: Could not find #province-list element.");
-        return; // Stop if the main container isn't found
+    const regionContainer = document.getElementById("province-list"); 
+    if (!regionContainer) {
+        console.error("Fatal Error: Could not find #province-list container element.");
+        return; 
     }
-    // Initial loading message is already in the HTML
+    regionContainer.innerHTML = '<p>Loading available communities...</p>'; 
 
     try {
-        // 1. Fetch all provinces
-        console.log("Fetching provinces...");
-        const { data: provincesData, error: provincesError } = await supabaseClient
-            .from('provinces')
-            .select('id, province_name') // Select ID and name
-            .order('province_name', { ascending: true }); // Sort alphabetically
+        // Fetch regions and communities (Same logic as before)
+        // ... (fetch regionsData) ...
+         console.log("Fetching provinces/territories...");
+        const { data: regionsData, error: regionsError } = await supabaseClient
+            .from('provinces') 
+            .select('id, province_name') 
+            .order('province_name', { ascending: true }); 
 
-        if (provincesError) {
-            throw new Error(`Failed to fetch provinces: ${provincesError.message}`);
-        }
-        if (!provincesData || provincesData.length === 0) {
-            throw new Error('No provinces found in the database.');
-        }
-        console.log(`Fetched ${provincesData.length} provinces.`);
-
-        // 2. Fetch all communities
+        if (regionsError) throw new Error(`Failed to fetch regions: ${regionsError.message}`);
+        if (!regionsData || regionsData.length === 0) throw new Error('No provinces or territories found.');
+        
+        // ... (fetch communitiesData) ...
         console.log("Fetching communities...");
         const { data: communitiesData, error: communitiesError } = await supabaseClient
             .from('communities')
-            .select('community_name, province_id') // Select name and the foreign key
-            .order('community_name', { ascending: true }); // Sort alphabetically
+            .select('community_name, province_id') 
+            .order('community_name', { ascending: true }); 
 
-        if (communitiesError) {
-            throw new Error(`Failed to fetch communities: ${communitiesError.message}`);
-        }
-        if (!communitiesData) {
-            console.warn("No communities data returned (null).");
-        } else {
-             console.log(`Fetched ${communitiesData.length} communities.`);
-        }
+        if (communitiesError) throw new Error(`Failed to fetch communities: ${communitiesError.message}`);
 
+        // Organize data (Same logic as before)
+        const regionMap = new Map(regionsData.map(r => [r.id, r.province_name]));
+        const communitiesByRegion = {};
+        const provinces = [];
+        const territories = [];
 
-        // 3. Organize data: Group communities by province
-        const provincesMap = new Map(provincesData.map(p => [p.id, p.province_name]));
-        const communitiesByProvince = {};
-
-        // Initialize all fetched provinces in the structure
-        provincesData.forEach(province => {
-             communitiesByProvince[province.province_name] = [];
+        regionsData.forEach(region => {
+            communitiesByRegion[region.province_name] = []; 
+            if (territoryNames.includes(region.province_name)) {
+                territories.push(region.province_name);
+            } else {
+                provinces.push(region.province_name);
+            }
         });
 
-        // Populate with communities if any were found
         if (communitiesData && communitiesData.length > 0) {
              communitiesData.forEach(community => {
-                const provinceName = provincesMap.get(community.province_id);
-                if (provinceName && communitiesByProvince.hasOwnProperty(provinceName)) {
-                    communitiesByProvince[provinceName].push(community.community_name);
-                } else {
-                    console.warn(`Community "${community.community_name}" has an invalid or missing province_id (${community.province_id}) or province name not found.`);
-                }
+                const regionName = regionMap.get(community.province_id);
+                if (regionName && communitiesByRegion.hasOwnProperty(regionName)) {
+                    communitiesByRegion[regionName].push(community.community_name);
+                } else { /* ... warning ... */ }
             });
         }
 
+        // Render the HTML
+        regionContainer.innerHTML = ''; 
+        regionContainer.className = 'region-container'; 
 
-        // 4. Render the HTML
-        provinceListElement.innerHTML = ''; // Clear "Loading..." message
+        // Helper function to render a region section (column)
+        const renderRegionSection = (regionName) => {
+            const communities = communitiesByRegion[regionName]; // Full list for this region
 
-        // Sort province names alphabetically for display
-        const sortedProvinceNames = Object.keys(communitiesByProvince).sort();
+            const regionSection = document.createElement("section");
+            regionSection.className = 'region-column'; 
 
-        if (sortedProvinceNames.length === 0) {
-             provinceListElement.innerHTML = '<p>No provinces found to display.</p>';
-             return;
-        }
+            const regionHeader = document.createElement("h2");
+            regionHeader.className = 'category-heading'; 
+            regionHeader.textContent = regionName;
+            regionSection.appendChild(regionHeader);
 
-        sortedProvinceNames.forEach(provinceName => {
-            const communities = communitiesByProvince[provinceName]; // Already sorted alphabetically by fetch query
-
-            const provinceSection = document.createElement("section");
-            const provinceHeader = document.createElement("h2");
-
-            provinceHeader.textContent = provinceName;
-            provinceSection.appendChild(provinceHeader);
+            const communityListContainer = document.createElement("div");
+            communityListContainer.className = 'community-list'; 
 
             if (communities.length > 0) {
-                const communityList = document.createElement("ul");
+                // *** START: Logic for Max 5 + View More ***
+                const communitiesToDisplay = communities.slice(0, MAX_COMMUNITIES_VISIBLE);
+                const showViewMore = communities.length > MAX_COMMUNITIES_VISIBLE;
 
-                communities.forEach(communityName => {
-                    const communityItem = document.createElement("li");
+                // Display the limited list (or full list if <= MAX)
+                communitiesToDisplay.forEach(communityName => {
                     const communityLink = document.createElement("a");
-
-                    // Link uses province name and community name as query parameters
-                    communityLink.href = `community.html?province=${encodeURIComponent(provinceName)}&community=${encodeURIComponent(communityName)}`;
+                    communityLink.className = 'community-link'; 
+                    communityLink.href = `community.html?province=${encodeURIComponent(regionName)}&community=${encodeURIComponent(communityName)}`;
                     communityLink.textContent = communityName;
-
-                    communityItem.appendChild(communityLink);
-                    communityList.appendChild(communityItem);
+                    communityListContainer.appendChild(communityLink); 
                 });
-                provinceSection.appendChild(communityList);
+
+                // Add "View More" link if needed
+                if (showViewMore) {
+                    const viewMoreLink = document.createElement("a");
+                    viewMoreLink.className = 'view-more-link';
+                    // Placeholder link - ** IMPORTANT: This page needs to be created later **
+                    viewMoreLink.href = `province_page.html?province=${encodeURIComponent(regionName)}`; 
+                    viewMoreLink.textContent = "View More...";
+                    communityListContainer.appendChild(viewMoreLink);
+                }
+                // *** END: Logic for Max 5 + View More ***
+
             } else {
-                 // Display a message if a province has no communities listed yet
-                 const noCommunitiesMsg = document.createElement("p");
+                 // Handle case with no communities (same as before)
+                 const noCommunitiesMsg = document.createElement("span"); 
                  noCommunitiesMsg.textContent = "No communities listed yet.";
-                 noCommunitiesMsg.style.paddingLeft = "20px"; // Match ul padding
-                 noCommunitiesMsg.style.fontStyle = "italic";
-                 noCommunitiesMsg.style.color = "#666";
-                 provinceSection.appendChild(noCommunitiesMsg);
+                 noCommunitiesMsg.className = 'no-communities-message'; 
+                 communityListContainer.appendChild(noCommunitiesMsg);
             }
+            regionSection.appendChild(communityListContainer); 
+            regionContainer.appendChild(regionSection); 
+        };
 
-            provinceListElement.appendChild(provinceSection);
-        });
-
-        if (provinceListElement.childElementCount === 0) {
-             provinceListElement.innerHTML = '<p>No communities available to display.</p>';
+        // Render Provinces and Territories (Same logic as before)
+        provinces.sort().forEach(renderRegionSection);
+        if (territories.length > 0) {
+            territories.sort().forEach(renderRegionSection);
         }
 
+        if (regionContainer.childElementCount === 0) {
+             regionContainer.innerHTML = '<p>No regions found.</p>';
+        }
 
     } catch (error) {
         displayHomeError(error.message);
@@ -142,12 +156,14 @@ async function populateHomePage() {
 }
 
 // ======================================================================
-// Main Execution
+// Main Execution (Same as before)
 // ======================================================================
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
-        displayHomeError("Supabase library not loaded. Please check the script tag in index.html.");
+        displayHomeError("Supabase library not loaded.");
         return;
     }
-    populateHomePage(); // Fetch data and build the list
+    populateHomePage(); 
 });
+
+// --- END OF UPDATED home.js ---
