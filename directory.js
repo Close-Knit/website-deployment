@@ -1,4 +1,4 @@
-// --- START OF UPDATED directory.js (Includes Suggest Link Logic) ---
+// --- START OF UPDATED directory.js (Display Address) ---
 
 // ======================================================================
 // Initialize Supabase (Same as before)
@@ -48,7 +48,6 @@ async function fetchAndDisplayListings() {
     const baseTitle = `${communityName}, ${provinceName}`;
      if (communityNameElement) communityNameElement.textContent = `Loading ${baseTitle} Directory...`;
      if (pageTitle) pageTitle.textContent = `${baseTitle} Directory`;
-     // Hide logo initially until we know if one exists
      if (logoElement) logoElement.style.display = 'none';
 
 
@@ -60,54 +59,42 @@ async function fetchAndDisplayListings() {
         console.log(`Fetching ID and logo for community name: "${communityName}"`);
         const { data: communityData, error: communityError } = await supabaseClient
             .from('communities')
-            .select('id, logo_filename') // Select id AND the logo_filename column
+            .select('id, logo_filename') 
             .eq('community_name', communityName)
             .limit(1)
             .single();
 
-        if (communityError) {
-            console.error("Supabase error fetching community data:", communityError);
-            throw new Error(`Could not verify community "${communityName}". ${communityError.message}`);
-        }
-
-        if (!communityData) {
-            throw new Error(`Community "${communityName}" not found in the 'communities' database table.`);
-        }
+        if (communityError) { throw new Error(`Could not verify community "${communityName}". ${communityError.message}`); }
+        if (!communityData) { throw new Error(`Community "${communityName}" not found in the 'communities' database table.`); }
 
         const communityId = communityData.id;
-        const logoFilename = communityData.logo_filename; // Get the filename from DB
+        const logoFilename = communityData.logo_filename; 
 
         console.log(`Found Community ID: ${communityId}, Logo Filename: ${logoFilename || 'None'}`);
 
         // --- Set Logo Dynamically using DB value ---
-        if (logoElement && logoFilename) { // Check if logo element exists AND filename is not null/empty
+        if (logoElement && logoFilename) { 
              logoElement.src = `images/logos/${logoFilename}`;
-             logoElement.alt = `${communityName} Logo`; // Use community name for alt text
-             logoElement.style.display = 'block'; // Show the logo element
+             logoElement.alt = `${communityName} Logo`; 
+             logoElement.style.display = 'block'; 
         }
 
-        // ***** Start: Added Section (Set Suggest Change Link) *****
-        // Set the link for the "Suggest Change" button/link
+        // --- Set Suggest Change Link ---
         const suggestChangeLink = document.getElementById('suggestChangeLink');
         if (suggestChangeLink) {
-            // Construct the URL for the suggestion page, passing necessary context
-            // cid = communityId, prov = provinceName, comm = communityName
             suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(provinceName)}&comm=${encodeURIComponent(communityName)}`;
-        } else {
-            // Log a warning if the link element isn't found in the HTML
-            console.warn("Suggest change link element (#suggestChangeLink) not found.");
-        }
-        // ***** End: Added Section *****
+        } else { console.warn("Suggest change link element (#suggestChangeLink) not found."); }
 
 
         // --- Step 2: Fetch listings using the Community ID ---
          console.log(`Fetching listings from table "${tableName}" using community_id: ${communityId}`);
+         // *** Fetch includes the new 'address' column automatically with SELECT * ***
          const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
-            .select('*')
+            .select('*') 
             .eq('community_id', communityId)
-            .order('category', { ascending: true, nullsFirst: false }) // Group null categories last
-            .then(response => { // Then sort by name within category
+            .order('category', { ascending: true, nullsFirst: false }) 
+            .then(response => { 
                 if (response.data) {
                     response.data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                 }
@@ -115,7 +102,7 @@ async function fetchAndDisplayListings() {
             });
 
 
-        if (listingsError) { // Handle listing fetch errors
+        if (listingsError) { 
             console.error("Supabase error fetching listings:", listingsError);
             if (listingsError.code === '42P01') { throw new Error(`Database table "${tableName}" not found.`); }
             if (listingsError.code === '42703') { throw new Error(`Column 'community_id' missing in table "${tableName}".`); }
@@ -124,25 +111,23 @@ async function fetchAndDisplayListings() {
 
 
         // --- Step 3 & 4: Group and Render Listings ---
-        resultsList.innerHTML = ''; // Clear loading
+        resultsList.innerHTML = ''; 
 
-        if (!listings || listings.length === 0) { // Handle no listings found
+        if (!listings || listings.length === 0) { 
             resultsList.innerHTML = `<li>No listings found for ${communityName}.</li>`;
             if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (0 listings)`;
             return;
         }
 
-        // Update heading with final count
         if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (${listings.length} listings)`;
 
-        // Grouping logic
-        const groupedListings = listings.reduce((acc, listing) => {
+        const groupedListings = listings.reduce((acc, listing) => { /* ... grouping logic ... */ 
             const category = listing.category || 'Uncategorized';
             if (!acc[category]) { acc[category] = []; }
             acc[category].push(listing);
             return acc;
         }, {});
-        const sortedCategories = Object.keys(groupedListings).sort((a, b) => {
+        const sortedCategories = Object.keys(groupedListings).sort((a, b) => { /* ... sorting logic ... */
              if (a === 'Uncategorized') return 1; if (b === 'Uncategorized') return -1;
              return a.localeCompare(b);
         });
@@ -157,13 +142,18 @@ async function fetchAndDisplayListings() {
             groupedListings[category].forEach(listing => {
                 const listItem = document.createElement('li');
                 listItem.className = 'directory-entry';
+
+                // ***** Start: Modified Section (Added Address) *****
                 listItem.innerHTML = `
                     <div class="entry-details">
                          <span class="name">${listing.name || 'N/A'}</span>
+                         ${listing.address ? `<span class="address">${listing.address}</span>` : ''} {/* Conditionally display address */}
                          ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
                     </div>
                     <span class="phone">${listing.phone_number ? `<a href="tel:${listing.phone_number}">${listing.phone_number}</a>` : ''}</span>
                 `;
+                // ***** End: Modified Section *****
+
                 resultsList.appendChild(listItem);
             });
         });
@@ -174,7 +164,7 @@ async function fetchAndDisplayListings() {
 }
 
 // ======================================================================
-// Initialize Search Functionality (Same as before)
+// Initialize Search Functionality (Remains the same)
 // ======================================================================
 function initializeSearch() {
      const searchBox = document.getElementById('searchBox');
@@ -189,11 +179,14 @@ function initializeSearch() {
             const name = entry.querySelector('.name')?.textContent.toLowerCase() || '';
             const phone = entry.querySelector('.phone')?.textContent.toLowerCase() || '';
             const notes = entry.querySelector('.notes')?.textContent.toLowerCase() || '';
+            // *** NOTE: Address is NOT included in search by default ***
+            // *** To search address, add: const address = entry.querySelector('.address')?.textContent.toLowerCase() || ''; ***
+            // *** And add || address.includes(query) to the condition below ***
             const isVisible = name.includes(query) || phone.includes(query) || notes.includes(query);
             if (isVisible) {
                 entry.style.display = '';
                  let currentElement = entry;
-                 while(currentElement.previousElementSibling) {
+                 while(currentElement.previousElementSibling) { /* ... find heading ... */
                      currentElement = currentElement.previousElementSibling;
                      if (currentElement.classList.contains('category-heading')) {
                          visibleCategories.add(currentElement);
@@ -202,7 +195,7 @@ function initializeSearch() {
                  }
             } else { entry.style.display = 'none'; }
         });
-        categoryHeadings.forEach(heading => {
+        categoryHeadings.forEach(heading => { /* ... show/hide logic ... */
             if (visibleCategories.has(heading) || query.length === 0) {
                 heading.style.display = '';
             } else { heading.style.display = 'none'; }
@@ -210,18 +203,16 @@ function initializeSearch() {
     });
 }
 
-
 // ======================================================================
-// Initialize Print Functionality (Same as before)
+// Initialize Print Functionality (Remains the same)
 // ======================================================================
 function initializePrint() {
     const printButton = document.getElementById('printButton');
     if (printButton) { printButton.addEventListener('click', () => window.print()); }
 }
 
-
 // ======================================================================
-// Main Execution (Same as before)
+// Main Execution (Remains the same)
 // ======================================================================
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
