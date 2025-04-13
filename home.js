@@ -1,4 +1,4 @@
-// --- START OF UPDATED home.js (Using 'status' column) ---
+// --- START OF UPDATED home.js (Added Console Log for Debugging) ---
 
 // ======================================================================
 // Initialize Supabase (Same as before)
@@ -44,39 +44,25 @@ async function populateHomePage() {
         if (regionsError) throw new Error(`Failed to fetch regions: ${regionsError.message}`);
         if (!regionsData || regionsData.length === 0) throw new Error('No provinces or territories found.');
         
-        // 2. Fetch all communities - *** INCLUDE CORRECT 'status' COLUMN ***
+        // 2. Fetch all communities - INCLUDE 'status' COLUMN 
         console.log("Fetching communities...");
         const { data: communitiesData, error: communitiesError } = await supabaseClient
             .from('communities')
-            // *** Select community_name, province_id, AND the 'status' column ***
-            .select('community_name, province_id, status') // <--- CHANGE HERE
+            .select('community_name, province_id, status') // Select status column
             .order('community_name', { ascending: true }); 
 
         if (communitiesError) throw new Error(`Failed to fetch communities: ${communitiesError.message}`);
         console.log(`Fetched ${communitiesData?.length || 0} communities.`);
 
-        // 3. Organize data - Store status along with name
+        // 3. Organize data - Store status along with name (Same as before)
         const regionMap = new Map(regionsData.map(r => [r.id, r.province_name]));
         const communitiesByRegion = {};
         const provinces = [];
         const territories = [];
-
         regionsData.forEach(region => { communitiesByRegion[region.province_name] = []; if (territoryNames.includes(region.province_name)) { territories.push(region.province_name); } else { provinces.push(region.province_name); } });
+        if (communitiesData && communitiesData.length > 0) { communitiesData.forEach(community => { const regionName = regionMap.get(community.province_id); if (regionName && communitiesByRegion.hasOwnProperty(regionName)) { communitiesByRegion[regionName].push({ name: community.community_name, status: community.status }); } else { /* ... warning ... */ } }); }
 
-        if (communitiesData && communitiesData.length > 0) {
-             communitiesData.forEach(community => {
-                const regionName = regionMap.get(community.province_id);
-                if (regionName && communitiesByRegion.hasOwnProperty(regionName)) {
-                    // *** Store name AND use the correct status field ***
-                    communitiesByRegion[regionName].push({ 
-                        name: community.community_name, 
-                        status: community.status // <--- CHANGE HERE (Will be 'NEW', 'COMING_SOON', or null)
-                    });
-                } else { /* ... warning ... */ }
-            });
-        }
-
-        // 4. Render the HTML (Logic remains the same, relies on community.status)
+        // 4. Render the HTML
         regionContainer.innerHTML = ''; 
         regionContainer.className = 'region-container'; 
 
@@ -96,7 +82,11 @@ async function populateHomePage() {
                 const communitiesToDisplay = communities.slice(0, MAX_COMMUNITIES_VISIBLE);
                 const showViewMore = communities.length > MAX_COMMUNITIES_VISIBLE;
 
-                communitiesToDisplay.forEach(community => { // community is now { name: '...', status: '...' }
+                communitiesToDisplay.forEach(community => { 
+                    // ***** Start: Added Debug Line *****
+                    console.log('Processing community:', community); // <-- ADDED THIS LINE
+                    // ***** End: Added Debug Line *****
+                    
                     const communityItemContainer = document.createElement('div'); 
                     communityItemContainer.className = 'community-item-container'; 
 
