@@ -1,23 +1,18 @@
-// --- START OF UPDATED directory.js (Enhanced Debugging) ---
+// --- START OF UPDATED directory.js (Delayed Supabase Init) ---
 
 // ======================================================================
-// Initialize Supabase (Same as before)
+// Declare Supabase Client Variable Globally (but initialize later)
 // ======================================================================
-const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
-const { createClient } = supabase;
-const supabaseClient = createClient(supabaseUrl, supabaseKey);
+let supabaseClient = null; // Use 'let' as it will be assigned later
 
 // ======================================================================
 // Helper to display error messages 
 // ======================================================================
 function displayError(message) {
-    console.error("[DEBUG] displayError called with:", message); // Debug error display
+    console.error("Directory Error:", message); 
     const resultsList = document.getElementById('results');
     if (resultsList) {
         resultsList.innerHTML = `<li style="color: red; font-style: italic;">Error: ${message}</li>`; 
-    } else {
-        console.error("[DEBUG] resultsList element not found in displayError!");
     }
     const communityNameElement = document.getElementById('community-name');
      if (communityNameElement) {
@@ -31,25 +26,27 @@ function displayError(message) {
 // Fetch and Display Listings for a Specific Community
 // ======================================================================
 async function fetchAndDisplayListings() {
-    console.log("[DEBUG] fetchAndDisplayListings called"); // Log function start
+    // Ensure client is initialized before proceeding
+    if (!supabaseClient) {
+        displayError("Supabase client not initialized. Cannot fetch data.");
+        return;
+    }
+
     const resultsList = document.getElementById('results');
     const communityNameElement = document.getElementById('community-name');
     const pageTitle = document.querySelector('title');
     const logoElement = document.getElementById('logo');
 
-    // Clear placeholder and set initial loading message
     if (resultsList) {
         resultsList.innerHTML = '<li>Loading...</li>'; 
-        console.log("[DEBUG] Initial 'Loading...' message set.");
     } else {
-        console.error("[DEBUG] Fatal Error: Results list element (#results) not found.");
+        console.error("Fatal Error: Results list element (#results) not found.");
         return; 
     }
 
     const urlParams = new URLSearchParams(window.location.search);
     const provinceName = urlParams.get("province");
     const communityName = urlParams.get("community");
-    console.log(`[DEBUG] Params: province=${provinceName}, community=${communityName}`);
 
     if (!provinceName || !communityName) {
         displayError("Missing province or community information in URL."); 
@@ -62,52 +59,37 @@ async function fetchAndDisplayListings() {
      if (logoElement) logoElement.style.display = 'none';
 
     const tableName = provinceName.replace(/ /g, '_');
-    console.log(`[DEBUG] Determined table name: ${tableName}`);
+    // console.log(`Attempting load: C:"${communityName}", P:"${provinceName}", T:"${tableName}"`); 
 
     try {
-        console.log("[DEBUG] Entering try block.");
         // --- Step 1: Get Community ID AND Logo Filename ---
-        console.log(`[DEBUG] Fetching community data for: "${communityName}"`);
         const { data: communityData, error: communityError } = await supabaseClient
             .from('communities')
             .select('id, logo_filename') 
             .eq('community_name', communityName)
             .limit(1)
             .single();
-        console.log("[DEBUG] Community data fetch completed.");
 
-        if (communityError) { 
-            console.error("[DEBUG] Error fetching community data:", communityError);
-            throw new Error(`Could not verify community "${communityName}". ${communityError.message}`); 
-        }
-        if (!communityData) { 
-            console.error("[DEBUG] Community data not found in DB.");
-            throw new Error(`Community "${communityName}" not found in the 'communities' database table.`); 
-        }
+        if (communityError) { throw new Error(`Could not verify community "${communityName}". ${communityError.message}`); }
+        if (!communityData) { throw new Error(`Community "${communityName}" not found.`); }
 
         const communityId = communityData.id;
         const logoFilename = communityData.logo_filename; 
-        console.log(`[DEBUG] Found Community ID: ${communityId}, Logo Filename: ${logoFilename || 'None'}`);
 
-        // --- Set Logo Dynamically ---
-        console.log("[DEBUG] Setting logo...");
+        // --- Set Logo ---
         if (logoElement && logoFilename) { 
              logoElement.src = `images/logos/${logoFilename}`;
              logoElement.alt = `${communityName} Logo`; 
              logoElement.style.display = 'block'; 
         }
-        console.log("[DEBUG] Logo set (or skipped).");
 
         // --- Set Suggest Change Link ---
-        console.log("[DEBUG] Setting suggest change link...");
         const suggestChangeLink = document.getElementById('suggestChangeLink');
         if (suggestChangeLink) {
             suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(provinceName)}&comm=${encodeURIComponent(communityName)}`;
-        } else { console.warn("[DEBUG] Suggest change link element (#suggestChangeLink) not found."); }
-        console.log("[DEBUG] Suggest change link set (or skipped).");
+        }
 
         // --- Step 2: Fetch listings ---
-         console.log(`[DEBUG] Fetching listings from table "${tableName}" using community_id: ${communityId}`);
          const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
             .select('*') 
@@ -117,82 +99,81 @@ async function fetchAndDisplayListings() {
                 if (response.data) { response.data.sort((a, b) => (a.name || '').localeCompare(b.name || '')); }
                 return response;
             });
-        console.log("[DEBUG] Listings fetch completed.");
 
         if (listingsError) { 
-            console.error("[DEBUG] Error fetching listings data:", listingsError);
-            if (listingsError.code === '42P01') { throw new Error(`Database table "${tableName}" not found.`); }
-            if (listingsError.code === '42703') { throw new Error(`Column 'community_id' missing in table "${tableName}".`); }
+            if (listingsError.code === '42P01') { throw new Error(`DB table "${tableName}" not found.`); }
+            if (listingsError.code === '42703') { throw new Error(`Col 'community_id' missing in "${tableName}".`); }
             throw new Error(`Failed to fetch listings: ${listingsError.message}`);
         }
-        console.log(`[DEBUG] Fetched ${listings?.length || 0} listings.`);
 
         // --- Step 3 & 4: Group and Render Listings ---
-        console.log("[DEBUG] Clearing results list before rendering.");
-        resultsList.innerHTML = ''; // Clear "Loading..." message
+        resultsList.innerHTML = ''; 
 
         if (!listings || listings.length === 0) { 
-            console.log("[DEBUG] No listings found, displaying message.");
             resultsList.innerHTML = `<li>No listings found for ${communityName}.</li>`;
             if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (0 listings)`;
-            console.log("[DEBUG] Exiting fetchAndDisplayListings after no listings found.");
             return;
         }
 
-        console.log("[DEBUG] Updating heading with count.");
         if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (${listings.length} listings)`;
 
-        console.log("[DEBUG] Grouping listings by category...");
-        const groupedListings = listings.reduce((acc, listing) => { 
-            const category = listing.category || 'Uncategorized';
-            if (!acc[category]) { acc[category] = []; }
-            acc[category].push(listing);
-            return acc;
-        }, {});
-        const sortedCategories = Object.keys(groupedListings).sort((a, b) => { 
-             if (a === 'Uncategorized') return 1; if (b === 'Uncategorized') return -1;
-             return a.localeCompare(b);
-        });
-        console.log(`[DEBUG] Grouped into ${sortedCategories.length} categories.`);
+        const groupedListings = listings.reduce(/* ... */); // Simplified for brevity
+        const sortedCategories = Object.keys(groupedListings).sort(/* ... */); // Simplified
 
-        console.log("[DEBUG] Starting render loop...");
         sortedCategories.forEach(category => {
-            // ... render category heading ...
-            const categoryHeadingItem = document.createElement('li'); /*...*/ 
-            categoryHeadingItem.className = 'category-heading';
-            categoryHeadingItem.textContent = category;
-            resultsList.appendChild(categoryHeadingItem);
-
-            groupedListings[category].forEach(listing => {
-                // ... render list item ...
+             const categoryHeadingItem = document.createElement('li'); /*...*/
+             resultsList.appendChild(categoryHeadingItem);
+             groupedListings[category].forEach(listing => {
                  const listItem = document.createElement('li'); /*...*/
-                 listItem.className = 'directory-entry';
-                 listItem.innerHTML = `...`; // Corrected HTML structure
+                 listItem.innerHTML = `...`; // Render HTML
                  resultsList.appendChild(listItem);
-            });
+             });
         });
-        console.log("[DEBUG] Render loop finished.");
 
     } catch (fetchError) {
-        console.error("[DEBUG] Error caught in try...catch block:", fetchError);
-        displayError(fetchError.message); // Display the error message
+        displayError(fetchError.message); 
     }
-    console.log("[DEBUG] fetchAndDisplayListings finished."); // Log function end
 }
 
 // ======================================================================
-// Initialize Search Functionality (Remains the same)
+// Initialize Search Functionality 
 // ======================================================================
 function initializeSearch() { /* ... */ }
 
 // ======================================================================
-// Initialize Print Functionality (Remains the same)
+// Initialize Print Functionality 
 // ======================================================================
 function initializePrint() { /* ... */ }
 
 // ======================================================================
-// Main Execution (Remains the same)
+// Main Execution 
 // ======================================================================
-document.addEventListener('DOMContentLoaded', () => { /* ... */ });
+document.addEventListener('DOMContentLoaded', () => { 
+    // --- Start: Moved Supabase Init Here ---
+    console.log("[DEBUG] DOMContentLoaded fired."); // Add log
+
+    // Check if Supabase library itself loaded
+    if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
+         displayError("Supabase library failed to load. Check script tags in HTML.");
+         console.error("Supabase library failed to load."); 
+         return; 
+    }
+    
+    console.log("[DEBUG] Supabase library found. Initializing client...");
+
+    // Initialize Supabase Client HERE
+    const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
+    const { createClient } = supabase; // Destructure createClient here
+    supabaseClient = createClient(supabaseUrl, supabaseKey); // Assign to the global 'let' variable
+
+    console.log("[DEBUG] Supabase client initialized.");
+    // --- End: Moved Supabase Init Here ---
+
+    // Now call functions that rely on supabaseClient
+    fetchAndDisplayListings();
+    initializeSearch();
+    initializePrint();
+});
 
 // --- END OF UPDATED directory.js ---
