@@ -1,9 +1,9 @@
-// --- START OF UPDATED directory.js (Delayed Supabase Init) ---
+// --- START OF UPDATED directory.js (Refined Supabase Init) ---
 
 // ======================================================================
-// Declare Supabase Client Variable Globally (but initialize later)
+// Declare Supabase Client Variable Globally 
 // ======================================================================
-let supabaseClient = null; // Use 'let' as it will be assigned later
+let supabaseClient = null; 
 
 // ======================================================================
 // Helper to display error messages 
@@ -13,6 +13,8 @@ function displayError(message) {
     const resultsList = document.getElementById('results');
     if (resultsList) {
         resultsList.innerHTML = `<li style="color: red; font-style: italic;">Error: ${message}</li>`; 
+    } else {
+        console.error("Could not find #results element to display error.");
     }
     const communityNameElement = document.getElementById('community-name');
      if (communityNameElement) {
@@ -26,7 +28,6 @@ function displayError(message) {
 // Fetch and Display Listings for a Specific Community
 // ======================================================================
 async function fetchAndDisplayListings() {
-    // Ensure client is initialized before proceeding
     if (!supabaseClient) {
         displayError("Supabase client not initialized. Cannot fetch data.");
         return;
@@ -117,15 +118,34 @@ async function fetchAndDisplayListings() {
 
         if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (${listings.length} listings)`;
 
-        const groupedListings = listings.reduce(/* ... */); // Simplified for brevity
-        const sortedCategories = Object.keys(groupedListings).sort(/* ... */); // Simplified
+        const groupedListings = listings.reduce((acc, listing) => { 
+            const category = listing.category || 'Uncategorized';
+            if (!acc[category]) { acc[category] = []; }
+            acc[category].push(listing);
+            return acc;
+         }, {});
+        const sortedCategories = Object.keys(groupedListings).sort((a, b) => { 
+             if (a === 'Uncategorized') return 1; if (b === 'Uncategorized') return -1;
+             return a.localeCompare(b);
+         });
 
         sortedCategories.forEach(category => {
-             const categoryHeadingItem = document.createElement('li'); /*...*/
+             const categoryHeadingItem = document.createElement('li'); 
+             categoryHeadingItem.className = 'category-heading';
+             categoryHeadingItem.textContent = category;
              resultsList.appendChild(categoryHeadingItem);
+             
              groupedListings[category].forEach(listing => {
-                 const listItem = document.createElement('li'); /*...*/
-                 listItem.innerHTML = `...`; // Render HTML
+                 const listItem = document.createElement('li'); 
+                 listItem.className = 'directory-entry';
+                 listItem.innerHTML = `
+                     <div class="entry-details">
+                          <span class="name">${listing.name || 'N/A'}</span>
+                          ${listing.address ? `<span class="address">${listing.address}</span>` : ''} 
+                          ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
+                     </div>
+                     <span class="phone">${listing.phone_number ? `<a href="tel:${listing.phone_number}">${listing.phone_number}</a>` : ''}</span>
+                 `; 
                  resultsList.appendChild(listItem);
              });
         });
@@ -138,21 +158,19 @@ async function fetchAndDisplayListings() {
 // ======================================================================
 // Initialize Search Functionality 
 // ======================================================================
-function initializeSearch() { /* ... */ }
+function initializeSearch() { /* ... same as before ... */ }
 
 // ======================================================================
 // Initialize Print Functionality 
 // ======================================================================
-function initializePrint() { /* ... */ }
+function initializePrint() { /* ... same as before ... */ }
 
 // ======================================================================
 // Main Execution 
 // ======================================================================
 document.addEventListener('DOMContentLoaded', () => { 
-    // --- Start: Moved Supabase Init Here ---
-    console.log("[DEBUG] DOMContentLoaded fired."); // Add log
+    console.log("[DEBUG] DOMContentLoaded fired."); 
 
-    // Check if Supabase library itself loaded
     if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
          displayError("Supabase library failed to load. Check script tags in HTML.");
          console.error("Supabase library failed to load."); 
@@ -161,14 +179,23 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log("[DEBUG] Supabase library found. Initializing client...");
 
-    // Initialize Supabase Client HERE
+    // --- Start: Refined Supabase Init ---
+    // Directly use supabase.createClient
     const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
-    const { createClient } = supabase; // Destructure createClient here
-    supabaseClient = createClient(supabaseUrl, supabaseKey); // Assign to the global 'let' variable
+    
+    // Assign directly using the global supabase object
+    supabaseClient = supabase.createClient(supabaseUrl, supabaseKey); 
+    // --- End: Refined Supabase Init ---
+
+    // Check if initialization was successful before proceeding
+    if (!supabaseClient) {
+        displayError("Failed to initialize Supabase client.");
+        console.error("Failed to initialize Supabase client.");
+        return;
+    }
 
     console.log("[DEBUG] Supabase client initialized.");
-    // --- End: Moved Supabase Init Here ---
 
     // Now call functions that rely on supabaseClient
     fetchAndDisplayListings();
