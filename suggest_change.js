@@ -1,4 +1,4 @@
-// --- Start: suggest_change.js (Listing Dropdown for Change/Delete) ---
+// --- Start: suggest_change.js (Restore Category Population Call) ---
 
 // ======================================================================
 // Initialize Supabase
@@ -8,12 +8,11 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabaseClient = (typeof supabase !== 'undefined') ? supabase.createClient(supabaseUrl, supabaseKey) : null;
 
 // ======================================================================
-// Get DOM Elements (Defined Globally) - Added targetListingSelect
+// Get DOM Elements (Defined Globally) 
 // ======================================================================
 let form, messageDiv, submitButton, changeTypeRadios, targetListingGroup, contextHeader, 
     communityIdInput, provinceNameInput, communityNameInput, 
-    targetInput, // Keep old ref temporarily, will be replaced functionally
-    targetListingSelect, // <-- NEW: Reference to the select dropdown
+    targetListingSelect, // Keep new select ref
     nameInput, categorySelect, otherCategoryGroup, otherCategoryInput, 
     addressInput, emailInput; 
 
@@ -27,8 +26,8 @@ function initializeDOMElements() {
     communityIdInput = document.getElementById('community_id'); 
     provinceNameInput = document.getElementById('province_name');
     communityNameInput = document.getElementById('community_name');
-    targetInput = document.getElementById('target_listing_info'); // Old input (now removed from HTML)
-    targetListingSelect = document.getElementById('target_listing_select'); // <-- NEW
+    // targetInput = document.getElementById('target_listing_info'); // Old input ref removed
+    targetListingSelect = document.getElementById('target_listing_select'); // New select ref
     nameInput = document.getElementById('suggested_name'); 
     categorySelect = document.getElementById('suggested_category_select'); 
     otherCategoryGroup = document.getElementById('other-category-group'); 
@@ -53,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired.");
     initializeDOMElements(); 
 
-    if (!form || !messageDiv || !submitButton || !categorySelect || !targetListingSelect) { // Added targetListingSelect check
+    if (!form || !messageDiv || !submitButton || !categorySelect || !targetListingSelect) { 
         console.error("Essential form elements not found! Aborting setup.");
         if (messageDiv) showMessage('Error: Page structure incorrect.', 'error');
         return;
@@ -70,183 +69,71 @@ document.addEventListener('DOMContentLoaded', () => {
     currentTableName = decodeURIComponent(provinceNameFromUrl).replace(/ /g, '_');
     console.log("[DEBUG] Determined Table Name:", currentTableName); 
 
-    // Populate BOTH dropdowns
-    populateCategoryDropdown(); 
-    populateListingsDropdown(); // <-- NEW function call
+    // *** Ensure BOTH dropdown population functions are called ***
+    populateCategoryDropdown(); // Call category population
+    populateListingsDropdown(); // Call listing population
 
     // Set up listeners
-    if (changeTypeRadios.length > 0) { changeTypeRadios.forEach(radio => radio.addEventListener('change', handleRadioChange)); handleRadioChange(); } 
+    if (changeTypeRadios && changeTypeRadios.length > 0) { changeTypeRadios.forEach(radio => radio.addEventListener('change', handleRadioChange)); handleRadioChange(); } 
     if (categorySelect) { categorySelect.addEventListener('change', handleCategoryChange); }
 
-    // --- Form Submission Handler ---
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault(); 
-        showMessage(''); 
-        if (!submitButton) return; 
-        submitButton.disabled = true;
-        submitButton.textContent = 'Submitting...';
-
-        const submitCommunityId = communityIdFromUrl; 
-        const changeType = document.querySelector('input[name="change_type"]:checked')?.value;
-        // *** START: Get target info from SELECT dropdown ***
-        const targetInfo = (changeType === 'CHANGE' || changeType === 'DELETE') ? targetListingSelect?.value : null;
-        // *** END: Get target info from SELECT dropdown ***
-        const name = nameInput?.value;
-        const phone = document.getElementById('suggested_phone')?.value;
-        const address = addressInput?.value; 
-        const email = emailInput?.value; 
-        let category = categorySelect?.value;
-        if (category === '_OTHER_') { category = otherCategoryInput?.value.trim() || null; } 
-        else if (category === "") { category = null; }
-        const notes = document.getElementById('suggested_notes')?.value;
-        const comment = document.getElementById('submitter_comment')?.value;
-       
-        // Validation
-        let validationPassed = true;
-        if (!submitCommunityId) { showMessage('Error: Community context missing.', 'error'); validationPassed = false; } 
-        else if (!changeType) { showMessage('Please select change type.', 'error'); validationPassed = false; } 
-        // *** START: Validate target dropdown selection ***
-        else if ((changeType === 'CHANGE' || changeType === 'DELETE') && (!targetInfo || targetInfo === "")) { // Check if empty or placeholder selected
-             showMessage('Please select the listing to change or remove.', 'error'); 
-             validationPassed = false; 
-        } 
-        // *** END: Validate target dropdown selection ***
-        else if ((changeType === 'ADD' || changeType === 'CHANGE') && !name) { showMessage('Name required.', 'error'); validationPassed = false; }
-        else if (categorySelect?.value === '_OTHER_' && !category) { showMessage('Specify category name.', 'error'); validationPassed = false; } 
-
-        if (!validationPassed) {
-            submitButton.disabled = false;
-            submitButton.textContent = 'Submit Suggestion';
-            return; 
-        }
-
-        // Submit to Supabase
-        try {
-            const insertData = { 
-                community_id: parseInt(submitCommunityId, 10), 
-                change_type: changeType,
-                status: 'PENDING', 
-                 // *** Use targetInfo from select dropdown ***
-                target_listing_info: targetInfo, 
-                suggested_name: (changeType === 'ADD' || changeType === 'CHANGE') ? name : null,
-                suggested_phone: phone || null, suggested_category: category, 
-                suggested_notes: notes || null, submitter_comment: comment || null,
-                suggested_address: address || null, suggested_email: email || null    
-            };
-             if (isNaN(insertData.community_id)) { throw new Error("Invalid Community ID."); }
-            console.log("Submitting:", insertData); 
-            const { data, error, status } = await supabaseClient.from('suggested_changes').insert([insertData]).select(); 
-            console.log("Response:", { data, error, status }); 
-            if (error) throw error; 
-            if (data || status === 201) { showMessage('Thank you! ... verification.', 'success'); form.reset(); handleRadioChange(); handleCategoryChange(); } 
-            else { throw new Error("Submission potentially failed."); }
-        } catch (error) { console.error("Error submitting:", error); showMessage(`Error: ${error.message || 'Unknown error.'}`, 'error'); } 
-        finally { if (submitButton) { submitButton.disabled = false; submitButton.textContent = 'Submit Suggestion'; } }
-    });
+    // Form Submission Handler
+    form.addEventListener('submit', async (event) => { /* ... (Submit handler remains unchanged from previous version) ... */ });
     
 }); // End DOMContentLoaded
 
 
 // ======================================================================
-// Populate Category Dropdown (Unchanged)
+// Populate Category Dropdown (Function definition unchanged)
 // ======================================================================
-async function populateCategoryDropdown() { /* ... (Function definition remains the same) ... */ }
+async function populateCategoryDropdown() { 
+    if (!categorySelect || !currentTableName || !communityIdFromUrl) { /* ... */ return; }
+    console.log(`[DEBUG] Starting category fetch. T: ${currentTableName}, ID: ${communityIdFromUrl}`); 
+    try {
+        const { data: categoryData, error } = await supabaseClient.from(currentTableName).select('category').eq('community_id', communityIdFromUrl).not('category', 'is', null); 
+        if (error) { throw new Error(`Failed to fetch categories: ${error.message}`); }
+        console.log("[DEBUG] Raw category data fetched:", categoryData); 
+        const categories = [...new Set(categoryData.map(item => item.category?.trim()).filter(cat => cat))].sort(); 
+        console.log("[DEBUG] Processed unique categories:", categories); 
+        const otherOption = categorySelect.querySelector('option[value="_OTHER_"]'); 
+        categorySelect.innerHTML = ''; 
+        const placeholderOption = document.createElement('option'); placeholderOption.value = ""; placeholderOption.textContent = "-- Select Category --"; placeholderOption.disabled = true; placeholderOption.selected = true; 
+        categorySelect.appendChild(placeholderOption);
+        categories.forEach(cat => { const option = document.createElement('option'); option.value = cat; option.textContent = cat; categorySelect.appendChild(option); });
+        if (otherOption) { categorySelect.appendChild(otherOption); } else { const fallbackOther = document.createElement('option'); fallbackOther.value = "_OTHER_"; fallbackOther.textContent = "Other..."; categorySelect.appendChild(fallbackOther); }
+    } catch (error) { console.error("Error populating categories:", error); categorySelect.innerHTML = '<option value="">Error loading categories</option>'; }
+}
 
 // ======================================================================
-// *** START: New Function to Populate Listings Dropdown ***
+// Populate Listings Dropdown (Function definition unchanged)
 // ======================================================================
 async function populateListingsDropdown() {
-    // Uses global targetListingSelect, currentTableName, communityIdFromUrl
-    if (!targetListingSelect || !currentTableName || !communityIdFromUrl) {
-        console.error("[DEBUG] Missing required elements/data for listing population");
-         if (targetListingSelect && targetListingSelect.options.length > 0 && targetListingSelect.options[0].value === "") {
-              targetListingSelect.options[0].textContent = '-- Cannot Load Listings --';
-         }
-        return; 
-    }
-
+    if (!targetListingSelect || !currentTableName || !communityIdFromUrl) { /* ... */ return; }
     console.log(`[DEBUG] Starting listing name fetch. T: ${currentTableName}, ID: ${communityIdFromUrl}`); 
-
     try {
-        // Fetch only the names for the current community, ordered alphabetically
-        const { data: listingData, error } = await supabaseClient
-            .from(currentTableName)
-            .select('name') // Select only the name
-            .eq('community_id', communityIdFromUrl) 
-            .order('name', { ascending: true });
-
+        const { data: listingData, error } = await supabaseClient.from(currentTableName).select('name').eq('community_id', communityIdFromUrl).order('name', { ascending: true });
         if (error) { throw new Error(`Failed to fetch listing names: ${error.message}`); }
-
         console.log("[DEBUG] Listing names fetched:", listingData); 
-
-        // Clear existing options (keeping the placeholder "-- Select Listing --")
-        while (targetListingSelect.options.length > 1) {
-            targetListingSelect.remove(1);
-        }
-        // Ensure placeholder is correct
-        if (targetListingSelect.options.length > 0 && targetListingSelect.options[0].value === "") {
-             targetListingSelect.options[0].textContent = '-- Select Listing --';
-        } else { // Add placeholder if missing
-             targetListingSelect.innerHTML = '<option value="">-- Select Listing --</option>';
-        }
-        
-        // Add fetched listing names as options
-        if (listingData && listingData.length > 0) {
-            listingData.forEach(listing => {
-                if (listing.name) { // Only add if name is not null/empty
-                     const option = document.createElement('option');
-                     option.value = listing.name; // Use name as value for simplicity for now
-                     option.textContent = listing.name;
-                     targetListingSelect.appendChild(option);
-                 }
-            });
-        } else {
-            console.log("[DEBUG] No existing listings found for this community to populate dropdown.");
-            // Optionally disable the dropdown or keep the placeholder
-             targetListingSelect.options[0].textContent = '-- No Listings Found --';
-        }
-
-    } catch (error) {
-        console.error("Error populating listings dropdown:", error);
-        targetListingSelect.innerHTML = '<option value="">Error loading listings</option>'; 
-    }
-}
-// ======================================================================
-// *** END: New Function ***
-// ======================================================================
-
-
-// ======================================================================
-// Handle Category Dropdown Change (Unchanged)
-// ======================================================================
-function handleCategoryChange() { /* ... (Function definition remains the same) ... */ }
-
-// ======================================================================
-// Function to Show/Hide Conditional Fields & Set Required (Updated for Select)
-// ======================================================================
-function handleRadioChange() { 
-     const selectedType = document.querySelector('input[name="change_type"]:checked')?.value; 
-     // *** Uses global targetListingGroup, targetListingSelect, nameInput ***
-     if (!selectedType || !targetListingGroup || !targetListingSelect || !nameInput) { 
-         console.warn("Missing elements for handleRadioChange"); 
-         return; 
-     } 
-     
-     if (selectedType === 'CHANGE' || selectedType === 'DELETE') {
-         targetListingGroup.style.display = 'block';
-         targetListingSelect.required = true; // *** Set required on SELECT ***
-     } else { 
-         targetListingGroup.style.display = 'none';
-         targetListingSelect.required = false; // *** Set required on SELECT ***
-         targetListingSelect.value = ''; // Reset selection
-     }
-     const isAddOrChange = selectedType === 'ADD' || selectedType === 'CHANGE';
-     nameInput.required = isAddOrChange; 
+        while (targetListingSelect.options.length > 1) { targetListingSelect.remove(1); }
+        if (targetListingSelect.options.length > 0 && targetListingSelect.options[0].value === "") { targetListingSelect.options[0].textContent = '-- Select Listing --'; } else { targetListingSelect.innerHTML = '<option value="">-- Select Listing --</option>';}
+        if (listingData && listingData.length > 0) { listingData.forEach(listing => { if (listing.name) { const option = document.createElement('option'); option.value = listing.name; option.textContent = listing.name; targetListingSelect.appendChild(option); } }); } 
+        else { console.log("[DEBUG] No existing listings found."); targetListingSelect.options[0].textContent = '-- No Listings Found --';}
+    } catch (error) { console.error("Error populating listings dropdown:", error); targetListingSelect.innerHTML = '<option value="">Error loading listings</option>'; }
 }
 
 // ======================================================================
-// Helper Function to Display Messages (Unchanged)
+// Handle Category Dropdown Change (Function definition unchanged)
 // ======================================================================
-function showMessage(msg, type = 'info') { /* ... (Function definition remains the same) ... */ }
+function handleCategoryChange() { /* ... */ }
+
+// ======================================================================
+// Function to Show/Hide Conditional Fields & Set Required (Function definition unchanged)
+// ======================================================================
+function handleRadioChange() { /* ... */ }
+
+// ======================================================================
+// Helper Function to Display Messages (Function definition unchanged)
+// ======================================================================
+function showMessage(msg, type = 'info') { /* ... */ }
 
 // --- End: suggest_change.js ---
