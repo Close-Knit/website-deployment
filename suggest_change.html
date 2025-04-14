@@ -21,72 +21,39 @@
         <!-- Change Type Selection -->
         <div class="form-group">
             <label>Type of Change:</label>
-            <div>
-                <input type="radio" id="add" name="change_type" value="ADD" required checked> <label for="add">Add New Listing</label>
-            </div>
-            <div>
-                <input type="radio" id="change" name="change_type" value="CHANGE" required> <label for="change">Change Existing Listing</label>
-            </div>
-            <div>
-                 <input type="radio" id="delete" name="change_type" value="DELETE" required> <label for="delete">Remove Listing</label>
-            </div>
+            <div> <input type="radio" id="add" name="change_type" value="ADD" required checked> <label for="add">Add New Listing</label> </div>
+            <div> <input type="radio" id="change" name="change_type" value="CHANGE" required> <label for="change">Change Existing Listing</label> </div>
+            <div> <input type="radio" id="delete" name="change_type" value="DELETE" required> <label for="delete">Remove Listing</label> </div>
         </div>
 
-        <!-- Target Listing Field (Conditional) -->
+        <!-- *** START: Modified Target Listing Field *** -->
         <div class="form-group" id="target-listing-group" style="display: none;">
-            <label for="target_listing_info">Name of Listing to Change/Remove:</label>
-            <input type="text" id="target_listing_info" name="target_listing_info" placeholder="Enter name as it appears in directory">
+            <!-- Changed label 'for' and text slightly -->
+            <label for="target_listing_select">Listing to Change/Remove:</label> 
+            <!-- Replaced text input with select dropdown -->
+            <select id="target_listing_select" name="target_listing_select">
+                 <option value="">-- Select Listing --</option> 
+                 <!-- Options will be populated by JS -->
+            </select>
         </div>
+        <!-- *** END: Modified Target Listing Field *** -->
 
         <hr> 
 
         <!-- Listing Details Fields -->
         <p><strong>Listing Details (Fill in for Add/Change):</strong></p>
-        <div class="form-group">
-            <label for="suggested_name">Name:</label>
-            <input type="text" id="suggested_name" name="suggested_name">
-        </div>
-        <div class="form-group">
-            <label for="suggested_phone">Phone Number:</label>
-            <input type="tel" id="suggested_phone" name="suggested_phone">
-        </div>
-        <div class="form-group">
-            <label for="suggested_address">Address (Optional):</label>
-            <input type="text" id="suggested_address" name="suggested_address">
-        </div>
-         <div class="form-group">
-            <label for="suggested_email">Email (Optional):</label>
-            <input type="email" id="suggested_email" name="suggested_email">
-        </div>
-        
-        <!-- Start: Category Dropdown -->
-        <div class="form-group">
-            <label for="suggested_category_select">Category:</label>
-            <select id="suggested_category_select" name="suggested_category_select">
-                <option value="">Loading categories...</option> 
-                <!-- Options will be populated by JS -->
-                <option value="_OTHER_">Other...</option> 
-            </select>
-        </div>
-        <!-- Hidden input for specifying "Other" category -->
-        <div class="form-group" id="other-category-group" style="display: none;">
-             <label for="suggested_category_other">Specify Other Category:</label>
-             <input type="text" id="suggested_category_other" name="suggested_category_other">
-        </div>
-        <!-- End: Category Dropdown -->
-
-         <div class="form-group">
-            <label for="suggested_notes">Notes (Optional):</label>
-            <textarea id="suggested_notes" name="suggested_notes" rows="3"></textarea>
-        </div>
+        <div class="form-group"> <label for="suggested_name">Name:</label> <input type="text" id="suggested_name" name="suggested_name"> </div>
+        <div class="form-group"> <label for="suggested_phone">Phone Number:</label> <input type="tel" id="suggested_phone" name="suggested_phone"> </div>
+        <div class="form-group"> <label for="suggested_address">Address (Optional):</label> <input type="text" id="suggested_address" name="suggested_address"> </div>
+        <div class="form-group"> <label for="suggested_email">Email (Optional):</label> <input type="email" id="suggested_email" name="suggested_email"> </div>
+        <div class="form-group"> <label for="suggested_category_select">Category:</label> <select id="suggested_category_select" name="suggested_category_select"> <option value="">Loading categories...</option> <option value="_OTHER_">Other...</option> </select> </div>
+        <div class="form-group" id="other-category-group" style="display: none;"> <label for="suggested_category_other">Specify Other Category:</label> <input type="text" id="suggested_category_other" name="suggested_category_other"> </div>
+        <div class="form-group"> <label for="suggested_notes">Notes (Optional):</label> <textarea id="suggested_notes" name="suggested_notes" rows="3"></textarea> </div>
 
         <hr> 
 
         <!-- Submitter Comment Field -->
-        <div class="form-group">
-            <label for="submitter_comment">Your Comments (Optional):</label>
-            <textarea id="submitter_comment" name="submitter_comment" rows="3" placeholder="Reason for change, contact info (optional), etc."></textarea>
-        </div>
+        <div class="form-group"> <label for="submitter_comment">Your Comments (Optional):</label> <textarea id="submitter_comment" name="submitter_comment" rows="3" placeholder="Reason for change, contact info (optional), etc."></textarea> </div>
 
          <!-- Hidden fields -->
          <input type="hidden" id="community_id" name="community_id">
