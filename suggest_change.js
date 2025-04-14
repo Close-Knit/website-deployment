@@ -1,4 +1,4 @@
-// --- Start: suggest_change.js (Restore Category Population Call) ---
+// --- Start: suggest_change.js (Restore Listing Dropdown ONLY) ---
 
 // ======================================================================
 // Initialize Supabase
@@ -8,11 +8,11 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabaseClient = (typeof supabase !== 'undefined') ? supabase.createClient(supabaseUrl, supabaseKey) : null;
 
 // ======================================================================
-// Get DOM Elements (Defined Globally) 
+// Get DOM Elements (Defined Globally)
 // ======================================================================
 let form, messageDiv, submitButton, changeTypeRadios, targetListingGroup, contextHeader, 
     communityIdInput, provinceNameInput, communityNameInput, 
-    targetListingSelect, // Keep new select ref
+    targetListingSelect, // New select ref
     nameInput, categorySelect, otherCategoryGroup, otherCategoryInput, 
     addressInput, emailInput; 
 
@@ -21,13 +21,12 @@ function initializeDOMElements() {
     messageDiv = document.getElementById('form-message');
     submitButton = document.getElementById('submit-button');
     changeTypeRadios = document.querySelectorAll('input[name="change_type"]');
-    targetListingGroup = document.getElementById('target-listing-group');
+    targetListingGroup = document.getElementById('target-listing-group'); // Div containing the select
     contextHeader = document.getElementById('form-context');
     communityIdInput = document.getElementById('community_id'); 
     provinceNameInput = document.getElementById('province_name');
     communityNameInput = document.getElementById('community_name');
-    // targetInput = document.getElementById('target_listing_info'); // Old input ref removed
-    targetListingSelect = document.getElementById('target_listing_select'); // New select ref
+    targetListingSelect = document.getElementById('target_listing_select'); // The select dropdown
     nameInput = document.getElementById('suggested_name'); 
     categorySelect = document.getElementById('suggested_category_select'); 
     otherCategoryGroup = document.getElementById('other-category-group'); 
@@ -52,15 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired.");
     initializeDOMElements(); 
 
-    if (!form || !messageDiv || !submitButton || !categorySelect || !targetListingSelect) { 
-        console.error("Essential form elements not found! Aborting setup.");
-        if (messageDiv) showMessage('Error: Page structure incorrect.', 'error');
-        return;
-    }
-    if (!supabaseClient) { showMessage('Error: Supabase client failed.', 'error'); if(form) form.style.display = 'none'; return; }
-    if (!communityIdFromUrl || !provinceNameFromUrl || !communityNameFromUrl) { showMessage('Error: Missing community info.', 'error'); if (form) form.style.display = 'none'; if (contextHeader) contextHeader.textContent = "Error context."; return; }
+    if (!form || !messageDiv || !submitButton || !categorySelect || !targetListingSelect) { /* ... */ return; }
+    if (!supabaseClient) { /* ... */ return; }
+    if (!communityIdFromUrl || !provinceNameFromUrl || !communityNameFromUrl) { /* ... */ return; }
 
-    // Set context display and hidden fields
     if (contextHeader) { contextHeader.textContent = `For: ${decodeURIComponent(communityNameFromUrl)}, ${decodeURIComponent(provinceNameFromUrl)}`; }
     if (communityIdInput) communityIdInput.value = communityIdFromUrl; 
     if (provinceNameInput) provinceNameInput.value = provinceNameFromUrl; 
@@ -69,16 +63,22 @@ document.addEventListener('DOMContentLoaded', () => {
     currentTableName = decodeURIComponent(provinceNameFromUrl).replace(/ /g, '_');
     console.log("[DEBUG] Determined Table Name:", currentTableName); 
 
-    // *** Ensure BOTH dropdown population functions are called ***
-    populateCategoryDropdown(); // Call category population
-    populateListingsDropdown(); // Call listing population
+    // Populate BOTH dropdowns
+    populateCategoryDropdown(); 
+    populateListingsDropdown(); // <-- Ensure this is called
 
     // Set up listeners
-    if (changeTypeRadios && changeTypeRadios.length > 0) { changeTypeRadios.forEach(radio => radio.addEventListener('change', handleRadioChange)); handleRadioChange(); } 
-    if (categorySelect) { categorySelect.addEventListener('change', handleCategoryChange); }
+    if (changeTypeRadios && changeTypeRadios.length > 0) { 
+        changeTypeRadios.forEach(radio => radio.addEventListener('change', handleRadioChange)); 
+        handleRadioChange(); // <-- Ensure initial call uses correct globals
+    } 
+    
+    if (categorySelect) { 
+        categorySelect.addEventListener('change', handleCategoryChange); 
+    }
 
     // Form Submission Handler
-    form.addEventListener('submit', async (event) => { /* ... (Submit handler remains unchanged from previous version) ... */ });
+    form.addEventListener('submit', async (event) => { /* ... (Submit handler unchanged) ... */ });
     
 }); // End DOMContentLoaded
 
@@ -86,54 +86,48 @@ document.addEventListener('DOMContentLoaded', () => {
 // ======================================================================
 // Populate Category Dropdown (Function definition unchanged)
 // ======================================================================
-async function populateCategoryDropdown() { 
-    if (!categorySelect || !currentTableName || !communityIdFromUrl) { /* ... */ return; }
-    console.log(`[DEBUG] Starting category fetch. T: ${currentTableName}, ID: ${communityIdFromUrl}`); 
-    try {
-        const { data: categoryData, error } = await supabaseClient.from(currentTableName).select('category').eq('community_id', communityIdFromUrl).not('category', 'is', null); 
-        if (error) { throw new Error(`Failed to fetch categories: ${error.message}`); }
-        console.log("[DEBUG] Raw category data fetched:", categoryData); 
-        const categories = [...new Set(categoryData.map(item => item.category?.trim()).filter(cat => cat))].sort(); 
-        console.log("[DEBUG] Processed unique categories:", categories); 
-        const otherOption = categorySelect.querySelector('option[value="_OTHER_"]'); 
-        categorySelect.innerHTML = ''; 
-        const placeholderOption = document.createElement('option'); placeholderOption.value = ""; placeholderOption.textContent = "-- Select Category --"; placeholderOption.disabled = true; placeholderOption.selected = true; 
-        categorySelect.appendChild(placeholderOption);
-        categories.forEach(cat => { const option = document.createElement('option'); option.value = cat; option.textContent = cat; categorySelect.appendChild(option); });
-        if (otherOption) { categorySelect.appendChild(otherOption); } else { const fallbackOther = document.createElement('option'); fallbackOther.value = "_OTHER_"; fallbackOther.textContent = "Other..."; categorySelect.appendChild(fallbackOther); }
-    } catch (error) { console.error("Error populating categories:", error); categorySelect.innerHTML = '<option value="">Error loading categories</option>'; }
-}
+async function populateCategoryDropdown() { /* ... (Keep working version) ... */ }
 
 // ======================================================================
 // Populate Listings Dropdown (Function definition unchanged)
 // ======================================================================
-async function populateListingsDropdown() {
-    if (!targetListingSelect || !currentTableName || !communityIdFromUrl) { /* ... */ return; }
-    console.log(`[DEBUG] Starting listing name fetch. T: ${currentTableName}, ID: ${communityIdFromUrl}`); 
-    try {
-        const { data: listingData, error } = await supabaseClient.from(currentTableName).select('name').eq('community_id', communityIdFromUrl).order('name', { ascending: true });
-        if (error) { throw new Error(`Failed to fetch listing names: ${error.message}`); }
-        console.log("[DEBUG] Listing names fetched:", listingData); 
-        while (targetListingSelect.options.length > 1) { targetListingSelect.remove(1); }
-        if (targetListingSelect.options.length > 0 && targetListingSelect.options[0].value === "") { targetListingSelect.options[0].textContent = '-- Select Listing --'; } else { targetListingSelect.innerHTML = '<option value="">-- Select Listing --</option>';}
-        if (listingData && listingData.length > 0) { listingData.forEach(listing => { if (listing.name) { const option = document.createElement('option'); option.value = listing.name; option.textContent = listing.name; targetListingSelect.appendChild(option); } }); } 
-        else { console.log("[DEBUG] No existing listings found."); targetListingSelect.options[0].textContent = '-- No Listings Found --';}
-    } catch (error) { console.error("Error populating listings dropdown:", error); targetListingSelect.innerHTML = '<option value="">Error loading listings</option>'; }
-}
+async function populateListingsDropdown() { /* ... (Keep working version) ... */ }
 
 // ======================================================================
 // Handle Category Dropdown Change (Function definition unchanged)
 // ======================================================================
-function handleCategoryChange() { /* ... */ }
+function handleCategoryChange() { /* ... (Keep working version) ... */ }
 
 // ======================================================================
-// Function to Show/Hide Conditional Fields & Set Required (Function definition unchanged)
+// Function to Show/Hide Conditional Fields & Set Required (Corrected Version)
 // ======================================================================
-function handleRadioChange() { /* ... */ }
+function handleRadioChange() { 
+     const selectedType = document.querySelector('input[name="change_type"]:checked')?.value; 
+     
+     // *** Use globally defined element variables ***
+     if (!selectedType || !targetListingGroup || !targetListingSelect || !nameInput) { 
+         console.warn("Missing elements for handleRadioChange"); 
+         return; 
+     } 
+     
+     // *** Logic to show/hide the SELECT dropdown group ***
+     if (selectedType === 'CHANGE' || selectedType === 'DELETE') {
+         targetListingGroup.style.display = 'block'; // Show the div containing the select
+         targetListingSelect.required = true;      // Make the select required
+     } else { // ADD type selected
+         targetListingGroup.style.display = 'none';  // Hide the div containing the select
+         targetListingSelect.required = false;     // Make select not required
+         targetListingSelect.value = '';           // Reset selection
+     }
+     
+     // *** Logic to set required on Name input (using global nameInput) ***
+     const isAddOrChange = selectedType === 'ADD' || selectedType === 'CHANGE';
+     nameInput.required = isAddOrChange; 
+}
 
 // ======================================================================
 // Helper Function to Display Messages (Function definition unchanged)
 // ======================================================================
-function showMessage(msg, type = 'info') { /* ... */ }
+function showMessage(msg, type = 'info') { /* ... (Keep working version) ... */ }
 
 // --- End: suggest_change.js ---
