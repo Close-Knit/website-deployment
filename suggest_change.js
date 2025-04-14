@@ -1,11 +1,10 @@
-// --- Start: suggest_change.js (Corrected Scope & Init) ---
+// --- Start: suggest_change.js (Refetch communityId on Submit) ---
 
 // ======================================================================
 // Initialize Supabase
 // ======================================================================
 const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
-// Ensure supabase object is available globally from the CDN script
 const supabaseClient = (typeof supabase !== 'undefined') ? supabase.createClient(supabaseUrl, supabaseKey) : null;
 
 // ======================================================================
@@ -14,16 +13,17 @@ const supabaseClient = (typeof supabase !== 'undefined') ? supabase.createClient
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired.");
 
-    // --- Get DOM Elements (Define INSIDE DOMContentLoaded) ---
+    // --- Get DOM Elements ---
     const form = document.getElementById('suggestion-form');
     const messageDiv = document.getElementById('form-message');
     const submitButton = document.getElementById('submit-button');
     const changeTypeRadios = document.querySelectorAll('input[name="change_type"]');
     const targetListingGroup = document.getElementById('target-listing-group');
     const contextHeader = document.getElementById('form-context');
-    const communityIdInput = document.getElementById('community_id');
-    const provinceNameInput = document.getElementById('province_name');
-    const communityNameInput = document.getElementById('community_name');
+    // We don't strictly need references to the hidden inputs globally anymore
+    // const communityIdInput = document.getElementById('community_id'); 
+    // const provinceNameInput = document.getElementById('province_name');
+    // const communityNameInput = document.getElementById('community_name');
     const targetInput = document.getElementById('target_listing_info');
     const nameInput = document.getElementById('suggested_name');
     const categorySelect = document.getElementById('suggested_category_select'); 
@@ -32,59 +32,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const addressInput = document.getElementById('suggested_address'); 
     const emailInput = document.getElementById('suggested_email'); 
 
-    // --- Check if Supabase Client Initialized ---
+    // --- Check Supabase Client ---
     if (!supabaseClient) {
-        showMessage(messageDiv, 'Error: Supabase client failed to initialize. Check console.', 'error');
+        showMessage(messageDiv, 'Error: Supabase client failed to initialize.', 'error');
         if(form) form.style.display = 'none';
         return;
     }
 
-    // --- Get Context from URL Parameters (Define INSIDE DOMContentLoaded) ---
+    // --- Get Context from URL Parameters ---
     const urlParams = new URLSearchParams(window.location.search);
-    const communityId = urlParams.get('cid');
-    const provinceName = urlParams.get('prov');
-    const communityName = urlParams.get('comm');
+    const communityIdFromUrl = urlParams.get('cid'); // Use specific name
+    const provinceNameFromUrl = urlParams.get('prov'); // Use specific name
+    const communityNameFromUrl = urlParams.get('comm'); // Use specific name
     let currentTableName = ''; 
 
     // --- Initial Setup ---
-    if (!communityId || !provinceName || !communityName) {
-        showMessage(messageDiv, 'Error: Missing community information in URL. Please go back.', 'error');
+    if (!communityIdFromUrl || !provinceNameFromUrl || !communityNameFromUrl) {
+        showMessage(messageDiv, 'Error: Missing community info in URL.', 'error');
         if (form) form.style.display = 'none'; 
         if (contextHeader) contextHeader.textContent = "Error loading form context.";
         return;
     }
 
     // Display context 
-    if (contextHeader) { contextHeader.textContent = `For: ${decodeURIComponent(communityName)}, ${decodeURIComponent(provinceName)}`; }
-    if (communityIdInput) communityIdInput.value = communityId;
-    if (provinceNameInput) provinceNameInput.value = provinceName; 
-    if (communityNameInput) communityNameInput.value = communityName; 
+    if (contextHeader) { contextHeader.textContent = `For: ${decodeURIComponent(communityNameFromUrl)}, ${decodeURIComponent(provinceNameFromUrl)}`; }
+    
+    // We still set hidden inputs if they exist, primarily for debugging/reference
+    const communityIdInput = document.getElementById('community_id'); 
+    if (communityIdInput) communityIdInput.value = communityIdFromUrl;
+    // ... set province/community name hidden inputs if needed ...
 
-    currentTableName = decodeURIComponent(provinceName).replace(/ /g, '_');
+    currentTableName = decodeURIComponent(provinceNameFromUrl).replace(/ /g, '_');
     console.log("[DEBUG] Determined Table Name:", currentTableName); 
 
-    populateCategoryDropdown(categorySelect, currentTableName, communityId); // Pass necessary elements/variables
+    populateCategoryDropdown(categorySelect, currentTableName, communityIdFromUrl); 
     
     if (changeTypeRadios.length > 0) { 
-        changeTypeRadios.forEach(radio => radio.addEventListener('change', () => handleRadioChange(targetListingGroup, targetInput, nameInput))); // Pass elements
-        handleRadioChange(targetListingGroup, targetInput, nameInput); // Initial call
+        changeTypeRadios.forEach(radio => radio.addEventListener('change', () => handleRadioChange(targetListingGroup, targetInput, nameInput))); 
+        handleRadioChange(targetListingGroup, targetInput, nameInput); 
     } 
     
     if (categorySelect) { 
-        categorySelect.addEventListener('change', () => handleCategoryChange(categorySelect, otherCategoryGroup, otherCategoryInput)); // Pass elements
+        categorySelect.addEventListener('change', () => handleCategoryChange(categorySelect, otherCategoryGroup, otherCategoryInput)); 
     }
 
-    // --- Form Submission Handler (Define INSIDE DOMContentLoaded) ---
+    // --- Form Submission Handler ---
     if (form) { 
         form.addEventListener('submit', async (event) => {
             event.preventDefault(); 
-            showMessage(messageDiv, ''); // Clear message
+            showMessage(messageDiv, ''); 
             if (!submitButton) return; 
 
             submitButton.disabled = true;
             submitButton.textContent = 'Submitting...';
 
-            // Get data (Reference variables defined within this scope)
+            // *** Start: Re-get communityId from URL INSIDE handler ***
+            const submitTimeUrlParams = new URLSearchParams(window.location.search);
+            const submitCommunityId = submitTimeUrlParams.get('cid'); 
+            // *** End: Re-get communityId ***
+
+            // Get other form data
             const changeType = document.querySelector('input[name="change_type"]:checked')?.value;
             const targetInfo = targetInput?.value;
             const name = nameInput?.value;
@@ -96,21 +103,18 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (category === "") { category = null; }
             const notes = document.getElementById('suggested_notes')?.value;
             const comment = document.getElementById('submitter_comment')?.value;
-            const currentCommunityId = communityIdInput?.value; // Get hidden value
-
+           
             // Validation
             let validationPassed = true;
-            if (!currentCommunityId) { 
-                showMessage(messageDiv, 'Error: Community context lost.', 'error'); validationPassed = false;
-            } else if (!changeType) { 
-                showMessage(messageDiv, 'Please select a change type.', 'error'); validationPassed = false;
-            } else if ((changeType === 'CHANGE' || changeType === 'DELETE') && !targetInfo) { 
-                showMessage(messageDiv, 'Please specify listing to change/remove.', 'error'); validationPassed = false;
-            } else if ((changeType === 'ADD' || changeType === 'CHANGE') && !name) { 
-                showMessage(messageDiv, 'Listing Name required for Add/Change.', 'error'); validationPassed = false;
-            } else if (categorySelect?.value === '_OTHER_' && !category) { 
-                showMessage(messageDiv, 'Please specify category name for "Other".', 'error'); validationPassed = false;
+             // *** Start: Use submitCommunityId for validation ***
+            if (!submitCommunityId) { 
+                showMessage(messageDiv, 'Error: Community context missing.', 'error'); validationPassed = false;
             } 
+            // *** End: Use submitCommunityId ***
+            else if (!changeType) { /*...*/ validationPassed = false; } 
+            else if ((changeType === 'CHANGE' || changeType === 'DELETE') && !targetInfo) { /*...*/ validationPassed = false; } 
+            else if ((changeType === 'ADD' || changeType === 'CHANGE') && !name) { /*...*/ validationPassed = false; }
+            else if (categorySelect?.value === '_OTHER_' && !category) { /*...*/ validationPassed = false; } 
 
             if (!validationPassed) {
                 submitButton.disabled = false;
@@ -120,17 +124,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Submit to Supabase
             try {
+                const insertData = { 
+                    // *** Start: Use submitCommunityId and parseInt here ***
+                    community_id: parseInt(submitCommunityId, 10), 
+                    // *** End: Use submitCommunityId ***
+                    change_type: changeType,
+                    status: 'PENDING', 
+                    target_listing_info: (changeType === 'CHANGE' || changeType === 'DELETE') ? targetInfo : null,
+                    suggested_name: (changeType === 'ADD' || changeType === 'CHANGE') ? name : null,
+                    suggested_phone: phone || null,
+                    suggested_category: category, 
+                    suggested_notes: notes || null,
+                    submitter_comment: comment || null,
+                    suggested_address: address || null, 
+                    suggested_email: email || null    
+                };
+
+                 // *** Add check for valid community_id AFTER parseInt ***
+                 if (isNaN(insertData.community_id)) {
+                     throw new Error("Invalid Community ID detected before sending.");
+                 }
+                 // *** End check ***
+
+                console.log("Submitting suggestion:", insertData); 
+
                 const { data, error, status } = await supabaseClient
                     .from('suggested_changes')
-                    .insert([{ /* ... data mapping ... */ }])
+                    .insert([insertData]) // Send the constructed data object
                     .select(); 
+
+                console.log("Supabase response:", { data, error, status }); 
 
                 if (error) throw error; 
                 if (data || status === 201) { 
-                    showMessage(messageDiv, 'Thank you! ... verification.', 'success'); // Shortened message
+                    showMessage(messageDiv, 'Thank you! ... verification.', 'success'); 
                     form.reset(); 
-                    handleRadioChange(targetListingGroup, targetInput, nameInput); // Pass elements
-                    handleCategoryChange(categorySelect, otherCategoryGroup, otherCategoryInput); // Pass elements
+                    handleRadioChange(targetListingGroup, targetInput, nameInput); 
+                    handleCategoryChange(categorySelect, otherCategoryGroup, otherCategoryInput); 
                 } else {
                      throw new Error("Submission potentially failed.");
                 }
@@ -150,111 +180,12 @@ document.addEventListener('DOMContentLoaded', () => {
 }); // End DOMContentLoaded
 
 
-// ======================================================================
-// Populate Category Dropdown (Now takes arguments)
-// ======================================================================
-async function populateCategoryDropdown(selectElement, tableName, commId) { // Accept arguments
-    if (!selectElement || !tableName || !commId) {
-         console.error("[DEBUG] Missing args for category population:", { selectElement, tableName, commId });
-         if (selectElement && selectElement.options.length > 0 && selectElement.options[0].value === "") {
-              selectElement.options[0].textContent = '-- Cannot Load Categories --';
-         }
-        return; 
-    }
-
-    console.log(`[DEBUG] Starting category fetch. Table: ${tableName}, Community ID: ${commId}`); 
-
-    try {
-        const { data: categoryData, error } = await supabaseClient
-            .from(tableName)
-            .select('category')
-            .eq('community_id', commId)
-            .not('category', 'is', null); 
-
-        if (error) { throw new Error(`Failed to fetch categories: ${error.message}`); }
-
-        console.log("[DEBUG] Raw category data fetched:", categoryData); 
-
-        const categories = [...new Set(categoryData.map(item => item.category?.trim()).filter(cat => cat))].sort(); 
-
-        console.log("[DEBUG] Processed unique categories:", categories); 
-
-        // Simplified Option Handling
-        const otherOption = selectElement.querySelector('option[value="_OTHER_"]'); // Find other option more robustly
-        selectElement.innerHTML = ''; // Clear ALL existing options 
-
-        const placeholderOption = document.createElement('option');
-        placeholderOption.value = "";
-        placeholderOption.textContent = "-- Select Category --";
-        placeholderOption.disabled = true; 
-        placeholderOption.selected = true; 
-        selectElement.appendChild(placeholderOption);
-
-        categories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat;
-            option.textContent = cat;
-            selectElement.appendChild(option);
-        });
-
-        if (otherOption) { // Re-append if found
-             selectElement.appendChild(otherOption);
-        } else { // Fallback
-            const fallbackOther = document.createElement('option');
-            fallbackOther.value = "_OTHER_";
-            fallbackOther.textContent = "Other...";
-            selectElement.appendChild(fallbackOther);
-        }
-
-    } catch (error) {
-        console.error("Error populating categories:", error);
-        selectElement.innerHTML = '<option value="">Error loading categories</option>'; // Clear and show error
-    }
-}
-
-// ======================================================================
-// Handle Category Dropdown Change (Now takes arguments)
-// ======================================================================
-function handleCategoryChange(selectElement, otherGroup, otherInput) { // Accept arguments
-    if (!selectElement || !otherGroup || !otherInput) return;
-
-    if (selectElement.value === '_OTHER_') {
-        otherGroup.style.display = 'block'; 
-        otherInput.required = true; 
-        otherInput.focus(); 
-    } else {
-        otherGroup.style.display = 'none'; 
-        otherInput.required = false; 
-        otherInput.value = ''; 
-    }
-}
-
-// ======================================================================
-// Function to Show/Hide Conditional Fields (Now takes arguments)
-// ======================================================================
-function handleRadioChange(targetGroup, targetIn, nameIn) { // Accept arguments
-     const selectedType = document.querySelector('input[name="change_type"]:checked')?.value; 
-     if (!selectedType || !targetGroup || !targetIn || !nameIn) return; 
-     if (selectedType === 'CHANGE' || selectedType === 'DELETE') {
-         targetGroup.style.display = 'block';
-         targetIn.required = true; 
-     } else { 
-         targetGroup.style.display = 'none';
-         targetIn.required = false; 
-         targetIn.value = ''; 
-     }
-     const isAddOrChange = selectedType === 'ADD' || selectedType === 'CHANGE';
-     nameIn.required = isAddOrChange;
-}
-
-// ======================================================================
-// Helper Function to Display Messages (Now takes messageDiv argument)
-// ======================================================================
-function showMessage(messageElement, msg, type = 'info') { // Accept messageElement
-     if (!messageElement) return; 
-     messageElement.textContent = msg;
-     messageElement.className = `form-message ${type}`; 
-     messageElement.style.display = msg ? 'block' : 'none'; 
- }
+// Functions (populateCategoryDropdown, handleCategoryChange, handleRadioChange, showMessage)
+// Remain the same, accepting arguments passed from DOMContentLoaded listeners
+// ... (Paste previous function definitions here) ...
+async function populateCategoryDropdown(selectElement, tableName, commId) { /* ... */ }
+function handleCategoryChange(selectElement, otherGroup, otherInput) { /* ... */ }
+function handleRadioChange(targetGroup, targetIn, nameIn) { /* ... */ }
+function showMessage(messageElement, msg, type = 'info') { /* ... */ }
 
 // --- End: suggest_change.js ---
