@@ -1,4 +1,4 @@
-// --- START OF UPDATED directory.js (With Popup Interactivity) ---
+// --- START OF UPDATED directory.js (With Clickable Tel Link) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -25,11 +25,10 @@ function displayError(message) {
 }
 
 // ======================================================================
-// Fetch and Display Listings for a Specific Community
+// Fetch and Display Listings for a Specific Community (Unchanged from previous)
 // ======================================================================
 async function fetchAndDisplayListings() {
-    // --- This function remains exactly the same as in the previous step ---
-    // --- It correctly creates the buttons with data-phone attributes ---
+    // --- This function remains exactly the same ---
     if (!supabaseClient) {
         displayError("Supabase client not initialized. Cannot fetch data.");
         return;
@@ -230,40 +229,33 @@ function initializePrint() {
 }
 
 // ======================================================================
-// --- START: NEW FUNCTION FOR POPUP INTERACTIVITY ---
+// Initialize Popup Interactivity (MODIFIED FOR TEL LINK)
 // ======================================================================
 function initializePopupInteraction() {
     const resultsList = document.getElementById('results');
     const phonePopup = document.getElementById('phonePopup');
     const closePopupButton = document.getElementById('closePopup');
-    const phoneNumberDisplay = document.getElementById('phoneNumber');
+    const phoneNumberDisplay = document.getElementById('phoneNumber'); // This is the <p> element
 
-    // Check if all necessary popup elements exist
     if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay) {
         console.error("Popup elements missing. Cannot initialize popup interaction.");
         return;
     }
 
-    // --- Event Listener for clicking 'Show Phone' buttons ---
-    // We attach the listener to the static parent (#results) and listen
-    // for clicks bubbling up from the dynamically added buttons.
     resultsList.addEventListener('click', function(event) {
-        // Check if the clicked element is a button with the class 'revealPhoneBtn'
         const revealButton = event.target.closest('.revealPhoneBtn');
 
         if (revealButton) {
-            event.preventDefault(); // Prevent any default button action
-
-            // Get the phone number from the button's data attribute
+            event.preventDefault();
             const numberToDisplay = revealButton.dataset.phone;
 
             if (numberToDisplay) {
-                // Update the text inside the popup
-                phoneNumberDisplay.textContent = numberToDisplay;
+                // --- MODIFIED LINE ---
+                // Update the HTML inside the popup paragraph to include a clickable tel link
+                phoneNumberDisplay.innerHTML = `<a href="tel:${numberToDisplay}">${numberToDisplay}</a>`;
+                // --- END MODIFIED LINE ---
 
-                // Show the popup by removing the 'hidden' class
                 phonePopup.classList.remove('hidden');
-
                 console.log(`Showing popup for number: ${numberToDisplay}`);
             } else {
                 console.warn("Clicked reveal button is missing phone data.");
@@ -271,32 +263,25 @@ function initializePopupInteraction() {
         }
     });
 
-    // --- Event Listener for the popup's close button ---
     closePopupButton.addEventListener('click', function() {
-        // Hide the popup by adding the 'hidden' class back
         phonePopup.classList.add('hidden');
         console.log("Popup closed.");
     });
 
-     // Optional: Close popup if user clicks outside the popup content
      phonePopup.addEventListener('click', function(event) {
-         // Check if the click was directly on the semi-transparent background (the popup div itself)
-         // and not on its content area (popup-content div or its children)
          if (event.target === phonePopup) {
               phonePopup.classList.add('hidden');
               console.log("Popup closed by clicking outside.");
          }
      });
-
-
 }
 // ======================================================================
-// --- END: NEW FUNCTION FOR POPUP INTERACTIVITY ---
+// End Popup Interactivity Function
 // ======================================================================
 
 
 // ======================================================================
-// Main Execution
+// Main Execution (Unchanged)
 // ======================================================================
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired.");
@@ -322,13 +307,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("[DEBUG] Supabase client initialized.");
 
-    // Call functions that rely on supabaseClient
-    fetchAndDisplayListings(); // Fetches data and creates buttons
-    initializeSearch();        // Sets up search filter
-    initializePrint();         // Sets up print button
-
-    // --- ADDED CALL TO INITIALIZE POPUP ---
-    initializePopupInteraction(); // Sets up click listeners for buttons and popup close
+    fetchAndDisplayListings();
+    initializeSearch();
+    initializePrint();
+    initializePopupInteraction(); // Sets up click listeners
 
 });
 

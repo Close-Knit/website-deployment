@@ -167,7 +167,7 @@ a:hover, a:focus { text-decoration: underline; }
 }
 
 /* ====================================================================== */
-/* Styles for Click-to-Reveal Phone Popup (Added for Step 1) */
+/* Styles for Click-to-Reveal Phone Popup */
 /* ====================================================================== */
 
 /* Style for the reveal button itself */
@@ -182,97 +182,45 @@ a:hover, a:focus { text-decoration: underline; }
     transition: background-color 0.2s ease;
     white-space: nowrap; /* Prevent text wrapping */
 }
-
-.revealPhoneBtn i {
-    margin-right: 5px; /* Space between icon and text */
-}
-
-.revealPhoneBtn:hover {
-    background-color: #dee2e6; /* Slightly darker on hover */
-    border-color: #adb5bd;
-}
+.revealPhoneBtn i { margin-right: 5px; }
+.revealPhoneBtn:hover { background-color: #dee2e6; border-color: #adb5bd; }
 
 /* Container for the phone button in the listing */
-.phone-container {
-    text-align: right; /* Align button to the right */
-    flex-shrink: 0; /* Prevent shrinking on flex layouts */
-}
+.phone-container { text-align: right; flex-shrink: 0; }
 
 /* The hidden class to control visibility */
-.hidden {
-    display: none !important; /* Use !important to ensure it overrides other display properties */
-}
+.hidden { display: none !important; }
 
 /* Popup main container - Fixed position, centered */
-.popup {
-    position: fixed; /* Sticks to the viewport */
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%); /* Centering trick */
-    width: 90%; /* Responsive width */
-    max-width: 350px; /* Max width */
-    background-color: #ffffff;
-    border: 1px solid #adb5bd;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    z-index: 1000; /* Ensure it's on top */
-    padding: 20px;
-    box-sizing: border-box;
-}
+.popup { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 350px; background-color: #ffffff; border: 1px solid #adb5bd; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); z-index: 1000; padding: 20px; box-sizing: border-box; }
 
 /* Popup content area */
-.popup-content {
-    position: relative; /* Needed for absolute positioning of the close button */
-    text-align: center;
-}
+.popup-content { position: relative; text-align: center; }
 
 /* Close button ('X') */
-.close-button {
-    position: absolute;
-    top: -10px; /* Position slightly outside the top */
-    right: -5px; /* Position slightly outside the right */
-    font-size: 1.8em;
-    font-weight: bold;
-    color: #6c757d; /* Grey color */
-    background: white; /* Helps if it overlaps border */
-    border-radius: 50%; /* Make it circular */
-    padding: 0px 6px; /* Some padding */
-    line-height: 1;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
+.close-button { position: absolute; top: -10px; right: -5px; font-size: 1.8em; font-weight: bold; color: #6c757d; background: white; border-radius: 50%; padding: 0px 6px; line-height: 1; cursor: pointer; transition: color 0.2s ease; }
+.close-button:hover { color: #343a40; }
 
-.close-button:hover {
-    color: #343a40; /* Darker on hover */
-}
+/* Styles for the revealed phone number paragraph */
+.popup-phone-number { font-size: 1.4em; font-weight: bold; color: #007bff; margin-top: 5px; margin-bottom: 15px; }
 
-/* Styles for the revealed phone number */
-.popup-phone-number {
-    font-size: 1.4em;
-    font-weight: bold;
-    color: #007bff; /* Blue color */
-    margin-top: 5px;
-    margin-bottom: 15px;
+/* --- ADDED CSS FOR TEL LINK --- */
+/* Style the phone number link within the popup */
+.popup-phone-number a,
+.popup-phone-number a:visited {
+    color: inherit; /* Use the blue color defined for .popup-phone-number */
+    text-decoration: none; /* Remove the default underline */
+    font-weight: inherit; /* Inherit the bold weight */
 }
+/* Optional: Add underline on hover for desktop users */
+.popup-phone-number a:hover {
+    text-decoration: underline;
+}
+/* --- END ADDED CSS --- */
 
 /* Notice text inside popup */
-.popup-notice {
-    font-size: 0.85em;
-    color: #6c757d;
-    margin-bottom: 20px;
-    margin-top: 0;
-}
+.popup-notice { font-size: 0.85em; color: #6c757d; margin-bottom: 20px; margin-top: 0; }
 
 /* Placeholder ad container */
-.popup-ad-container {
-    margin-top: 15px;
-    padding: 10px;
-    border: 1px dashed #ced4da; /* Dashed border for placeholder */
-    background-color: #f8f9fa; /* Light background */
-    font-size: 0.8em;
-    color: #6c757d;
-}
-.popup-ad-container small {
-    display: block;
-    margin-bottom: 5px;
-}
+.popup-ad-container { margin-top: 15px; padding: 10px; border: 1px dashed #ced4da; background-color: #f8f9fa; font-size: 0.8em; color: #6c757d; }
+.popup-ad-container small { display: block; margin-bottom: 5px; }
