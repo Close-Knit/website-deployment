@@ -171,17 +171,7 @@ a:hover, a:focus { text-decoration: underline; }
 /* ====================================================================== */
 
 /* Style for the reveal button itself */
-.revealPhoneBtn {
-    padding: 5px 10px;
-    font-size: 0.9em;
-    cursor: pointer;
-    background-color: #e9ecef; /* Light grey background */
-    color: #212529; /* Dark text */
-    border: 1px solid #ced4da; /* Grey border */
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-    white-space: nowrap; /* Prevent text wrapping */
-}
+.revealPhoneBtn { padding: 5px 10px; font-size: 0.9em; cursor: pointer; background-color: #e9ecef; color: #212529; border: 1px solid #ced4da; border-radius: 4px; transition: background-color 0.2s ease; white-space: nowrap; }
 .revealPhoneBtn i { margin-right: 5px; }
 .revealPhoneBtn:hover { background-color: #dee2e6; border-color: #adb5bd; }
 
@@ -197,26 +187,36 @@ a:hover, a:focus { text-decoration: underline; }
 /* Popup content area */
 .popup-content { position: relative; text-align: center; }
 
-/* Close button ('X') */
-.close-button { position: absolute; top: -10px; right: -5px; font-size: 1.8em; font-weight: bold; color: #6c757d; background: white; border-radius: 50%; padding: 0px 6px; line-height: 1; cursor: pointer; transition: color 0.2s ease; }
-.close-button:hover { color: #343a40; }
+/* --- START: MODIFIED Close Button CSS --- */
+/* Close button ('X') - MODIFIED */
+.close-button {
+    position: absolute;
+    top: 5px;      /* Position inside the top */
+    right: 10px;     /* Position inside the right */
+    font-size: 2.2em;  /* Make it bigger */
+    font-weight: bold;
+    color: #dc3545; /* Red color (Bootstrap danger red) */
+    background: transparent; /* Remove background */
+    border-radius: 0; /* Remove circular background */
+    padding: 0;      /* Remove padding if not needed */
+    line-height: 1;  /* Keep line height tight */
+    cursor: pointer;
+    transition: color 0.2s ease;
+    z-index: 1001; /* Ensure it's above content if overlap occurs */
+}
+
+.close-button:hover {
+    color: #a71d2a; /* Darker red on hover */
+}
+/* --- END: MODIFIED Close Button CSS --- */
 
 /* Styles for the revealed phone number paragraph */
 .popup-phone-number { font-size: 1.4em; font-weight: bold; color: #007bff; margin-top: 5px; margin-bottom: 15px; }
 
-/* --- ADDED CSS FOR TEL LINK --- */
 /* Style the phone number link within the popup */
 .popup-phone-number a,
-.popup-phone-number a:visited {
-    color: inherit; /* Use the blue color defined for .popup-phone-number */
-    text-decoration: none; /* Remove the default underline */
-    font-weight: inherit; /* Inherit the bold weight */
-}
-/* Optional: Add underline on hover for desktop users */
-.popup-phone-number a:hover {
-    text-decoration: underline;
-}
-/* --- END ADDED CSS --- */
+.popup-phone-number a:visited { color: inherit; text-decoration: none; font-weight: inherit; }
+.popup-phone-number a:hover { text-decoration: underline; }
 
 /* Notice text inside popup */
 .popup-notice { font-size: 0.85em; color: #6c757d; margin-bottom: 20px; margin-top: 0; }
