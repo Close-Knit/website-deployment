@@ -181,7 +181,7 @@ a:hover, a:focus { text-decoration: underline; }
 /* The hidden class to control visibility */
 .hidden { display: none !important; }
 
-/* --- START: MODIFIED Popup Container CSS --- */
+/* --- START: Popup Container CSS (position:relative commented out for testing) --- */
 /* Popup main container - Fixed position, centered */
 .popup {
     position: fixed; /* Sticks to the viewport */
@@ -197,14 +197,14 @@ a:hover, a:focus { text-decoration: underline; }
     z-index: 1000; /* Ensure it's on top */
     padding: 20px;
     box-sizing: border-box;
-    position: relative; /* ADDED: To position close button relative to this box */
+    /* position: relative; */ /* <-- TEMPORARILY COMMENTED OUT FOR DEBUGGING */
 }
-/* --- END: MODIFIED Popup Container CSS --- */
+/* --- END: Popup Container CSS --- */
 
 /* Popup content area */
-.popup-content { position: relative; text-align: center; } /* Kept relative just in case, but close button now relative to parent */
+.popup-content { position: relative; text-align: center; } /* Kept relative */
 
-/* --- START: MODIFIED Close Button CSS --- */
+/* --- START: Close Button CSS (Positioned for top-right corner if parent IS relative) --- */
 /* Close button ('X') - Positioned at very top-right */
 .close-button {
     position: absolute;
@@ -224,7 +224,7 @@ a:hover, a:focus { text-decoration: underline; }
 .close-button:hover {
     color: #a71d2a; /* Darker red */
 }
-/* --- END: MODIFIED Close Button CSS --- */
+/* --- END: Close Button CSS --- */
 
 /* Styles for the revealed phone number paragraph */
 .popup-phone-number { font-size: 1.4em; font-weight: bold; color: #007bff; margin-top: 5px; margin-bottom: 15px; }
