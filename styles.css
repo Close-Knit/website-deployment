@@ -233,7 +233,7 @@ a:hover, a:focus { text-decoration: underline; }
 .popup-phone-number a:hover { text-decoration: underline; }
 
 /* Notice text inside popup */
-.popup-notice { font-size: 0.85em; color: #6c757d; margin-bottom: 20px; margin-top: 0; }
+.popup-notice { font-size: 0.85em; color: #28a745; margin-bottom: 20px; margin-top: 0; }
 
 /* Placeholder ad container */
 .popup-ad-container { margin-top: 15px; padding: 10px; border: 1px dashed #ced4da; background-color: #f8f9fa; font-size: 0.8em; color: #6c757d; }
