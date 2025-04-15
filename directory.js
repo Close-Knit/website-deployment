@@ -1,4 +1,4 @@
-// --- START OF UPDATED directory.js (Refined Supabase Init) ---
+// --- START OF UPDATED directory.js (With Popup Interactivity) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -28,6 +28,8 @@ function displayError(message) {
 // Fetch and Display Listings for a Specific Community
 // ======================================================================
 async function fetchAndDisplayListings() {
+    // --- This function remains exactly the same as in the previous step ---
+    // --- It correctly creates the buttons with data-phone attributes ---
     if (!supabaseClient) {
         displayError("Supabase client not initialized. Cannot fetch data.");
         return;
@@ -60,10 +62,8 @@ async function fetchAndDisplayListings() {
      if (logoElement) logoElement.style.display = 'none';
 
     const tableName = provinceName.replace(/ /g, '_');
-    // console.log(`Attempting load: C:"${communityName}", P:"${provinceName}", T:"${tableName}"`);
 
     try {
-        // --- Step 1: Get Community ID AND Logo Filename ---
         const { data: communityData, error: communityError } = await supabaseClient
             .from('communities')
             .select('id, logo_filename')
@@ -77,20 +77,17 @@ async function fetchAndDisplayListings() {
         const communityId = communityData.id;
         const logoFilename = communityData.logo_filename;
 
-        // --- Set Logo ---
         if (logoElement && logoFilename) {
              logoElement.src = `images/logos/${logoFilename}`;
              logoElement.alt = `${communityName} Logo`;
              logoElement.style.display = 'block';
         }
 
-        // --- Set Suggest Change Link ---
         const suggestChangeLink = document.getElementById('suggestChangeLink');
         if (suggestChangeLink) {
             suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(provinceName)}&comm=${encodeURIComponent(communityName)}`;
         }
 
-        // --- Step 2: Fetch listings ---
          const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
             .select('*')
@@ -107,7 +104,6 @@ async function fetchAndDisplayListings() {
             throw new Error(`Failed to fetch listings: ${listingsError.message}`);
         }
 
-        // --- Step 3 & 4: Group and Render Listings ---
         resultsList.innerHTML = '';
 
         if (!listings || listings.length === 0) {
@@ -139,23 +135,15 @@ async function fetchAndDisplayListings() {
                  const listItem = document.createElement('li');
                  listItem.className = 'directory-entry';
 
-                 // --- START: MODIFIED CODE FOR STEP 1 ---
-                 // Store the phone number safely. Handle cases where it might be missing.
                  const phoneNumber = listing.phone_number || '';
-                 let phoneHtml = ''; // Default to empty string if no phone number
-
-                 // Only create a button if there IS a phone number
+                 let phoneHtml = '';
                  if (phoneNumber) {
                      phoneHtml = `
                          <button class="revealPhoneBtn" data-phone="${phoneNumber}">
                              <i class="fa-solid fa-phone"></i> Show Phone
                          </button>
                      `;
-                 } else {
-                    // Optional: display something if no phone number, or just leave it blank
-                    // phoneHtml = '<span class="no-phone">No Phone Listed</span>';
                  }
-
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${listing.name || 'N/A'}</span>
@@ -164,8 +152,6 @@ async function fetchAndDisplayListings() {
                      </div>
                      <div class="phone-container"> ${phoneHtml} </div>
                  `;
-                 // --- END: MODIFIED CODE FOR STEP 1 ---
-
                  resultsList.appendChild(listItem);
              });
         });
@@ -176,7 +162,7 @@ async function fetchAndDisplayListings() {
 }
 
 // ======================================================================
-// Initialize Search Functionality
+// Initialize Search Functionality (Unchanged)
 // ======================================================================
 function initializeSearch() {
     const searchBox = document.getElementById('searchBox');
@@ -189,15 +175,13 @@ function initializeSearch() {
 
     searchBox.addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase().trim();
-        const listItems = resultsList.getElementsByClassName('directory-entry'); // Get only listing items
-        const categoryHeadings = resultsList.getElementsByClassName('category-heading'); // Get category headings
+        const listItems = resultsList.getElementsByClassName('directory-entry');
+        const categoryHeadings = resultsList.getElementsByClassName('category-heading');
 
-        let visibleCategories = new Set(); // Track which categories have visible items
+        let visibleCategories = new Set();
 
-        // Filter list items first
         Array.from(listItems).forEach(item => {
             const name = item.querySelector('.name')?.textContent.toLowerCase() || '';
-            // Find the category heading associated with this item
             let currentElement = item;
             let categoryText = '';
             while (currentElement = currentElement.previousElementSibling) {
@@ -210,23 +194,21 @@ function initializeSearch() {
             const matchesSearch = name.includes(searchTerm) || categoryText.includes(searchTerm);
 
             if (matchesSearch) {
-                item.style.display = ''; // Show item
+                item.style.display = '';
                 if (categoryText) {
-                    visibleCategories.add(categoryText); // Mark this category as having visible items
+                    visibleCategories.add(categoryText);
                 }
             } else {
-                item.style.display = 'none'; // Hide item
+                item.style.display = 'none';
             }
         });
 
-        // Show/hide category headings based on whether they have visible items
         Array.from(categoryHeadings).forEach(heading => {
             const categoryText = heading.textContent.toLowerCase();
-            // A category heading should be visible if its text matches OR if it has visible items under it
              if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) {
-                 heading.style.display = ''; // Show heading
+                 heading.style.display = '';
              } else {
-                 heading.style.display = 'none'; // Hide heading
+                 heading.style.display = 'none';
              }
         });
     });
@@ -234,7 +216,7 @@ function initializeSearch() {
 
 
 // ======================================================================
-// Initialize Print Functionality
+// Initialize Print Functionality (Unchanged)
 // ======================================================================
 function initializePrint() {
     const printButton = document.getElementById('printButton');
@@ -246,6 +228,72 @@ function initializePrint() {
         console.warn("Print button not found, print functionality disabled.");
     }
 }
+
+// ======================================================================
+// --- START: NEW FUNCTION FOR POPUP INTERACTIVITY ---
+// ======================================================================
+function initializePopupInteraction() {
+    const resultsList = document.getElementById('results');
+    const phonePopup = document.getElementById('phonePopup');
+    const closePopupButton = document.getElementById('closePopup');
+    const phoneNumberDisplay = document.getElementById('phoneNumber');
+
+    // Check if all necessary popup elements exist
+    if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay) {
+        console.error("Popup elements missing. Cannot initialize popup interaction.");
+        return;
+    }
+
+    // --- Event Listener for clicking 'Show Phone' buttons ---
+    // We attach the listener to the static parent (#results) and listen
+    // for clicks bubbling up from the dynamically added buttons.
+    resultsList.addEventListener('click', function(event) {
+        // Check if the clicked element is a button with the class 'revealPhoneBtn'
+        const revealButton = event.target.closest('.revealPhoneBtn');
+
+        if (revealButton) {
+            event.preventDefault(); // Prevent any default button action
+
+            // Get the phone number from the button's data attribute
+            const numberToDisplay = revealButton.dataset.phone;
+
+            if (numberToDisplay) {
+                // Update the text inside the popup
+                phoneNumberDisplay.textContent = numberToDisplay;
+
+                // Show the popup by removing the 'hidden' class
+                phonePopup.classList.remove('hidden');
+
+                console.log(`Showing popup for number: ${numberToDisplay}`);
+            } else {
+                console.warn("Clicked reveal button is missing phone data.");
+            }
+        }
+    });
+
+    // --- Event Listener for the popup's close button ---
+    closePopupButton.addEventListener('click', function() {
+        // Hide the popup by adding the 'hidden' class back
+        phonePopup.classList.add('hidden');
+        console.log("Popup closed.");
+    });
+
+     // Optional: Close popup if user clicks outside the popup content
+     phonePopup.addEventListener('click', function(event) {
+         // Check if the click was directly on the semi-transparent background (the popup div itself)
+         // and not on its content area (popup-content div or its children)
+         if (event.target === phonePopup) {
+              phonePopup.classList.add('hidden');
+              console.log("Popup closed by clicking outside.");
+         }
+     });
+
+
+}
+// ======================================================================
+// --- END: NEW FUNCTION FOR POPUP INTERACTIVITY ---
+// ======================================================================
+
 
 // ======================================================================
 // Main Execution
@@ -261,16 +309,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("[DEBUG] Supabase library found. Initializing client...");
 
-    // --- Start: Refined Supabase Init ---
-    // Directly use supabase.createClient
     const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
 
-    // Assign directly using the global supabase object
     supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-    // --- End: Refined Supabase Init ---
 
-    // Check if initialization was successful before proceeding
     if (!supabaseClient) {
         displayError("Failed to initialize Supabase client.");
         console.error("Failed to initialize Supabase client.");
@@ -279,10 +322,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("[DEBUG] Supabase client initialized.");
 
-    // Now call functions that rely on supabaseClient
-    fetchAndDisplayListings();
-    initializeSearch();
-    initializePrint();
+    // Call functions that rely on supabaseClient
+    fetchAndDisplayListings(); // Fetches data and creates buttons
+    initializeSearch();        // Sets up search filter
+    initializePrint();         // Sets up print button
+
+    // --- ADDED CALL TO INITIALIZE POPUP ---
+    initializePopupInteraction(); // Sets up click listeners for buttons and popup close
+
 });
 
 // --- END OF UPDATED directory.js ---
