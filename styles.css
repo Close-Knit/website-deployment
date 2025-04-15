@@ -181,8 +181,7 @@ a:hover, a:focus { text-decoration: underline; }
 /* The hidden class to control visibility */
 .hidden { display: none !important; }
 
-/* --- START: Popup Container CSS (position:relative commented out for testing) --- */
-/* Popup main container - Fixed position, centered */
+/* Popup main container - Fixed position, centered (NO position: relative) */
 .popup {
     position: fixed; /* Sticks to the viewport */
     left: 50%;
@@ -197,26 +196,25 @@ a:hover, a:focus { text-decoration: underline; }
     z-index: 1000; /* Ensure it's on top */
     padding: 20px;
     box-sizing: border-box;
-    /* position: relative; */ /* <-- TEMPORARILY COMMENTED OUT FOR DEBUGGING */
+    /* position: relative; */ /* <-- REMOVED/COMMENTED OUT TO PREVENT CLICK ISSUE */
 }
-/* --- END: Popup Container CSS --- */
 
 /* Popup content area */
-.popup-content { position: relative; text-align: center; } /* Kept relative */
+.popup-content { position: relative; text-align: center; } /* Keep this relative */
 
-/* --- START: Close Button CSS (Positioned for top-right corner if parent IS relative) --- */
-/* Close button ('X') - Positioned at very top-right */
+/* --- START: Close Button CSS (Relative to popup-content) --- */
+/* Close button ('X') - Positioned relative to popup-content */
 .close-button {
     position: absolute;
-    top: 8px;      /* Adjust slightly down from the very top edge */
-    right: 8px;     /* Adjust slightly left from the very right edge */
+    top: -5px;      /* Move slightly ABOVE the content area top */
+    right: -5px;     /* Move slightly RIGHT of the content area right */
     font-size: 2.2em;
     font-weight: bold;
     color: #dc3545; /* Red */
-    background: transparent;
+    background: transparent; /* Keep transparent */
     border-radius: 0;
     padding: 0;
-    line-height: 0.8; /* Adjust line-height for tighter vertical fit */
+    line-height: 0.8; /* Keep tighter line height */
     cursor: pointer;
     transition: color 0.2s ease;
 }
