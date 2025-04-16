@@ -15,13 +15,16 @@ const supabaseClient = createClient(supabaseUrl, supabaseKey);
 const provinceNameHeading = document.getElementById('province-name-heading');
 const communityListContainer = document.getElementById('community-list-province');
 const pageTitle = document.querySelector('title');
-const breadcrumbContainer = document.getElementById('breadcrumb-container'); // Get breadcrumb container
+const breadcrumbContainer = document.getElementById('breadcrumb-container');
 
 // ======================================================================
 // Helper to display error messages
 // ======================================================================
-function displayProvincePageError(message) {
+function displayProvincePageError(message, error = null) { // Added optional error object
     console.error("Province Page Error:", message);
+    if (error) {
+        console.error("Full error details:", error); // Log the full error object
+    }
     if (communityListContainer) {
         communityListContainer.innerHTML = `<li style="color: red;">Error: ${message}</li>`;
     }
@@ -31,7 +34,6 @@ function displayProvincePageError(message) {
      if (pageTitle) {
          pageTitle.textContent = "Error";
      }
-     // Clear breadcrumbs on error
      if(breadcrumbContainer) breadcrumbContainer.innerHTML = '';
 }
 
@@ -39,19 +41,15 @@ function displayProvincePageError(message) {
 // Fetch and Display Communities for the Province
 // ======================================================================
 async function loadProvinceCommunities() {
-    // Add breadcrumbContainer to the check
     if (!communityListContainer || !provinceNameHeading || !pageTitle || !breadcrumbContainer) {
         console.error("Essential page elements (heading, list container, title, or breadcrumb) not found.");
-        // Optionally provide a user-facing error if critical elements are missing
         if(communityListContainer) communityListContainer.innerHTML = '<li>Page structure error. Cannot load content.</li>';
         return;
     }
 
-    // Clear previous results/breadcrumbs
     communityListContainer.innerHTML = '<li>Loading...</li>';
-    breadcrumbContainer.innerHTML = ''; // Clear existing breadcrumbs
+    breadcrumbContainer.innerHTML = '';
 
-    // 1. Get Province Name from URL
     const urlParams = new URLSearchParams(window.location.search);
     const provinceName = urlParams.get("province");
 
@@ -62,49 +60,59 @@ async function loadProvinceCommunities() {
 
     const decodedProvinceName = decodeURIComponent(provinceName);
 
-    // Set initial UI states
     provinceNameHeading.textContent = `Loading Communities for ${decodedProvinceName}...`;
     pageTitle.textContent = `Communities in ${decodedProvinceName}`;
 
-
-    // --- START: Breadcrumb Generation ---
     breadcrumbContainer.innerHTML = `
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="index.html">Home</a></li>
             <li class="breadcrumb-item active" aria-current="page">${decodedProvinceName}</li>
         </ol>
     `;
-    // --- END: Breadcrumb Generation ---
 
     try {
-        // 2. Get Province ID from Name
-        console.log(`Fetching ID for province: ${decodedProvinceName}`);
+        console.log(`Fetching ID for province: ${decodedProvinceName}`); // Line 81
         const { data: provinceData, error: provinceError } = await supabaseClient
             .from('provinces')
             .select('id')
             .eq('province_name', decodedProvinceName)
-            .single(); // Expect only one province with this name
+            .single();
 
-        if (provinceError) {
-            throw new Error(`Could not find province "${decodedProvinceName}": ${provinceError.message}`);
-        }
-        if (!provinceData) {
-            throw new Error(`Province "${decodedProvinceName}" not found in database.`);
+        if (provinceError || !provinceData) {
+             // Pass the actual error object to the helper
+            throw new Error(`Could not find province "${decodedProvinceName}": ${provinceError?.message || 'Not found'}`, { cause: provinceError });
         }
         const provinceId = provinceData.id;
-        console.log(`Found Province ID: ${provinceId}`);
+        console.log(`Found Province ID: ${provinceId}`); // Line 95
 
-        // 3. Get All Communities for that Province ID
-        console.log(`Fetching communities for province ID: ${provinceId}`);
-        const { data: communitiesData, error: communitiesError } = await supabaseClient
-            .from('communities')
-            .select('community_name') // Only need the name
-            .eq('province_id', provinceId)
-            .order('community_name', { ascending: true }); // Fetch sorted alphabetically
+        // --- Fetch Communities ---
+        console.log(`Fetching communities for province ID: ${provinceId}`); // Line 98
+        let communitiesData, communitiesError;
+        try {
+            const response = await supabaseClient
+                .from('communities')
+                .select('community_name, status') // Select name and status
+                .eq('province_id', provinceId)
+                .order('community_name', { ascending: true });
 
-        if (communitiesError) {
-            throw new Error(`Failed to fetch communities: ${communitiesError.message}`);
+            communitiesData = response.data;
+            communitiesError = response.error;
+
+             // --- Check for error RIGHT HERE ---
+             if (communitiesError) {
+                console.error("!!! Error fetching communities from Supabase:", communitiesError); // Log specific error first
+                throw new Error(`Failed to fetch communities: ${communitiesError.message}`, { cause: communitiesError });
+             }
+
+        } catch (fetchCommError) {
+             // Catch errors specifically from the fetch operation
+             console.error("!!! Exception during community fetch:", fetchCommError);
+             // Re-throw to be caught by the outer catch block, passing the original error
+             throw fetchCommError;
         }
+
+        // --- Log fetched data (only reached if fetch was successful) ---
+        console.log("Fetched communitiesData:", communitiesData); // <<< KEEP THIS LOG >>>
 
         // 4. Process and Display Communities
         communityListContainer.innerHTML = ''; // Clear loading message
@@ -119,61 +127,75 @@ async function loadProvinceCommunities() {
 
         // Group communities by first letter
         const groupedCommunities = communitiesData.reduce((acc, community) => {
-            // Ensure community_name exists and is not empty before accessing index 0
-            if (community.community_name && community.community_name.length > 0) {
+             if (community.community_name && community.community_name.length > 0) {
                 const firstLetter = community.community_name[0].toUpperCase();
-                if (/^[A-Z]$/.test(firstLetter)) { // Check if it's an uppercase letter
-                    if (!acc[firstLetter]) {
-                        acc[firstLetter] = [];
-                    }
-                    acc[firstLetter].push(community.community_name);
-                } else {
-                    // Group non-letters under '#'
-                    if (!acc['#']) acc['#'] = [];
-                    acc['#'].push(community.community_name);
+                const key = /^[A-Z]$/.test(firstLetter) ? firstLetter : '#';
+                if (!acc[key]) {
+                    acc[key] = [];
                 }
-            } else {
-                 // Handle potential empty community names if necessary
+                acc[key].push({ name: community.community_name, status: community.status });
+             } else {
                  console.warn("Found community with empty name.");
                  if (!acc['#']) acc['#'] = [];
-                 acc['#'].push("(Empty Name)"); // Or handle differently
-            }
+                 acc['#'].push({ name: "(Empty Name)", status: null });
+             }
             return acc;
         }, {});
 
-
-        // Get sorted letters (and potentially '#')
         const sortedLetters = Object.keys(groupedCommunities).sort((a, b) => {
-            if (a === '#') return 1; // Push '#' to the end
+            if (a === '#') return 1;
             if (b === '#') return -1;
             return a.localeCompare(b);
         });
 
         // Render grouped list
         sortedLetters.forEach(letter => {
-            // Add letter heading
             const letterHeadingItem = document.createElement('li');
-            letterHeadingItem.className = 'letter-heading'; // Apply styling class
+            letterHeadingItem.className = 'letter-heading';
             letterHeadingItem.textContent = letter;
             communityListContainer.appendChild(letterHeadingItem);
 
-            // Add communities under this letter (already sorted)
-            groupedCommunities[letter].forEach(communityName => {
+            groupedCommunities[letter].forEach(community => {
                 const listItem = document.createElement('li');
-                listItem.className = 'community-list-item'; // Add class for potential styling
+                listItem.className = 'community-list-item';
+
+                const itemContainer = document.createElement('div');
+                itemContainer.className = 'province-community-item-container';
 
                 const link = document.createElement('a');
-                // Ensure the community name is properly encoded for the URL
-                link.href = `community.html?province=${encodeURIComponent(decodedProvinceName)}&community=${encodeURIComponent(communityName)}`;
-                link.textContent = communityName;
+                link.className = 'community-link';
+                link.href = `community.html?province=${encodeURIComponent(decodedProvinceName)}&community=${encodeURIComponent(community.name)}`;
+                link.textContent = community.name;
+                itemContainer.appendChild(link);
 
-                listItem.appendChild(link);
+                // console.log("Processing community:", community); // Keep if needed
+
+                let statusSpan = null;
+                if (community.status === 'NEW') {
+                    // console.log("Status is NEW, creating span..."); // Keep if needed
+                    statusSpan = document.createElement('span');
+                    statusSpan.className = 'status-label status-new';
+                    statusSpan.textContent = ' New!';
+                } else if (community.status === 'COMING_SOON') {
+                    // console.log("Status is COMING_SOON, creating span..."); // Keep if needed
+                    statusSpan = document.createElement('span');
+                    statusSpan.className = 'status-label status-coming-soon';
+                    statusSpan.textContent = ' Coming Soon';
+                }
+
+                if (statusSpan) {
+                    // console.log("Appending status span:", statusSpan); // Keep if needed
+                    itemContainer.appendChild(statusSpan);
+                }
+
+                listItem.appendChild(itemContainer);
                 communityListContainer.appendChild(listItem);
             });
         });
 
     } catch (error) {
-        displayProvincePageError(error.message);
+        // Pass the full error object to the helper function
+        displayProvincePageError(error.message || "An unknown error occurred", error);
     }
 }
 

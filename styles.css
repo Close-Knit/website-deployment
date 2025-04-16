@@ -246,13 +246,33 @@ a:hover, a:focus { text-decoration: underline; }
 .community-list-item:last-child {
     border-bottom: none;
 }
-.community-list-item a {
+.community-list-item a { /* Style link directly if no container needed */
     text-decoration: none;
     color: #1a0dab;
+    /* display: block; */ /* Make link take full width if needed */
 }
 .community-list-item a:hover {
     text-decoration: underline;
 }
+
+/* --- ADDED: Style for container within province page list item --- */
+/* Mimics .community-item-container from homepage for consistency */
+.province-community-item-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    line-height: 1.4; /* Match homepage line height */
+}
+/* Ensure link within this container doesn't take full width unless needed */
+.province-community-item-container .community-link {
+    flex-grow: 1;
+    margin-right: 5px;
+    text-align: left;
+    /* display: block; Remove this if default inline-block is okay */
+}
+/* Status label alignment is handled by flexbox and existing .status-label rules */
+/* --- END ADDITION --- */
+
 
 /* ====================================================================== */
 /* Breadcrumb Styles */
@@ -348,7 +368,7 @@ a:hover, a:focus { text-decoration: underline; }
     .community-list { text-align: left !important; flex-grow: unset !important; /* Remove flex grow for print */ }
     .community-item-container { display: block !important; }
     .community-link { text-align: left !important; margin-bottom: 3px; }
-    .status-label { display: none !important; }
+    .status-label { display: none !important; } /* Hide status labels in print */
     #province-list { display: block; } /* Ensure the container itself shows */
     /* Community page print */
     #results { border-top: none; margin-top: 0; padding-top: 0; }
@@ -366,7 +386,9 @@ a:hover, a:focus { text-decoration: underline; }
     .community-list-grouped { margin: 0 !important; max-width: none !important; border: none !important; padding: 0 !important; }
     .letter-heading { background-color: transparent !important; border-bottom: 1px solid #000 !important; font-size: 12pt !important; padding: 5px 0 !important; margin: 10px 0 !important; }
     .community-list-item { padding: 2px 0 !important; border: none !important; }
+    .province-community-item-container { display: block !important; } /* Stack link and tag in print */
     .community-list-item a { color: #000 !important; text-decoration: none !important; }
+    /* .status-label already hidden globally in print */
 
 }
 
@@ -435,6 +457,8 @@ a:hover, a:focus { text-decoration: underline; }
     .community-list-grouped { max-width: 100%; margin: 15px 0; }
     .letter-heading { font-size: 1.2em; padding: 6px 10px; } /* Adjust mobile font/padding */
     .community-list-item { padding: 6px 10px; }
+     /* Ensure province page item container uses flex */
+     .province-community-item-container { display: flex; }
 
     /* --- Mobile Styles for Breadcrumbs --- */
     .breadcrumb-nav {
