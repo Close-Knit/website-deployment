@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Province Communities</title> <!-- Dynamic Title -->
 
-    <!-- Link CSS -->
+    <!-- Link CSS and Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    /> <!-- Added Font Awesome for icon -->
     <link rel="stylesheet" href="styles.css">
 
     <!-- AdSense Script (Consistency) -->
@@ -21,11 +28,10 @@
 
     <h1 id="province-name-heading">Loading Province...</h1>
 
-    <!-- === BREADCRUMB PLACEHOLDER START === -->
+    <!-- Breadcrumb Placeholder -->
     <nav aria-label="breadcrumb" id="breadcrumb-container" class="breadcrumb-nav">
         <!-- Breadcrumbs will be loaded here by JS -->
     </nav>
-    <!-- === BREADCRUMB PLACEHOLDER END === -->
 
     <!-- Container for the list of communities -->
     <ul id="community-list-province" class="community-list-grouped">
@@ -41,6 +47,12 @@
 
     <!-- Load the specific JS for this page -->
     <script src="province_page.js" defer></script>
+    <script src="common.js" defer></script> <!-- <<< ADDED COMMON SCRIPT -->
+
+    <!-- Back to Top Button -->
+    <button id="backToTopBtn" title="Go to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
 
 </body>
 </html>

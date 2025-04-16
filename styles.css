@@ -252,7 +252,7 @@ a:hover, a:focus { text-decoration: underline; }
 }
 
 /* ====================================================================== */
-/* Breadcrumb Styles */ /* <<< NEW SECTION */
+/* Breadcrumb Styles */
 /* ====================================================================== */
 .breadcrumb-nav {
     padding: 10px 0; /* Add some vertical space */
@@ -301,11 +301,42 @@ a:hover, a:focus { text-decoration: underline; }
 }
 
 /* ====================================================================== */
+/* Back to Top Button Styles */ /* <<< NEW SECTION */
+/* ====================================================================== */
+#backToTopBtn {
+    display: none; /* Hidden by default */
+    position: fixed; /* Keep it in view */
+    bottom: 20px; /* Distance from bottom */
+    right: 25px; /* Distance from right */
+    z-index: 999; /* Ensure it's above most other content */
+    border: none; /* Remove default border */
+    outline: none; /* Remove outline */
+    background-color: rgba(108, 117, 125, 0.7); /* Semi-transparent grey */
+    color: white; /* White icon */
+    cursor: pointer; /* Pointer cursor on hover */
+    padding: 10px 12px; /* Padding */
+    border-radius: 5px; /* Rounded corners */
+    font-size: 1.1em; /* Icon size */
+    opacity: 0; /* Start fully transparent */
+    transition: opacity 0.3s ease-in-out, background-color 0.2s ease; /* Smooth fade */
+}
+
+#backToTopBtn.show {
+    display: block; /* Make it visible */
+    opacity: 1; /* Make it fully opaque */
+}
+
+#backToTopBtn:hover {
+    background-color: rgba(80, 85, 90, 0.9); /* Darken on hover */
+}
+
+
+/* ====================================================================== */
 /* Print Specific Styles */
 /* ====================================================================== */
 @media print {
     body { padding: 10px; font-size: 10pt; color: #000; }
-    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav /* Hide breadcrumbs */ { display: none !important; }
+    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn /* Hide back-to-top */ { display: none !important; }
     /* Home page print */
     .region-container { display: block !important; }
     .region-column { display: block !important; border: none !important; padding: 0 !important; margin-bottom: 20px; text-align: left !important; min-height: unset !important; /* Remove min height for print */ }
@@ -396,6 +427,14 @@ a:hover, a:focus { text-decoration: underline; }
     }
     .breadcrumb-item + .breadcrumb-item::before {
          padding: 0 0.4rem; /* Reduce separator padding */
+    }
+
+    /* --- Mobile Styles for Back to Top --- */
+    #backToTopBtn {
+        bottom: 15px; /* Slightly higher on mobile */
+        right: 15px;
+        padding: 8px 10px;
+        font-size: 1em;
     }
 
 }

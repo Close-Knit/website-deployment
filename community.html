@@ -6,7 +6,6 @@
   <title>Community Directory</title> <!-- Title gets updated by JS -->
 
   <!-- Link CSS and Font Awesome -->
-  <!-- *** Start: Correct Font Awesome Link using confirmed values *** -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -14,16 +13,11 @@
     crossorigin="anonymous"
     referrerpolicy="no-referrer"
   />
-  <!-- *** End: Correct Font Awesome Link *** -->
-
-  <!-- Your styles.css link below -->
   <link rel="stylesheet" href="styles.css">
 
-  <!-- Main AdSense Script (Needed for any AdSense ads to work) -->
+  <!-- Main AdSense Script -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174"
        crossorigin="anonymous"></script>
-  <!-- END Main AdSense Script -->
-
 
 </head>
 <body>
@@ -55,27 +49,26 @@
         </a>
     </div>
 
-    <!-- === BREADCRUMB PLACEHOLDER START === -->
+    <!-- Breadcrumb Placeholder -->
     <nav aria-label="breadcrumb" id="breadcrumb-container" class="breadcrumb-nav">
         <!-- Breadcrumbs will be loaded here by JS -->
     </nav>
-    <!-- === BREADCRUMB PLACEHOLDER END === -->
 
     <!-- Results container -->
     <ul id="results">
         <!-- Directory listings will appear here -->
-        <!-- Static "Loading listings..." removed, handled by JS -->
     </ul>
 
     <!-- Notice text -->
     <p class="notice">
-        This directory is for community members only. Home-based business information included with consent, by request, or provided directly by the business itself.
-        To update or remove your listing, please see the 'contact us' link.
+        Home-based business information included with consent, by request, or provided directly by the business itself.
+        To Add, Change, or Remove your listing, please see the "Suggest Change" button at the top.
     </p>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="directory.js"></script> <!-- defer not strictly needed if at end, but harmless -->
+    <script src="directory.js" defer></script>
+    <script src="common.js" defer></script> <!-- <<< ADDED COMMON SCRIPT -->
 
     <!-- Start: Phone Reveal Popup -->
     <div id="phonePopup" class="popup hidden">
@@ -83,10 +76,9 @@
         <span id="closePopup" class="close-button" title="Close">×</span>
         <h4>Phone Number:</h4>
         <p id="phoneNumber" class="popup-phone-number">...</p>
-        <p class="popup-notice">This pop-up is an Anti-Spam feature. Tell your friends you saw this listing on Bizly.ca!</p> <!-- Corrected Bizly.ca spelling -->
-        <!-- Ad Container for Manual Ad Unit -->
+        <p class="popup-notice">This pop-up is an Anti-Spam feature. Tell your friends you saw this listing on Bizly.ca!</p>
+        <!-- Ad Container -->
         <div id="adContainer" class="popup-ad-container">
-             <!-- Phone Number Pop-up Ad Unit -->
              <ins class="adsbygoogle"
                   style="display:block"
                   data-ad-client="ca-pub-6284081740274174"
@@ -96,12 +88,15 @@
              <script>
                   (adsbygoogle = window.adsbygoogle || []).push({});
              </script>
-             <!-- End Ad Unit -->
         </div>
-        <!-- End Ad Container -->
       </div>
     </div>
     <!-- End: Phone Reveal Popup -->
+
+    <!-- Back to Top Button -->
+    <button id="backToTopBtn" title="Go to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
 
 </body>
 </html>
