@@ -1,6 +1,7 @@
 /* ====================================================================== */
 /* Global / Shared Styles */
 /* ====================================================================== */
+html { scroll-behavior: smooth; /* Enable smooth scrolling for back-to-top */ }
 body { font-family: sans-serif; padding: 20px; color: #333; }
 h1 { margin-top: 0; text-align: center; margin-bottom: 25px; }
 a, a:visited { color: #1a0dab; text-decoration: none; }
@@ -79,7 +80,7 @@ a:hover, a:focus { text-decoration: underline; }
 /* ====================================================================== */
 /* Styles for Community Directory Page (community.html) */
 /* ====================================================================== */
-.community-header { text-align: center; padding-top: 40px; margin-bottom: 25px; }
+.community-header { text-align: center; padding-top: 40px; margin-bottom: 25px; } /* Default padding-top */
 #logo { display: block; margin: 0 auto 10px auto; max-width: 150px; height: auto; }
 #community-name { margin-top: 0; margin-bottom: 0; text-align: center; }
 .search-container { text-align: center; margin-bottom: 25px; }
@@ -301,7 +302,7 @@ a:hover, a:focus { text-decoration: underline; }
 }
 
 /* ====================================================================== */
-/* Back to Top Button Styles */ /* <<< NEW SECTION */
+/* Back to Top Button Styles */
 /* ====================================================================== */
 #backToTopBtn {
     display: none; /* Hidden by default */
@@ -335,6 +336,7 @@ a:hover, a:focus { text-decoration: underline; }
 /* Print Specific Styles */
 /* ====================================================================== */
 @media print {
+    html { scroll-behavior: auto; /* Disable smooth scroll for print */ }
     body { padding: 10px; font-size: 10pt; color: #000; }
     h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn /* Hide back-to-top */ { display: none !important; }
     /* Home page print */
@@ -394,10 +396,12 @@ a:hover, a:focus { text-decoration: underline; }
 
 
     /* --- Mobile Styles for Community Page (community.html) --- */
-    /* Mobile Logo Centering */
-    #site-logo-link { position: static; display: block; text-align: center; margin-bottom: 10px; top: auto; left: auto; }
-    #site-logo { width: 80px; margin: 0 auto; }
-    .community-header { padding-top: 0; text-align: center; margin-bottom: 20px; }
+    /* --- DELETED Mobile Logo Centering Styles for #site-logo-link and #site-logo --- */
+    .community-header {
+        /* padding-top: 0; Removed padding override */
+        text-align: center;
+        margin-bottom: 20px;
+    }
     #logo { max-width: 100px; margin-bottom: 8px; }
     #community-name { font-size: 1.5em; }
     /* Mobile Directory List Stacking */
@@ -420,6 +424,8 @@ a:hover, a:focus { text-decoration: underline; }
     /* --- Mobile Styles for Breadcrumbs --- */
     .breadcrumb-nav {
         text-align: left; /* Align left on small screens */
+        margin-bottom: 15px; /* Adjust spacing */
+        padding: 5px 0;
     }
     .breadcrumb {
          display: flex; /* Ensure flex behaviour on mobile */
