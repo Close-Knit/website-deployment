@@ -82,7 +82,7 @@ a:hover, a:focus { text-decoration: underline; }
 /* ====================================================================== */
 .community-header { text-align: center; padding-top: 40px; margin-bottom: 25px; } /* Default padding-top */
 #logo { display: block; margin: 0 auto 10px auto; max-width: 150px; height: auto; }
-#community-name { margin-top: 0; margin-bottom: 0; text-align: center; }
+#community-name { margin-top: 0; margin-bottom: 0; text-align: center; /* Line height ensures <br> works well */ line-height: 1.4; }
 .search-container { text-align: center; margin-bottom: 25px; }
 .search-container input#searchBox { padding: 10px 12px; width: 90%; max-width: 350px; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 4px; font-size: 1em; }
 .action-buttons { text-align: center; margin-top: 15px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
@@ -94,7 +94,6 @@ a:hover, a:focus { text-decoration: underline; }
 a.button-style:visited {
     color: #333; /* Match default text color */
     background-color: #ffffff; /* Match default background */
-    /* Border is inherited, text-decoration: none is inherited */
 }
 /* --- END ADDITION --- */
 
@@ -102,6 +101,17 @@ a.button-style:visited {
 #printButton:hover { background-color: #f8f9fa; border-color: #adb5bd; }
 .print-icon { margin-right: 8px; vertical-align: middle; }
 .print-text { vertical-align: middle; }
+
+/* --- ADDED: Style for H1 subtitle --- */
+.directory-subtitle {
+    display: block; /* Ensures it takes its own line */
+    font-size: 0.85em; /* Smaller font size */
+    color: #6c757d; /* Lighter gray color (like notice text) */
+    font-weight: normal; /* Ensure it's not bold like the main H1 */
+    margin-top: 2px; /* Small space below main title */
+}
+/* --- END ADDITION --- */
+
 
 /* Results List Container */
 #results { padding-left: 0; margin-top: 20px; list-style: none; border-top: 1px solid #dee2e6; padding-top: 15px; }
@@ -446,7 +456,10 @@ a.button-style:visited {
         padding-top: 0; /* KEEP header padding 0 here as it's inside body padding */
     }
     #logo { max-width: 100px; margin-bottom: 8px; }
-    #community-name { font-size: 1.5em; }
+    #community-name { font-size: 1.5em; line-height: 1.3; /* Adjust line height if needed */ }
+    /* Style for subtitle on mobile */
+    .directory-subtitle { font-size: 0.8em; }
+
     /* Mobile Directory List Stacking */
     #results li.directory-entry { flex-direction: column; align-items: stretch; gap: 3px 0; padding-top: 10px; padding-bottom: 10px; }
     .entry-details { margin-right: 0; margin-bottom: 4px; order: 1; text-align: left; }
