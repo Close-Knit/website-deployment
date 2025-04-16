@@ -219,19 +219,26 @@ a:hover, a:focus { text-decoration: underline; }
     padding-top: 15px;
 }
 
-/* Style for the letter headings (similar to category headings) */
+/* --- MODIFIED: Style for the letter headings to match category headings --- */
 .letter-heading {
-    background-color: #f8f9fa; /* Slightly different background */
-    font-size: 1.3em;
+    /* background-color: #f8f9fa;  Replaced with brown */
+    background-color: #f5f1e6; /* Match category heading */
+    /* font-size: 1.3em; */
+    font-size: 1.4em; /* Match category heading */
     font-weight: bold;
     color: #495057;
-    margin-top: 20px;
+    /* margin-top: 20px; */
+    margin-top: 25px; /* Match category heading */
     margin-bottom: 10px;
-    padding: 8px 12px;
-    border-bottom: 1px solid #dee2e6;
+    /* padding: 8px 12px; */
+    padding: 10px 15px; /* Match category heading */
+    /* border-bottom: 1px solid #dee2e6; */
+    border-bottom: 2px solid #dee2e6; /* Match category heading */
     list-style: none;
     border-radius: 4px;
 }
+/* --- END MODIFICATION --- */
+
 .community-list-grouped li.letter-heading:first-child {
     margin-top: 0px; /* No top margin for the very first heading */
 }
@@ -396,7 +403,7 @@ a:hover, a:focus { text-decoration: underline; }
 
 
     /* --- Mobile Styles for Community Page (community.html) --- */
-    /* --- DELETED Mobile Logo Centering Styles for #site-logo-link and #site-logo --- */
+    /* --- DELETED Mobile Logo Centering Styles --- */
     .community-header {
         /* padding-top: 0; Removed padding override */
         text-align: center;
@@ -418,7 +425,7 @@ a:hover, a:focus { text-decoration: underline; }
 
     /* --- Mobile Styles for Province Page --- */
     .community-list-grouped { max-width: 100%; margin: 15px 0; }
-    .letter-heading { font-size: 1.2em; padding: 6px 10px; }
+    .letter-heading { font-size: 1.2em; padding: 6px 10px; } /* Adjust mobile font/padding */
     .community-list-item { padding: 6px 10px; }
 
     /* --- Mobile Styles for Breadcrumbs --- */
