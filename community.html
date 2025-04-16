@@ -55,6 +55,12 @@
         </a>
     </div>
 
+    <!-- === BREADCRUMB PLACEHOLDER START === -->
+    <nav aria-label="breadcrumb" id="breadcrumb-container" class="breadcrumb-nav">
+        <!-- Breadcrumbs will be loaded here by JS -->
+    </nav>
+    <!-- === BREADCRUMB PLACEHOLDER END === -->
+
     <!-- Results container -->
     <ul id="results">
         <!-- Directory listings will appear here -->
@@ -69,7 +75,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="directory.js"></script>
+    <script src="directory.js"></script> <!-- defer not strictly needed if at end, but harmless -->
 
     <!-- Start: Phone Reveal Popup -->
     <div id="phonePopup" class="popup hidden">
@@ -77,7 +83,7 @@
         <span id="closePopup" class="close-button" title="Close">×</span>
         <h4>Phone Number:</h4>
         <p id="phoneNumber" class="popup-phone-number">...</p>
-        <p class="popup-notice">This pop-up is an Anti-Spam feature. Tell your friends you saw this listing on Bizly.ca</p>
+        <p class="popup-notice">This pop-up is an Anti-Spam feature. Tell your friends you saw this listing on Bizly.ca!</p> <!-- Corrected Bizly.ca spelling -->
         <!-- Ad Container for Manual Ad Unit -->
         <div id="adContainer" class="popup-ad-container">
              <!-- Phone Number Pop-up Ad Unit -->

@@ -15,6 +15,7 @@ const supabaseClient = createClient(supabaseUrl, supabaseKey);
 const provinceNameHeading = document.getElementById('province-name-heading');
 const communityListContainer = document.getElementById('community-list-province');
 const pageTitle = document.querySelector('title');
+const breadcrumbContainer = document.getElementById('breadcrumb-container'); // Get breadcrumb container
 
 // ======================================================================
 // Helper to display error messages
@@ -30,16 +31,25 @@ function displayProvincePageError(message) {
      if (pageTitle) {
          pageTitle.textContent = "Error";
      }
+     // Clear breadcrumbs on error
+     if(breadcrumbContainer) breadcrumbContainer.innerHTML = '';
 }
 
 // ======================================================================
 // Fetch and Display Communities for the Province
 // ======================================================================
 async function loadProvinceCommunities() {
-    if (!communityListContainer || !provinceNameHeading || !pageTitle) {
-        console.error("Essential page elements not found.");
+    // Add breadcrumbContainer to the check
+    if (!communityListContainer || !provinceNameHeading || !pageTitle || !breadcrumbContainer) {
+        console.error("Essential page elements (heading, list container, title, or breadcrumb) not found.");
+        // Optionally provide a user-facing error if critical elements are missing
+        if(communityListContainer) communityListContainer.innerHTML = '<li>Page structure error. Cannot load content.</li>';
         return;
     }
+
+    // Clear previous results/breadcrumbs
+    communityListContainer.innerHTML = '<li>Loading...</li>';
+    breadcrumbContainer.innerHTML = ''; // Clear existing breadcrumbs
 
     // 1. Get Province Name from URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -51,9 +61,20 @@ async function loadProvinceCommunities() {
     }
 
     const decodedProvinceName = decodeURIComponent(provinceName);
+
+    // Set initial UI states
     provinceNameHeading.textContent = `Loading Communities for ${decodedProvinceName}...`;
     pageTitle.textContent = `Communities in ${decodedProvinceName}`;
-    communityListContainer.innerHTML = '<li>Loading...</li>';
+
+
+    // --- START: Breadcrumb Generation ---
+    breadcrumbContainer.innerHTML = `
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+            <li class="breadcrumb-item active" aria-current="page">${decodedProvinceName}</li>
+        </ol>
+    `;
+    // --- END: Breadcrumb Generation ---
 
     try {
         // 2. Get Province ID from Name
@@ -98,19 +119,28 @@ async function loadProvinceCommunities() {
 
         // Group communities by first letter
         const groupedCommunities = communitiesData.reduce((acc, community) => {
-            const firstLetter = community.community_name[0]?.toUpperCase();
-            if (firstLetter && /^[A-Z]$/.test(firstLetter)) { // Ensure it's a letter A-Z
-                 if (!acc[firstLetter]) {
-                     acc[firstLetter] = [];
-                 }
-                 acc[firstLetter].push(community.community_name);
-             } else {
-                 // Optional: Group numbers or symbols under '#' or similar
+            // Ensure community_name exists and is not empty before accessing index 0
+            if (community.community_name && community.community_name.length > 0) {
+                const firstLetter = community.community_name[0].toUpperCase();
+                if (/^[A-Z]$/.test(firstLetter)) { // Check if it's an uppercase letter
+                    if (!acc[firstLetter]) {
+                        acc[firstLetter] = [];
+                    }
+                    acc[firstLetter].push(community.community_name);
+                } else {
+                    // Group non-letters under '#'
+                    if (!acc['#']) acc['#'] = [];
+                    acc['#'].push(community.community_name);
+                }
+            } else {
+                 // Handle potential empty community names if necessary
+                 console.warn("Found community with empty name.");
                  if (!acc['#']) acc['#'] = [];
-                 acc['#'].push(community.community_name);
-             }
+                 acc['#'].push("(Empty Name)"); // Or handle differently
+            }
             return acc;
         }, {});
+
 
         // Get sorted letters (and potentially '#')
         const sortedLetters = Object.keys(groupedCommunities).sort((a, b) => {
@@ -127,12 +157,13 @@ async function loadProvinceCommunities() {
             letterHeadingItem.textContent = letter;
             communityListContainer.appendChild(letterHeadingItem);
 
-            // Add communities under this letter
+            // Add communities under this letter (already sorted)
             groupedCommunities[letter].forEach(communityName => {
                 const listItem = document.createElement('li');
                 listItem.className = 'community-list-item'; // Add class for potential styling
 
                 const link = document.createElement('a');
+                // Ensure the community name is properly encoded for the URL
                 link.href = `community.html?province=${encodeURIComponent(decodedProvinceName)}&community=${encodeURIComponent(communityName)}`;
                 link.textContent = communityName;
 

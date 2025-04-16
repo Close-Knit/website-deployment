@@ -1,4 +1,4 @@
-// --- START OF UPDATED directory.js (With Clickable Tel Link) ---
+// --- START OF UPDATED directory.js (With Breadcrumbs) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -22,13 +22,15 @@ function displayError(message) {
      }
      const logoElement = document.getElementById('logo');
      if(logoElement) logoElement.style.display = 'none';
+     // Also clear breadcrumbs on error
+     const breadcrumbContainer = document.getElementById('breadcrumb-container');
+     if(breadcrumbContainer) breadcrumbContainer.innerHTML = '';
 }
 
 // ======================================================================
-// Fetch and Display Listings for a Specific Community (Unchanged from previous)
+// Fetch and Display Listings for a Specific Community
 // ======================================================================
 async function fetchAndDisplayListings() {
-    // --- This function remains exactly the same ---
     if (!supabaseClient) {
         displayError("Supabase client not initialized. Cannot fetch data.");
         return;
@@ -39,11 +41,14 @@ async function fetchAndDisplayListings() {
     const pageTitle = document.querySelector('title');
     const logoElement = document.getElementById('logo');
 
-    if (resultsList) {
-        resultsList.innerHTML = '<li>Loading...</li>';
-    } else {
+    // Clear previous results/breadcrumbs
+    if (resultsList) resultsList.innerHTML = '<li>Loading...</li>';
+    const breadcrumbContainer = document.getElementById('breadcrumb-container');
+    if (breadcrumbContainer) breadcrumbContainer.innerHTML = ''; // Clear existing breadcrumbs
+
+    if (!resultsList) { // Check resultsList after attempting to clear
         console.error("Fatal Error: Results list element (#results) not found.");
-        return;
+        return; // Cannot proceed without results list
     }
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -55,81 +60,114 @@ async function fetchAndDisplayListings() {
         return;
     }
 
-    const baseTitle = `${communityName}, ${provinceName}`;
-     if (communityNameElement) communityNameElement.textContent = `Loading ${baseTitle} Directory...`;
-     if (pageTitle) pageTitle.textContent = `${baseTitle} Directory`;
-     if (logoElement) logoElement.style.display = 'none';
+    // Decode names early for use in UI elements
+    const decodedProvinceName = decodeURIComponent(provinceName);
+    const decodedCommunityName = decodeURIComponent(communityName);
 
-    const tableName = provinceName.replace(/ /g, '_');
+    const baseTitle = `${decodedCommunityName}, ${decodedProvinceName}`;
+    if (communityNameElement) communityNameElement.textContent = `Loading ${baseTitle} Directory...`;
+    if (pageTitle) pageTitle.textContent = `${baseTitle} Directory`;
+    if (logoElement) logoElement.style.display = 'none'; // Ensure logo starts hidden
+
+    // --- START: Breadcrumb Generation ---
+    if (breadcrumbContainer) {
+        breadcrumbContainer.innerHTML = `
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                <li class="breadcrumb-item"><a href="province_page.html?province=${encodeURIComponent(decodedProvinceName)}">${decodedProvinceName}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">${decodedCommunityName}</li>
+            </ol>
+        `;
+    } else {
+        console.warn("Breadcrumb container not found.");
+    }
+    // --- END: Breadcrumb Generation ---
+
+
+    const tableName = decodedProvinceName.replace(/ /g, '_'); // Use decoded name for table lookup consistency
 
     try {
+        // Fetch Community ID and Logo (using decodedCommunityName)
         const { data: communityData, error: communityError } = await supabaseClient
             .from('communities')
             .select('id, logo_filename')
-            .eq('community_name', communityName)
+            .eq('community_name', decodedCommunityName) // Use decoded name for lookup
             .limit(1)
             .single();
 
-        if (communityError) { throw new Error(`Could not verify community "${communityName}". ${communityError.message}`); }
-        if (!communityData) { throw new Error(`Community "${communityName}" not found.`); }
+        if (communityError) { throw new Error(`Could not verify community "${decodedCommunityName}". ${communityError.message}`); }
+        if (!communityData) { throw new Error(`Community "${decodedCommunityName}" not found.`); }
 
         const communityId = communityData.id;
         const logoFilename = communityData.logo_filename;
 
+        // Display logo if available
         if (logoElement && logoFilename) {
              logoElement.src = `images/logos/${logoFilename}`;
-             logoElement.alt = `${communityName} Logo`;
+             logoElement.alt = `${decodedCommunityName} Logo`; // Use decoded name
              logoElement.style.display = 'block';
+        } else if (logoElement) {
+             logoElement.style.display = 'none'; // Explicitly hide if no logo
         }
 
+        // Set Suggest Change Link
         const suggestChangeLink = document.getElementById('suggestChangeLink');
         if (suggestChangeLink) {
-            suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(provinceName)}&comm=${encodeURIComponent(communityName)}`;
+            // Use original encoded names for URL parameters if needed, but decodedProvinceName should be safe here
+            suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`;
+        } else {
+            console.warn("Suggest change link element not found.")
         }
 
+        // Fetch Listings
          const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
             .select('*')
             .eq('community_id', communityId)
+            // Simpler sorting: category first, then name
             .order('category', { ascending: true, nullsFirst: false })
-            .then(response => {
-                if (response.data) { response.data.sort((a, b) => (a.name || '').localeCompare(b.name || '')); }
-                return response;
-            });
+            .order('name', { ascending: true });
+
 
         if (listingsError) {
-            if (listingsError.code === '42P01') { throw new Error(`DB table "${tableName}" not found.`); }
-            if (listingsError.code === '42703') { throw new Error(`Col 'community_id' missing in "${tableName}".`); }
+            if (listingsError.code === '42P01') { throw new Error(`DB table "${tableName}" not found for province "${decodedProvinceName}".`); }
+            if (listingsError.code === '42703') { throw new Error(`Column 'community_id' missing in table "${tableName}".`); }
             throw new Error(`Failed to fetch listings: ${listingsError.message}`);
         }
 
-        resultsList.innerHTML = '';
+        resultsList.innerHTML = ''; // Clear loading message
 
         if (!listings || listings.length === 0) {
-            resultsList.innerHTML = `<li>No listings found for ${communityName}.</li>`;
+            resultsList.innerHTML = `<li>No listings found for ${decodedCommunityName}.</li>`;
             if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (0 listings)`;
             return;
         }
 
         if (communityNameElement) communityNameElement.textContent = `${baseTitle} Directory (${listings.length} listings)`;
 
+        // Group listings by category
         const groupedListings = listings.reduce((acc, listing) => {
             const category = listing.category || 'Uncategorized';
             if (!acc[category]) { acc[category] = []; }
             acc[category].push(listing);
             return acc;
          }, {});
+
+        // Sort categories alphabetically, placing 'Uncategorized' last
         const sortedCategories = Object.keys(groupedListings).sort((a, b) => {
-             if (a === 'Uncategorized') return 1; if (b === 'Uncategorized') return -1;
-             return a.localeCompare(b);
+             if (a === 'Uncategorized') return 1; // Uncategorized goes last
+             if (b === 'Uncategorized') return -1; // Uncategorized goes last
+             return a.localeCompare(b); // Regular sort for others
          });
 
+        // Render listings grouped by category
         sortedCategories.forEach(category => {
              const categoryHeadingItem = document.createElement('li');
              categoryHeadingItem.className = 'category-heading';
              categoryHeadingItem.textContent = category;
              resultsList.appendChild(categoryHeadingItem);
 
+             // Listings within this category (already sorted by name from DB query)
              groupedListings[category].forEach(listing => {
                  const listItem = document.createElement('li');
                  listItem.className = 'directory-entry';
@@ -137,8 +175,9 @@ async function fetchAndDisplayListings() {
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
                  if (phoneNumber) {
+                     // Added title attribute for accessibility/hover info
                      phoneHtml = `
-                         <button class="revealPhoneBtn" data-phone="${phoneNumber}">
+                         <button class="revealPhoneBtn" data-phone="${phoneNumber}" title="Show phone number for ${listing.name || 'this listing'}">
                              <i class="fa-solid fa-phone"></i> Show Phone
                          </button>
                      `;
@@ -156,6 +195,7 @@ async function fetchAndDisplayListings() {
         });
 
     } catch (fetchError) {
+        // Catch block now uses the displayError helper
         displayError(fetchError.message);
     }
 }
@@ -183,6 +223,7 @@ function initializeSearch() {
             const name = item.querySelector('.name')?.textContent.toLowerCase() || '';
             let currentElement = item;
             let categoryText = '';
+            // Find the preceding category heading for the current item
             while (currentElement = currentElement.previousElementSibling) {
                 if (currentElement.classList.contains('category-heading')) {
                     categoryText = currentElement.textContent.toLowerCase();
@@ -194,6 +235,7 @@ function initializeSearch() {
 
             if (matchesSearch) {
                 item.style.display = '';
+                // If it matches, ensure its category heading is potentially visible
                 if (categoryText) {
                     visibleCategories.add(categoryText);
                 }
@@ -202,8 +244,10 @@ function initializeSearch() {
             }
         });
 
+        // Show/hide category headings based on search term or if they have visible items
         Array.from(categoryHeadings).forEach(heading => {
             const categoryText = heading.textContent.toLowerCase();
+             // Show heading if it matches the search OR if any of its items are visible
              if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) {
                  heading.style.display = '';
              } else {
@@ -229,7 +273,7 @@ function initializePrint() {
 }
 
 // ======================================================================
-// Initialize Popup Interactivity (MODIFIED FOR TEL LINK)
+// Initialize Popup Interactivity (Unchanged logic, added console logs)
 // ======================================================================
 function initializePopupInteraction() {
     const resultsList = document.getElementById('results');
@@ -242,33 +286,44 @@ function initializePopupInteraction() {
         return;
     }
 
+    // Use event delegation on the results list
     resultsList.addEventListener('click', function(event) {
-        const revealButton = event.target.closest('.revealPhoneBtn');
+        const revealButton = event.target.closest('.revealPhoneBtn'); // Find the button even if icon is clicked
 
         if (revealButton) {
-            event.preventDefault();
+            event.preventDefault(); // Prevent any default button action
             const numberToDisplay = revealButton.dataset.phone;
 
             if (numberToDisplay) {
-                // --- MODIFIED LINE ---
                 // Update the HTML inside the popup paragraph to include a clickable tel link
                 phoneNumberDisplay.innerHTML = `<a href="tel:${numberToDisplay}">${numberToDisplay}</a>`;
-                // --- END MODIFIED LINE ---
 
                 phonePopup.classList.remove('hidden');
                 console.log(`Showing popup for number: ${numberToDisplay}`);
+
+                // Optional: Push AdSense event if needed when popup opens
+                // try {
+                //     (adsbygoogle = window.adsbygoogle || []).push({});
+                //     console.log("AdSense push attempted on popup open.");
+                // } catch (e) {
+                //     console.error("AdSense push error:", e);
+                // }
+
             } else {
-                console.warn("Clicked reveal button is missing phone data.");
+                console.warn("Clicked reveal button is missing phone data (data-phone attribute).");
             }
         }
     });
 
+    // Close button listener
     closePopupButton.addEventListener('click', function() {
         phonePopup.classList.add('hidden');
-        console.log("Popup closed.");
+        console.log("Popup closed via X button.");
     });
 
+    // Close popup if clicking outside the content area
      phonePopup.addEventListener('click', function(event) {
+         // Check if the click target is the popup background itself, not its content
          if (event.target === phonePopup) {
               phonePopup.classList.add('hidden');
               console.log("Popup closed by clicking outside.");
@@ -284,11 +339,10 @@ function initializePopupInteraction() {
 // Main Execution (Unchanged)
 // ======================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("[DEBUG] DOMContentLoaded fired.");
+    console.log("[DEBUG] DOMContentLoaded fired for directory page.");
 
     if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
          displayError("Supabase library failed to load. Check script tags in HTML.");
-         console.error("Supabase library failed to load.");
          return;
     }
 
@@ -301,16 +355,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!supabaseClient) {
         displayError("Failed to initialize Supabase client.");
-        console.error("Failed to initialize Supabase client.");
         return;
     }
 
     console.log("[DEBUG] Supabase client initialized.");
 
-    fetchAndDisplayListings();
+    // Initialize all functionalities
+    fetchAndDisplayListings(); // Fetches data and populates breadcrumbs
     initializeSearch();
     initializePrint();
-    initializePopupInteraction(); // Sets up click listeners
+    initializePopupInteraction(); // Sets up click listeners for phone reveal
 
 });
 
