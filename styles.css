@@ -214,8 +214,16 @@ a.button-style:visited {
 .popup-phone-number a:visited { color: inherit; text-decoration: none; font-weight: inherit; }
 .popup-phone-number a:hover { text-decoration: underline; }
 
-/* Notice text inside popup */
-.popup-notice { font-size: 0.85em; color: #28a745; margin-bottom: 20px; margin-top: 0; }
+/* --- MODIFIED: Notice text inside popup --- */
+.popup-notice {
+    font-size: 0.85em;
+    /* color: #28a745; Replaced green */
+    color: #1E3D3A; /* Forest Teal */
+    margin-bottom: 20px;
+    margin-top: 0;
+}
+/* --- END MODIFICATION --- */
+
 
 /* Placeholder ad container */
 .popup-ad-container { margin-top: 15px; padding: 10px; border: 1px dashed #ced4da; background-color: #f8f9fa; font-size: 0.8em; color: #6c757d; min-height: 50px; /* Give it some min height */ display: flex; justify-content: center; align-items: center; }
