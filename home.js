@@ -1,4 +1,4 @@
-// --- START OF UPDATED home.js (With "View All" Button Logic) ---
+// --- START OF UPDATED home.js (Button on All + Structure Change for Alignment) ---
 
 // ======================================================================
 // Initialize Supabase (Same as before)
@@ -25,7 +25,7 @@ function displayHomeError(message) {
 const territoryNames = ["Yukon", "Northwest Territories", "Nunavut"];
 
 // ======================================================================
-// Max Communities to Display Initially (Same as before)
+// Max Communities to Display Initially (Still used for slicing, but not for button)
 // ======================================================================
 const MAX_COMMUNITIES_VISIBLE = 5;
 
@@ -67,26 +67,23 @@ async function populateHomePage() {
         regionContainer.className = 'region-container';
 
         const renderRegionSection = (regionName) => {
-            const communities = communitiesByRegion[regionName];
+            const communities = communitiesByRegion[regionName] || []; // Ensure communities is always an array
             const regionSection = document.createElement("section");
-            regionSection.className = 'region-column';
+            regionSection.className = 'region-column'; // This column will become a flex container via CSS
 
             const regionHeader = document.createElement("h2");
             regionHeader.textContent = regionName;
             regionSection.appendChild(regionHeader);
 
+            // Create container for the list items (will grow to fill space)
             const communityListContainer = document.createElement("div");
-            communityListContainer.className = 'community-list';
+            communityListContainer.className = 'community-list'; // This list will grow via CSS
 
-            if (communities && communities.length > 0) { // Added check for communities existence
+            if (communities.length > 0) {
+                // Display up to MAX_COMMUNITIES_VISIBLE
                 const communitiesToDisplay = communities.slice(0, MAX_COMMUNITIES_VISIBLE);
-                const showViewMore = communities.length > MAX_COMMUNITIES_VISIBLE;
 
                 communitiesToDisplay.forEach(community => {
-                    // ***** Start: Added Debug Line *****
-                    // console.log('Processing community:', community); // Keep for debugging if needed
-                    // ***** End: Added Debug Line *****
-
                     const communityItemContainer = document.createElement('div');
                     communityItemContainer.className = 'community-item-container';
 
@@ -96,7 +93,7 @@ async function populateHomePage() {
                     communityLink.textContent = community.name;
                     communityItemContainer.appendChild(communityLink);
 
-                    // Add Status Span Conditionally (Uses community.status)
+                    // Add Status Span Conditionally
                     if (community.status === 'NEW') {
                         const statusSpan = document.createElement('span');
                         statusSpan.className = 'status-label status-new';
@@ -111,34 +108,42 @@ async function populateHomePage() {
 
                     communityListContainer.appendChild(communityItemContainer);
                 });
-
-                // --- START: MODIFIED "View More" to "View All" Button ---
-                if (showViewMore) {
-                    // Create a container for centering the button
-                    const buttonContainer = document.createElement('div');
-                    buttonContainer.style.textAlign = 'center'; // Center align content
-                    buttonContainer.style.marginTop = '15px'; // Add space above button
-
-                    // Create the link, styled as a button
-                    const viewAllLink = document.createElement("a");
-                    viewAllLink.className = 'button-style view-all-button'; // Use existing & new class
-                    viewAllLink.href = `province_page.html?province=${encodeURIComponent(regionName)}`; // Link to future page
-                    viewAllLink.textContent = "View All"; // New button text
-                    viewAllLink.title = `View all communities in ${regionName}`; // Add a helpful title
-
-                    // Append the button-link to its container, then the container to the list
-                    buttonContainer.appendChild(viewAllLink);
-                    communityListContainer.appendChild(buttonContainer);
-                }
-                // --- END: MODIFIED "View More" to "View All" Button ---
-
             } else {
+                 // Display message if no communities
                  const noCommunitiesMsg = document.createElement('p');
                  noCommunitiesMsg.className = 'no-communities-message';
                  noCommunitiesMsg.textContent = 'No communities listed yet.';
                  communityListContainer.appendChild(noCommunitiesMsg);
             }
+            // Add the list container to the section
             regionSection.appendChild(communityListContainer);
+
+            // --- START: ALWAYS Add Button Container if communities exist ---
+            // Condition changed: Show button if there is AT LEAST ONE community
+            if (communities.length > 0) {
+                // Create a container for centering the button (will be pushed down by flex)
+                const buttonContainer = document.createElement('div');
+                // Add class for easier CSS targeting and potential margin-top: auto
+                buttonContainer.className = 'view-all-button-container';
+                // buttonContainer.style.textAlign = 'center'; // Centering can be done in CSS now
+                // buttonContainer.style.marginTop = '15px'; // Use margin/padding in CSS
+
+                // Create the link, styled as a button
+                const viewAllLink = document.createElement("a");
+                viewAllLink.className = 'button-style view-all-button'; // Use existing & new class
+                viewAllLink.href = `province_page.html?province=${encodeURIComponent(regionName)}`; // Link to future page
+                viewAllLink.textContent = "View All"; // New button text
+                viewAllLink.title = `View all communities in ${regionName}`; // Add a helpful title
+
+                // Append the button-link to its container
+                buttonContainer.appendChild(viewAllLink);
+                // IMPORTANT: Append the button container to the SECTION (the flex column), not the list
+                regionSection.appendChild(buttonContainer);
+            }
+            // --- END: ALWAYS Add Button Container if communities exist ---
+
+
+            // Add the fully constructed section to the main container
             regionContainer.appendChild(regionSection);
         };
 
