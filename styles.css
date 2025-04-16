@@ -205,6 +205,53 @@ a:hover, a:focus { text-decoration: underline; }
 
 
 /* ====================================================================== */
+/* Styles for Province Page List (province_page.html) */ /* <<< NEW SECTION */
+/* ====================================================================== */
+
+/* Style for the overall list container on province page */
+.community-list-grouped {
+    padding-left: 0; /* Remove default list padding */
+    margin: 20px auto; /* Center list block */
+    max-width: 800px; /* Set a max width for the list */
+    list-style: none; /* Remove bullets */
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+/* Style for the letter headings (similar to category headings) */
+.letter-heading {
+    background-color: #f8f9fa; /* Slightly different background */
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #495057;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #dee2e6;
+    list-style: none;
+    border-radius: 4px;
+}
+.community-list-grouped li.letter-heading:first-child {
+    margin-top: 0px; /* No top margin for the very first heading */
+}
+
+/* Style for individual community list items on province page */
+.community-list-item {
+    padding: 8px 12px; /* Add some padding */
+    border-bottom: 1px solid #f1f1f1; /* Lighter separator */
+}
+.community-list-item:last-child {
+    border-bottom: none;
+}
+.community-list-item a {
+    text-decoration: none;
+    color: #1a0dab;
+}
+.community-list-item a:hover {
+    text-decoration: underline;
+}
+
+/* ====================================================================== */
 /* Print Specific Styles */
 /* ====================================================================== */
 @media print {
@@ -230,6 +277,13 @@ a:hover, a:focus { text-decoration: underline; }
     .notes, .address { font-size: 9pt; margin-top: 2px;}
     /* --- Print style addition for phone popup --- */
     .revealPhoneBtn, #phonePopup, .phone-container { display: none !important; } /* Hide button & popup in print */
+    /* --- Print style for Province Page --- */
+    #province-name-heading { font-size: 14pt !important; text-align: left !important; }
+    .community-list-grouped { margin: 0 !important; max-width: none !important; border: none !important; padding: 0 !important; }
+    .letter-heading { background-color: transparent !important; border-bottom: 1px solid #000 !important; font-size: 12pt !important; padding: 5px 0 !important; margin: 10px 0 !important; }
+    .community-list-item { padding: 2px 0 !important; border: none !important; }
+    .community-list-item a { color: #000 !important; text-decoration: none !important; }
+
 }
 
 /* ====================================================================== */
@@ -241,6 +295,8 @@ a:hover, a:focus { text-decoration: underline; }
 @media (max-width: 768px) { /* Smaller Tablets */
     .region-column { flex-basis: calc(50% - 10px); }
     .region-column h2 { font-size: 1.2em; }
+    /* Adjust province page list width */
+    .community-list-grouped { max-width: 95%; }
 }
 
 /* Combined Mobile Breakpoint */
@@ -275,4 +331,10 @@ a:hover, a:focus { text-decoration: underline; }
     /* Mobile Form Styles */
      #suggestion-form { padding: 20px 15px; }
      #suggestion-form button[type="submit"] { width: 100%; }
+
+    /* --- Mobile Styles for Province Page --- */
+    .community-list-grouped { max-width: 100%; margin: 15px 0; }
+    .letter-heading { font-size: 1.2em; padding: 6px 10px; }
+    .community-list-item { padding: 6px 10px; }
+
 }

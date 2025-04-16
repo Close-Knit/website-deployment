@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Province Communities</title> <!-- Dynamic Title -->
+
+    <!-- Link CSS -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- AdSense Script (Consistency) -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174"
+         crossorigin="anonymous"></script>
+
+</head>
+<body>
+    <!-- Site Logo Link -->
+    <a href="index.html" id="site-logo-link" title="Go to Home Page">
+       <img src="images/Bizly_Logo_150px.webp" alt="Bizly Logo - Go to Home" id="site-logo">
+    </a>
+
+    <h1 id="province-name-heading">Loading Province...</h1>
+
+    <!-- Container for the list of communities -->
+    <ul id="community-list-province" class="community-list-grouped">
+        <!-- Communities will be loaded here by JS -->
+        <li>Loading communities...</li>
+    </ul>
+
+    <!-- Back Link -->
+    <p class="form-back-link"><a href="index.html">Back to Province Selection</a></p>
+
+    <!-- Load Supabase library FIRST -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Load the specific JS for this page -->
+    <script src="province_page.js" defer></script>
+
+</body>
+</html>
