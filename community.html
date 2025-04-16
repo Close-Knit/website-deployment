@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Community Directory</title> <!-- Title gets updated by JS -->
 
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-QV1M0QM38B"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-QV1M0QM38B');
+  </script>
+  <!-- End Google tag -->
+
   <!-- Link CSS and Font Awesome -->
   <link
     rel="stylesheet"
@@ -68,7 +79,7 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="directory.js" defer></script>
-    <script src="common.js" defer></script> <!-- <<< ADDED COMMON SCRIPT -->
+    <script src="common.js" defer></script>
 
     <!-- Start: Phone Reveal Popup -->
     <div id="phonePopup" class="popup hidden">

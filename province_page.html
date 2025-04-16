@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Province Communities</title> <!-- Dynamic Title -->
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QV1M0QM38B"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-QV1M0QM38B');
+    </script>
+    <!-- End Google tag -->
+
     <!-- Link CSS and Font Awesome -->
     <link
       rel="stylesheet"
@@ -12,7 +23,7 @@
       integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
-    /> <!-- Added Font Awesome for icon -->
+    />
     <link rel="stylesheet" href="styles.css">
 
     <!-- AdSense Script (Consistency) -->
@@ -40,14 +51,13 @@
     </ul>
 
     <!-- Back Link - REMOVED -->
-    <!-- <p class="form-back-link"><a href="index.html">Back to Province Selection</a></p> -->
 
     <!-- Load Supabase library FIRST -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Load the specific JS for this page -->
     <script src="province_page.js" defer></script>
-    <script src="common.js" defer></script> <!-- Common script for BackToTop -->
+    <script src="common.js" defer></script>
 
     <!-- Back to Top Button -->
     <button id="backToTopBtn" title="Go to top">

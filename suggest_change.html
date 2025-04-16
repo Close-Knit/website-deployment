@@ -4,9 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Suggest Directory Change</title>
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-QV1M0QM38B"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-QV1M0QM38B');
+  </script>
+  <!-- End Google tag -->
+
   <!-- Link CSS and Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="styles.css">
+
+   <!-- AdSense Script (Consistency) -->
+   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174"
+        crossorigin="anonymous"></script>
+
 </head>
 <body>
     <!-- Site Logo Link -->
@@ -15,8 +32,8 @@
     </a>
 
     <h1>Suggest a Directory Change</h1>
-    <h2 id="form-context">For: Loading...</h2> 
-    
+    <h2 id="form-context">For: Loading...</h2>
+
     <form id="suggestion-form">
         <!-- Change Type Selection -->
         <div class="form-group">
@@ -26,19 +43,16 @@
             <div> <input type="radio" id="delete" name="change_type" value="DELETE" required> <label for="delete">Remove Listing</label> </div>
         </div>
 
-        <!-- *** START: Modified Target Listing Field *** -->
+        <!-- Target Listing Field -->
         <div class="form-group" id="target-listing-group" style="display: none;">
-            <!-- Changed label 'for' and text slightly -->
-            <label for="target_listing_select">Listing to Change/Remove:</label> 
-            <!-- Replaced text input with select dropdown -->
+            <label for="target_listing_select">Listing to Change/Remove:</label>
             <select id="target_listing_select" name="target_listing_select">
-                 <option value="">-- Select Listing --</option> 
+                 <option value="">-- Select Listing --</option>
                  <!-- Options will be populated by JS -->
             </select>
         </div>
-        <!-- *** END: Modified Target Listing Field *** -->
 
-        <hr> 
+        <hr>
 
         <!-- Listing Details Fields -->
         <p><strong>Listing Details (Fill in for Add/Change):</strong></p>
@@ -50,7 +64,7 @@
         <div class="form-group" id="other-category-group" style="display: none;"> <label for="suggested_category_other">Specify Other Category:</label> <input type="text" id="suggested_category_other" name="suggested_category_other"> </div>
         <div class="form-group"> <label for="suggested_notes">Notes (Optional):</label> <textarea id="suggested_notes" name="suggested_notes" rows="3"></textarea> </div>
 
-        <hr> 
+        <hr>
 
         <!-- Submitter Comment Field -->
         <div class="form-group"> <label for="submitter_comment">Your Comments (Optional):</label> <textarea id="submitter_comment" name="submitter_comment" rows="3" placeholder="Reason for change, contact info (optional), etc."></textarea> </div>
@@ -61,17 +75,19 @@
          <input type="hidden" id="community_name" name="community_name">
 
         <!-- Message Area -->
-        <div id="form-message" class="form-message"></div> 
+        <div id="form-message" class="form-message"></div>
 
         <!-- Submit Button -->
         <button type="submit" id="submit-button">Submit Suggestion</button>
     </form>
-    
+
     <!-- Back Link -->
-    <p class="form-back-link"><a href="javascript:history.back()">Go Back to Directory</a></p> 
+    <p class="form-back-link"><a href="javascript:history.back()">Go Back to Directory</a></p>
 
     <!-- JavaScript Libraries and Custom Script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="suggest_change.js" defer></script>
+    <!-- common.js might not be strictly needed here unless you add BackToTop -->
+
 </body>
 </html>
