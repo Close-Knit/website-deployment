@@ -2,7 +2,7 @@
 /* Global / Shared Styles */
 /* ====================================================================== */
 html { scroll-behavior: smooth; /* Enable smooth scrolling for back-to-top */ }
-body { font-family: sans-serif; padding: 20px; color: #333; }
+body { font-family: sans-serif; padding: 20px; color: #333; } /* Default padding */
 h1 { margin-top: 0; text-align: center; margin-bottom: 25px; }
 a, a:visited { color: #1a0dab; text-decoration: none; }
 a:hover, a:focus { text-decoration: underline; }
@@ -221,18 +221,13 @@ a:hover, a:focus { text-decoration: underline; }
 
 /* --- MODIFIED: Style for the letter headings to match category headings --- */
 .letter-heading {
-    /* background-color: #f8f9fa;  Replaced with brown */
     background-color: #f5f1e6; /* Match category heading */
-    /* font-size: 1.3em; */
     font-size: 1.4em; /* Match category heading */
     font-weight: bold;
     color: #495057;
-    /* margin-top: 20px; */
     margin-top: 25px; /* Match category heading */
     margin-bottom: 10px;
-    /* padding: 8px 12px; */
     padding: 10px 15px; /* Match category heading */
-    /* border-bottom: 1px solid #dee2e6; */
     border-bottom: 2px solid #dee2e6; /* Match category heading */
     list-style: none;
     border-radius: 4px;
@@ -390,6 +385,15 @@ a:hover, a:focus { text-decoration: underline; }
 
 /* Combined Mobile Breakpoint */
 @media (max-width: 600px) {
+    /* --- START: Add Padding Top to Body on Mobile --- */
+    body {
+        padding-top: 65px; /* Push content down to clear logo */
+        padding-left: 15px; /* Slightly reduce side padding */
+        padding-right: 15px;
+        padding-bottom: 15px; /* Match side padding */
+    }
+    /* --- END: Add Padding Top --- */
+
     /* --- Mobile Styles for Home Page (index.html) --- */
     .region-container { gap: 15px; }
     .region-column { flex-basis: 100%; padding: 10px; padding-bottom: 15px; /* Adjust mobile padding */ min-height: unset; /* Remove min height on mobile */ }
@@ -408,6 +412,7 @@ a:hover, a:focus { text-decoration: underline; }
         /* padding-top: 0; Removed padding override */
         text-align: center;
         margin-bottom: 20px;
+        padding-top: 0; /* KEEP header padding 0 here as it's inside body padding */
     }
     #logo { max-width: 100px; margin-bottom: 8px; }
     #community-name { font-size: 1.5em; }
@@ -424,6 +429,9 @@ a:hover, a:focus { text-decoration: underline; }
      #suggestion-form button[type="submit"] { width: 100%; }
 
     /* --- Mobile Styles for Province Page --- */
+    #province-name-heading {
+        margin-bottom: 15px; /* Add space below heading before breadcrumbs */
+    }
     .community-list-grouped { max-width: 100%; margin: 15px 0; }
     .letter-heading { font-size: 1.2em; padding: 6px 10px; } /* Adjust mobile font/padding */
     .community-list-item { padding: 6px 10px; }
