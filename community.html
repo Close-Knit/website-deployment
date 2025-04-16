@@ -50,10 +50,12 @@
 
     <!-- Action Buttons Container -->
     <div class="action-buttons">
-        <button id="printButton" title="Print or Save Directory as PDF">
-            <i class="fa-solid fa-print print-icon"></i>
-            <span class="print-text">Print Directory</span>
+        <!-- === MODIFIED: Print button changed to Share button === -->
+        <button id="shareButton" class="button-style" title="Share this directory page">
+            <i class="fa-solid fa-share-nodes"></i> <!-- Changed Icon -->
+            <span class="share-text">Share Page</span> <!-- Changed Text -->
         </button>
+        <!-- === END MODIFICATION === -->
         <a href="#" id="suggestChangeLink" class="button-style" title="Suggest an addition or change">
              <i class="fa-solid fa-plus-circle"></i>
              <span>Suggest Change</span>
@@ -87,6 +89,11 @@
         <span id="closePopup" class="close-button" title="Close">×</span>
         <h4>Phone Number:</h4>
         <p id="phoneNumber" class="popup-phone-number">...</p>
+        <!-- === ADDED: Copy Phone Button === -->
+        <button id="copyPhoneBtn" class="copy-button" title="Copy phone number">
+            <i class="fa-regular fa-copy"></i> <span class="copy-text">Copy</span>
+        </button>
+        <!-- === END ADDITION === -->
         <p class="popup-notice">This pop-up is an Anti-Spam feature. Tell your friends you saw this listing on Bizly.ca!</p>
         <!-- Ad Container -->
         <div id="adContainer" class="popup-ad-container">

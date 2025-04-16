@@ -1,4 +1,4 @@
-// --- START OF UPDATED directory.js (With 2-line Heading) ---
+// --- START OF UPDATED directory.js (With Copy Phone Button Logic, Print Removed) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -18,7 +18,6 @@ function displayError(message) {
     }
     const communityNameElement = document.getElementById('community-name');
      if (communityNameElement) {
-          // Keep H1 structure simple on error
           communityNameElement.innerHTML = "Error Loading Directory";
      }
      const logoElement = document.getElementById('logo');
@@ -31,6 +30,7 @@ function displayError(message) {
 // Fetch and Display Listings for a Specific Community
 // ======================================================================
 async function fetchAndDisplayListings() {
+    // ... (Code for initializing, getting params, setting titles - unchanged) ...
     if (!supabaseClient) {
         displayError("Supabase client not initialized. Cannot fetch data.");
         return;
@@ -42,10 +42,9 @@ async function fetchAndDisplayListings() {
     const logoElement = document.getElementById('logo');
     const breadcrumbContainer = document.getElementById('breadcrumb-container');
 
-    // Clear previous results/breadcrumbs/heading
     if (resultsList) resultsList.innerHTML = '<li>Loading...</li>';
     if (breadcrumbContainer) breadcrumbContainer.innerHTML = '';
-    if (communityNameElement) communityNameElement.innerHTML = 'Loading...'; // Clear H1
+    if (communityNameElement) communityNameElement.innerHTML = 'Loading...';
 
     if (!resultsList) {
         console.error("Fatal Error: Results list element (#results) not found.");
@@ -64,12 +63,10 @@ async function fetchAndDisplayListings() {
     const decodedProvinceName = decodeURIComponent(provinceName);
     const decodedCommunityName = decodeURIComponent(communityName);
 
-    // Set page title early
     const baseTitle = `${decodedCommunityName}, ${decodedProvinceName}`;
     if (pageTitle) pageTitle.textContent = `${baseTitle} Directory`;
     if (logoElement) logoElement.style.display = 'none';
 
-    // Generate Breadcrumbs
     if (breadcrumbContainer) {
         breadcrumbContainer.innerHTML = `
             <ol class="breadcrumb">
@@ -82,7 +79,6 @@ async function fetchAndDisplayListings() {
         console.warn("Breadcrumb container not found.");
     }
 
-    // Set initial H1 state (without count yet)
     if (communityNameElement) {
         communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">Loading Telephone Directory...</span>`;
     }
@@ -90,7 +86,7 @@ async function fetchAndDisplayListings() {
     const tableName = decodedProvinceName.replace(/ /g, '_');
 
     try {
-        // Fetch Community ID and Logo
+        // ... (Fetch Community ID and Logo - unchanged) ...
         const { data: communityData, error: communityError } = await supabaseClient
             .from('communities')
             .select('id, logo_filename')
@@ -112,7 +108,6 @@ async function fetchAndDisplayListings() {
              logoElement.style.display = 'none';
         }
 
-        // Set Suggest Change Link
         const suggestChangeLink = document.getElementById('suggestChangeLink');
         if (suggestChangeLink) {
             suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`;
@@ -120,7 +115,7 @@ async function fetchAndDisplayListings() {
             console.warn("Suggest change link element not found.")
         }
 
-        // Fetch Listings
+        // ... (Fetch Listings - unchanged select, order) ...
          const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
             .select('*')
@@ -135,24 +130,21 @@ async function fetchAndDisplayListings() {
             throw new Error(`Failed to fetch listings: ${listingsError.message}`);
         }
 
-        resultsList.innerHTML = ''; // Clear loading message
+        resultsList.innerHTML = '';
 
-        // --- START: Update H1 with final count ---
         const listingCount = listings?.length || 0;
         const subTitleText = `Telephone Directory (${listingCount} listings)`;
         if (communityNameElement) {
             communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">${subTitleText}</span>`;
         }
-        // --- END: Update H1 with final count ---
 
 
         if (listingCount === 0) {
             resultsList.innerHTML = `<li>No listings found for ${decodedCommunityName}.</li>`;
-            // H1 already updated above
             return;
         }
 
-        // Group listings by category
+        // ... (Group and Render Listings - unchanged structure) ...
         const groupedListings = listings.reduce((acc, listing) => {
             const category = listing.category || 'Uncategorized';
             if (!acc[category]) { acc[category] = []; }
@@ -166,7 +158,6 @@ async function fetchAndDisplayListings() {
              return a.localeCompare(b);
          });
 
-        // Render listings grouped by category
         sortedCategories.forEach(category => {
              const categoryHeadingItem = document.createElement('li');
              categoryHeadingItem.className = 'category-heading';
@@ -207,6 +198,7 @@ async function fetchAndDisplayListings() {
 // Initialize Search Functionality (Unchanged)
 // ======================================================================
 function initializeSearch() {
+    // ... (unchanged) ...
     const searchBox = document.getElementById('searchBox');
     const resultsList = document.getElementById('results');
 
@@ -256,35 +248,88 @@ function initializeSearch() {
     });
 }
 
+// ======================================================================
+// Initialize Print Functionality (REMOVED)
+// ======================================================================
+// Function was here, now deleted.
 
 // ======================================================================
-// Initialize Print Functionality (Unchanged)
-// ======================================================================
-function initializePrint() {
-    const printButton = document.getElementById('printButton');
-    if (printButton) {
-        printButton.addEventListener('click', () => {
-            window.print();
-        });
-    } else {
-        console.warn("Print button not found, print functionality disabled.");
-    }
-}
-
-// ======================================================================
-// Initialize Popup Interactivity (Unchanged logic)
+// Initialize Popup Interactivity (MODIFIED for Copy Button)
 // ======================================================================
 function initializePopupInteraction() {
     const resultsList = document.getElementById('results');
     const phonePopup = document.getElementById('phonePopup');
     const closePopupButton = document.getElementById('closePopup');
     const phoneNumberDisplay = document.getElementById('phoneNumber');
+    const copyPhoneButton = document.getElementById('copyPhoneBtn'); // Get copy button
+    const copyTextElement = copyPhoneButton?.querySelector('.copy-text'); // Get span inside copy button
+    const copyIconElement = copyPhoneButton?.querySelector('i'); // Get icon inside copy button
 
+    // Store original copy button state (ensure elements exist first)
+    const originalCopyText = copyTextElement ? copyTextElement.textContent : 'Copy';
+    const originalCopyIconClass = copyIconElement ? copyIconElement.className : 'fa-regular fa-copy';
+    let copyTimeout = null; // To manage the reset timer
+
+    // Function to reset copy button state
+    const resetCopyButton = () => {
+         if (copyTextElement) copyTextElement.textContent = originalCopyText;
+         if (copyIconElement) copyIconElement.className = originalCopyIconClass;
+         if (copyPhoneButton) copyPhoneButton.disabled = false; // Re-enable button
+         if (copyTimeout) {
+             clearTimeout(copyTimeout);
+             copyTimeout = null; // Clear the timer ID
+         }
+    };
+
+    // Check for essential popup elements first
     if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay) {
-        console.error("Popup elements missing. Cannot initialize popup interaction.");
+        console.error("Core popup elements missing. Cannot initialize popup interaction.");
         return;
     }
+    // Check specifically for copy button elements, but don't stop initialization if missing
+    if (!copyPhoneButton || !copyTextElement || !copyIconElement) {
+         console.warn("Copy button or its inner elements missing.");
+    }
 
+
+    // --- Copy Button Logic ---
+    if (copyPhoneButton) { // Only add listener if button exists
+        const handleCopyClick = async () => {
+            const linkElement = phoneNumberDisplay.querySelector('a');
+            const numberToCopy = linkElement ? linkElement.textContent : null;
+
+            if (numberToCopy && navigator.clipboard) {
+                try {
+                    await navigator.clipboard.writeText(numberToCopy);
+                    console.log(`Phone number copied: ${numberToCopy}`);
+                    // Visual Feedback only if elements exist
+                    if (copyTextElement) copyTextElement.textContent = 'Copied!';
+                    if (copyIconElement) copyIconElement.className = 'fa-solid fa-check';
+                    copyPhoneButton.disabled = true;
+
+                    if (copyTimeout) clearTimeout(copyTimeout);
+                    copyTimeout = setTimeout(resetCopyButton, 2000);
+
+                } catch (err) {
+                    console.error('Failed to copy phone number:', err);
+                    alert("Could not copy number. Please copy it manually.");
+                    resetCopyButton();
+                }
+            } else if (!navigator.clipboard) {
+                 console.warn("Clipboard API not supported.");
+                 alert("Copying to clipboard is not supported by your browser.");
+                 resetCopyButton(); // Reset state even if unsupported
+            } else {
+                console.warn("Could not find number text to copy.");
+                resetCopyButton(); // Reset state if number somehow missing
+            }
+        };
+        copyPhoneButton.addEventListener('click', handleCopyClick);
+    }
+    // --- End Copy Button Logic ---
+
+
+    // --- Reveal Button Logic (Event Delegation) ---
     resultsList.addEventListener('click', function(event) {
         const revealButton = event.target.closest('.revealPhoneBtn');
 
@@ -294,23 +339,33 @@ function initializePopupInteraction() {
 
             if (numberToDisplay) {
                 phoneNumberDisplay.innerHTML = `<a href="tel:${numberToDisplay}">${numberToDisplay}</a>`;
+
+                // Reset copy button to its default state *before* showing popup
+                resetCopyButton();
+
                 phonePopup.classList.remove('hidden');
                 console.log(`Showing popup for number: ${numberToDisplay}`);
+
             } else {
                 console.warn("Clicked reveal button is missing phone data (data-phone attribute).");
             }
         }
     });
+    // --- End Reveal Button Logic ---
 
+    // Close button listener
     closePopupButton.addEventListener('click', function() {
         phonePopup.classList.add('hidden');
         console.log("Popup closed via X button.");
+        resetCopyButton(); // Reset on close
     });
 
+    // Close popup if clicking outside the content area
      phonePopup.addEventListener('click', function(event) {
          if (event.target === phonePopup) {
               phonePopup.classList.add('hidden');
               console.log("Popup closed by clicking outside.");
+              resetCopyButton(); // Reset on close
          }
      });
 }
@@ -320,7 +375,7 @@ function initializePopupInteraction() {
 
 
 // ======================================================================
-// Main Execution (Unchanged)
+// Main Execution
 // ======================================================================
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired for directory page.");
@@ -344,10 +399,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("[DEBUG] Supabase client initialized.");
 
-    // Initialize all functionalities
-    fetchAndDisplayListings(); // Fetches data and populates heading & breadcrumbs
+    // Initialize functionalities
+    fetchAndDisplayListings();
     initializeSearch();
-    initializePrint();
+    // initializePrint(); // Call REMOVED
     initializePopupInteraction();
 
 });

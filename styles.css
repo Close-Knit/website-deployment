@@ -97,10 +97,8 @@ a.button-style:visited {
 }
 /* --- END ADDITION --- */
 
-#printButton { padding: 8px 15px; font-size: 1em; cursor: pointer; background-color: #ffffff; color: #333; border: 1px solid #adb5bd; border-radius: 5px; transition: background-color 0.2s ease, border-color 0.2s ease; }
-#printButton:hover { background-color: #f8f9fa; border-color: #adb5bd; }
-.print-icon { margin-right: 8px; vertical-align: middle; }
-.print-text { vertical-align: middle; }
+/* --- REMOVED styles specific to #printButton if any existed --- */
+/* Usually covered by hiding .action-buttons in print */
 
 /* --- ADDED: Style for H1 subtitle --- */
 .directory-subtitle {
@@ -202,22 +200,48 @@ a.button-style:visited {
     line-height: 0.8;
     cursor: pointer;
     transition: color 0.2s ease;
-    border: none; /* Ensure no default button border */
+    border: none;
 }
 .close-button:hover { color: #a71d2a; }
 
 /* Styles for the revealed phone number paragraph */
-.popup-phone-number { font-size: 1.4em; font-weight: bold; color: #007bff; margin-top: 5px; margin-bottom: 15px; }
+.popup-phone-number { font-size: 1.4em; font-weight: bold; color: #007bff; margin-top: 5px; margin-bottom: 5px; /* Reduced bottom margin */ }
 
 /* Style the phone number link within the popup */
 .popup-phone-number a,
 .popup-phone-number a:visited { color: inherit; text-decoration: none; font-weight: inherit; }
 .popup-phone-number a:hover { text-decoration: underline; }
 
+/* --- ADDED: Styles for Copy Button in Popup --- */
+.copy-button {
+    background: none;
+    border: none;
+    color: #6c757d; /* Grey color like separator */
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-bottom: 10px; /* Space below copy button */
+    font-size: 0.9em;
+    border-radius: 4px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    vertical-align: middle; /* Align with adjacent text if needed */
+}
+.copy-button i {
+    margin-right: 4px;
+}
+.copy-button:hover {
+    color: #333;
+    background-color: #e9ecef;
+}
+.copy-button:disabled {
+    cursor: default;
+    opacity: 0.7;
+}
+/* --- END ADDITION --- */
+
+
 /* --- MODIFIED: Notice text inside popup --- */
 .popup-notice {
     font-size: 0.85em;
-    /* color: #28a745; Replaced green */
     color: #1E3D3A; /* Forest Teal */
     margin-bottom: 20px;
     margin-top: 0;
@@ -226,9 +250,8 @@ a.button-style:visited {
 
 
 /* Placeholder ad container */
-.popup-ad-container { margin-top: 15px; padding: 10px; border: 1px dashed #ced4da; background-color: #f8f9fa; font-size: 0.8em; color: #6c757d; min-height: 50px; /* Give it some min height */ display: flex; justify-content: center; align-items: center; }
+.popup-ad-container { margin-top: 15px; padding: 10px; border: 1px dashed #ced4da; background-color: #f8f9fa; font-size: 0.8em; color: #6c757d; min-height: 50px; display: flex; justify-content: center; align-items: center; }
 .popup-ad-container small { display: block; margin-bottom: 5px; }
-/* Ensure AdSense elements display correctly */
 .popup-ad-container .adsbygoogle { display: block; }
 
 
@@ -238,147 +261,40 @@ a.button-style:visited {
 
 /* Style for the overall list container on province page */
 .community-list-grouped {
-    padding-left: 0; /* Remove default list padding */
-    margin: 20px auto; /* Center list block */
-    max-width: 800px; /* Set a max width for the list */
-    list-style: none; /* Remove bullets */
-    border-top: 1px solid #eee;
-    padding-top: 15px;
-}
+    padding-left: 0; margin: 20px auto; max-width: 800px; list-style: none; border-top: 1px solid #eee; padding-top: 15px; }
 
-/* --- MODIFIED: Style for the letter headings to match category headings --- */
-.letter-heading {
-    background-color: #f5f1e6; /* Match category heading */
-    font-size: 1.4em; /* Match category heading */
-    font-weight: bold;
-    color: #495057;
-    margin-top: 25px; /* Match category heading */
-    margin-bottom: 10px;
-    padding: 10px 15px; /* Match category heading */
-    border-bottom: 2px solid #dee2e6; /* Match category heading */
-    list-style: none;
-    border-radius: 4px;
-}
-/* --- END MODIFICATION --- */
-
-.community-list-grouped li.letter-heading:first-child {
-    margin-top: 0px; /* No top margin for the very first heading */
-}
+/* Style for the letter headings */
+.letter-heading { background-color: #f5f1e6; font-size: 1.4em; font-weight: bold; color: #495057; margin-top: 25px; margin-bottom: 10px; padding: 10px 15px; border-bottom: 2px solid #dee2e6; list-style: none; border-radius: 4px; }
+.community-list-grouped li.letter-heading:first-child { margin-top: 0px; }
 
 /* Style for individual community list items on province page */
-.community-list-item {
-    padding: 8px 12px; /* Add some padding */
-    border-bottom: 1px solid #f1f1f1; /* Lighter separator */
-}
-.community-list-item:last-child {
-    border-bottom: none;
-}
-.community-list-item a { /* Style link directly if no container needed */
-    text-decoration: none;
-    color: #1a0dab;
-    /* display: block; */ /* Make link take full width if needed */
-}
-.community-list-item a:hover {
-    text-decoration: underline;
-}
+.community-list-item { padding: 8px 12px; border-bottom: 1px solid #f1f1f1; }
+.community-list-item:last-child { border-bottom: none; }
+.community-list-item a { text-decoration: none; color: #1a0dab; }
+.community-list-item a:hover { text-decoration: underline; }
 
-/* --- ADDED: Style for container within province page list item --- */
-/* Mimics .community-item-container from homepage for consistency */
-.province-community-item-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    line-height: 1.4; /* Match homepage line height */
-}
-/* Ensure link within this container doesn't take full width unless needed */
-.province-community-item-container .community-link {
-    flex-grow: 1;
-    margin-right: 5px;
-    text-align: left;
-    /* display: block; Remove this if default inline-block is okay */
-}
-/* Status label alignment is handled by flexbox and existing .status-label rules */
-/* --- END ADDITION --- */
+/* Container within province page list item */
+.province-community-item-container { display: flex; justify-content: space-between; align-items: baseline; line-height: 1.4; }
+.province-community-item-container .community-link { flex-grow: 1; margin-right: 5px; text-align: left; }
 
 
 /* ====================================================================== */
 /* Breadcrumb Styles */
 /* ====================================================================== */
-.breadcrumb-nav {
-    padding: 10px 0; /* Add some vertical space */
-    margin-bottom: 20px; /* Space below breadcrumbs */
-    text-align: center; /* Center the breadcrumb block */
-}
-
-.breadcrumb {
-    display: inline-flex; /* Use inline-flex to keep it centered */
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-    padding: 0; /* Reset padding */
-    margin: 0; /* Reset margin */
-    list-style: none; /* Remove list bullets */
-    background-color: #e9ecef; /* Light background */
-    border-radius: 0.25rem; /* Slight rounding */
-    padding: 0.5rem 1rem; /* Padding inside the container */
-}
-
-.breadcrumb-item {
-    display: flex; /* Align items with separator */
-    align-items: center;
-}
-
-/* Separator using ::before pseudo-element */
-.breadcrumb-item + .breadcrumb-item::before {
-    content: ">"; /* Use '>' as separator */
-    display: inline-block;
-    padding: 0 0.6rem; /* Space around separator */
-    color: #6c757d; /* Separator color */
-    pointer-events: none; /* Prevent separator from being clickable */
-}
-
-.breadcrumb-item a {
-    color: #007bff; /* Link color */
-    text-decoration: none;
-}
-.breadcrumb-item a:hover {
-    text-decoration: underline;
-}
-
-/* Style for the active/current page item */
-.breadcrumb-item.active {
-    color: #495057; /* Darker text for current page */
-    font-weight: bold; /* Make current page bold */
-    pointer-events: none; /* Not clickable */
-}
+.breadcrumb-nav { padding: 10px 0; margin-bottom: 20px; text-align: center; }
+.breadcrumb { display: inline-flex; flex-wrap: wrap; padding: 0.5rem 1rem; margin: 0; list-style: none; background-color: #e9ecef; border-radius: 0.25rem; }
+.breadcrumb-item { display: flex; align-items: center; }
+.breadcrumb-item + .breadcrumb-item::before { content: ">"; display: inline-block; padding: 0 0.6rem; color: #6c757d; pointer-events: none; }
+.breadcrumb-item a { color: #007bff; text-decoration: none; }
+.breadcrumb-item a:hover { text-decoration: underline; }
+.breadcrumb-item.active { color: #495057; font-weight: bold; pointer-events: none; }
 
 /* ====================================================================== */
 /* Back to Top Button Styles */
 /* ====================================================================== */
-#backToTopBtn {
-    display: none; /* Hidden by default */
-    position: fixed; /* Keep it in view */
-    bottom: 20px; /* Distance from bottom */
-    right: 25px; /* Distance from right */
-    z-index: 999; /* Ensure it's above most other content */
-    border: none; /* Remove default border */
-    outline: none; /* Remove outline */
-    background-color: rgba(108, 117, 125, 0.7); /* Semi-transparent grey */
-    color: white; /* White icon */
-    cursor: pointer; /* Pointer cursor on hover */
-    padding: 10px 12px; /* Padding */
-    border-radius: 5px; /* Rounded corners */
-    font-size: 1.1em; /* Icon size */
-    opacity: 0; /* Start fully transparent */
-    transition: opacity 0.3s ease-in-out, background-color 0.2s ease; /* Smooth fade */
-}
-
-#backToTopBtn.show {
-    display: block; /* Make it visible */
-    opacity: 1; /* Make it fully opaque */
-}
-
-#backToTopBtn:hover {
-    background-color: rgba(80, 85, 90, 0.9); /* Darken on hover */
-}
+#backToTopBtn { display: none; position: fixed; bottom: 20px; right: 25px; z-index: 999; border: none; outline: none; background-color: rgba(108, 117, 125, 0.7); color: white; cursor: pointer; padding: 10px 12px; border-radius: 5px; font-size: 1.1em; opacity: 0; transition: opacity 0.3s ease-in-out, background-color 0.2s ease; }
+#backToTopBtn.show { display: block; opacity: 1; }
+#backToTopBtn:hover { background-color: rgba(80, 85, 90, 0.9); }
 
 
 /* ====================================================================== */
@@ -387,16 +303,16 @@ a.button-style:visited {
 @media print {
     html { scroll-behavior: auto; /* Disable smooth scroll for print */ }
     body { padding: 10px; font-size: 10pt; color: #000; }
-    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn /* Hide back-to-top */ { display: none !important; }
+    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton /* Hide share button */ { display: none !important; }
     /* Home page print */
     .region-container { display: block !important; }
-    .region-column { display: block !important; border: none !important; padding: 0 !important; margin-bottom: 20px; text-align: left !important; min-height: unset !important; /* Remove min height for print */ }
+    .region-column { display: block !important; border: none !important; padding: 0 !important; margin-bottom: 20px; text-align: left !important; min-height: unset !important; }
     .region-column h2 { text-align: left !important; background-color: transparent !important; border-bottom: 1px solid #000 !important; padding: 0 0 2px 0 !important; margin: 0 0 5px 0 !important; font-size: 12pt;}
-    .community-list { text-align: left !important; flex-grow: unset !important; /* Remove flex grow for print */ }
+    .community-list { text-align: left !important; flex-grow: unset !important; }
     .community-item-container { display: block !important; }
     .community-link { text-align: left !important; margin-bottom: 3px; }
-    .status-label { display: none !important; } /* Hide status labels in print */
-    #province-list { display: block; } /* Ensure the container itself shows */
+    .status-label { display: none !important; }
+    #province-list { display: block; }
     /* Community page print */
     #results { border-top: none; margin-top: 0; padding-top: 0; }
     #results .category-heading { background-color: #eee !important; color: #000 !important; border-bottom: 1px solid #ccc !important; padding: 5px; margin-top: 15px; font-size: 12pt; border-radius: 0; }
@@ -406,17 +322,15 @@ a.button-style:visited {
     .name, .phone, .category, .notes, .address, .entry-details { color: #000 !important; font-size: 10pt; }
     .name { font-weight: bold;}
     .notes, .address { font-size: 9pt; margin-top: 2px;}
-    /* --- Print style addition for phone popup --- */
-    .revealPhoneBtn, #phonePopup, .phone-container { display: none !important; } /* Hide button & popup in print */
-    /* --- Print style for Province Page --- */
+    /* Phone reveal/popup print styles */
+    .revealPhoneBtn, #phonePopup, .phone-container, .copy-button /* Hide copy button */ { display: none !important; }
+    /* Province Page print styles */
     #province-name-heading { font-size: 14pt !important; text-align: left !important; }
     .community-list-grouped { margin: 0 !important; max-width: none !important; border: none !important; padding: 0 !important; }
     .letter-heading { background-color: transparent !important; border-bottom: 1px solid #000 !important; font-size: 12pt !important; padding: 5px 0 !important; margin: 10px 0 !important; }
     .community-list-item { padding: 2px 0 !important; border: none !important; }
-    .province-community-item-container { display: block !important; } /* Stack link and tag in print */
+    .province-community-item-container { display: block !important; }
     .community-list-item a { color: #000 !important; text-decoration: none !important; }
-    /* .status-label already hidden globally in print */
-
 }
 
 /* ====================================================================== */
@@ -428,88 +342,47 @@ a.button-style:visited {
 @media (max-width: 768px) { /* Smaller Tablets */
     .region-column { flex-basis: calc(50% - 10px); }
     .region-column h2 { font-size: 1.2em; }
-    /* Adjust province page list width */
     .community-list-grouped { max-width: 95%; }
 }
 
 /* Combined Mobile Breakpoint */
 @media (max-width: 600px) {
-    /* --- START: Add Padding Top to Body on Mobile --- */
-    body {
-        padding-top: 65px; /* Push content down to clear logo */
-        padding-left: 15px; /* Slightly reduce side padding */
-        padding-right: 15px;
-        padding-bottom: 15px; /* Match side padding */
-    }
-    /* --- END: Add Padding Top --- */
-
-    /* --- Mobile Styles for Home Page (index.html) --- */
+    /* Mobile Body Padding */
+    body { padding-top: 65px; padding-left: 15px; padding-right: 15px; padding-bottom: 15px; }
+    /* Mobile Home Page */
     .region-container { gap: 15px; }
-    .region-column { flex-basis: 100%; padding: 10px; padding-bottom: 15px; /* Adjust mobile padding */ min-height: unset; /* Remove min height on mobile */ }
+    .region-column { flex-basis: 100%; padding: 10px; padding-bottom: 15px; min-height: unset; }
     .region-column h2 { margin: -10px -10px 10px -10px; padding: 8px 10px; }
-    /* Inline alignment for community link & status on mobile */
-    .community-item-container { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; line-height: 1.3; }
-    .community-link { flex-grow: 1; margin-right: 5px; text-align: left; font-size: 0.95em; display: block;}
-    .status-label { flex-shrink: 0; text-align: right; font-size: 0.7em; padding: 1px 3px; }
-    .community-list { margin-bottom: 10px; /* Adjust spacing on mobile */ }
-    .view-all-button-container { padding-top: 5px; /* Adjust spacing on mobile */ }
-
-
-    /* --- Mobile Styles for Community Page (community.html) --- */
-    /* --- DELETED Mobile Logo Centering Styles --- */
-    .community-header {
-        /* padding-top: 0; Removed padding override */
-        text-align: center;
-        margin-bottom: 20px;
-        padding-top: 0; /* KEEP header padding 0 here as it's inside body padding */
-    }
+    .community-item-container { margin-bottom: 6px; line-height: 1.3; }
+    .community-link { font-size: 0.95em;}
+    .status-label { font-size: 0.7em; padding: 1px 3px; }
+    .community-list { margin-bottom: 10px; }
+    .view-all-button-container { padding-top: 5px; }
+    /* Mobile Community Page */
+    .community-header { margin-bottom: 20px; padding-top: 0; }
     #logo { max-width: 100px; margin-bottom: 8px; }
-    #community-name { font-size: 1.5em; line-height: 1.3; /* Adjust line height if needed */ }
-    /* Style for subtitle on mobile */
+    #community-name { font-size: 1.5em; line-height: 1.3; }
     .directory-subtitle { font-size: 0.8em; }
-
-    /* Mobile Directory List Stacking */
     #results li.directory-entry { flex-direction: column; align-items: stretch; gap: 3px 0; padding-top: 10px; padding-bottom: 10px; }
     .entry-details { margin-right: 0; margin-bottom: 4px; order: 1; text-align: left; }
     .address { font-size: 0.85em; }
-    /* Ensure phone-container also aligns right on mobile */
     .phone-container { text-align: right; width: 100%; margin-top: 4px; order: 2; white-space: normal; }
     .action-buttons { gap: 10px; }
-
-    /* Mobile Form Styles */
+    /* Mobile Form Page */
      #suggestion-form { padding: 20px 15px; }
      #suggestion-form button[type="submit"] { width: 100%; }
-
-    /* --- Mobile Styles for Province Page --- */
-    #province-name-heading {
-        margin-bottom: 15px; /* Add space below heading before breadcrumbs */
-    }
+    /* Mobile Province Page */
+    #province-name-heading { margin-bottom: 15px; }
     .community-list-grouped { max-width: 100%; margin: 15px 0; }
-    .letter-heading { font-size: 1.2em; padding: 6px 10px; } /* Adjust mobile font/padding */
+    .letter-heading { font-size: 1.2em; padding: 6px 10px; }
     .community-list-item { padding: 6px 10px; }
-     /* Ensure province page item container uses flex */
-     .province-community-item-container { display: flex; }
-
-    /* --- Mobile Styles for Breadcrumbs --- */
-    .breadcrumb-nav {
-        text-align: left; /* Align left on small screens */
-        margin-bottom: 15px; /* Adjust spacing */
-        padding: 5px 0;
-    }
-    .breadcrumb {
-         display: flex; /* Ensure flex behaviour on mobile */
-         padding: 0.4rem 0.8rem;
-    }
-    .breadcrumb-item + .breadcrumb-item::before {
-         padding: 0 0.4rem; /* Reduce separator padding */
-    }
-
-    /* --- Mobile Styles for Back to Top --- */
-    #backToTopBtn {
-        bottom: 15px; /* Slightly higher on mobile */
-        right: 15px;
-        padding: 8px 10px;
-        font-size: 1em;
-    }
-
+    .province-community-item-container { display: flex; }
+    /* Mobile Breadcrumbs */
+    .breadcrumb-nav { text-align: left; margin-bottom: 15px; padding: 5px 0; }
+    .breadcrumb { display: flex; padding: 0.4rem 0.8rem; }
+    .breadcrumb-item + .breadcrumb-item::before { padding: 0 0.4rem; }
+    /* Mobile Back to Top */
+    #backToTopBtn { bottom: 15px; right: 15px; padding: 8px 10px; font-size: 1em; }
+    /* Mobile Copy Button */
+    .copy-button { padding: 2px 6px; font-size: 0.85em; }
 }
