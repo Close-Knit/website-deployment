@@ -1,9 +1,9 @@
-// --- START OF directory.js (Display Promoted Listings) ---
+// --- START OF directory.js (Using Centralized Supabase Client) ---
 
 // ======================================================================
-// Declare Supabase Client Variable Globally
+// NO Supabase Client Initialization HERE - Assumes 'supabaseClient' is globally available from common.js
 // ======================================================================
-let supabaseClient = null;
+// let supabaseClient = null; // REMOVED
 
 // ======================================================================
 // Helper to display error messages
@@ -30,18 +30,14 @@ function displayError(message) {
 // Fetch and Display Listings for a Specific Community
 // ======================================================================
 async function fetchAndDisplayListings() {
-    // Initialize Supabase client if not already done
-    if (!supabaseClient) {
-        const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
-        if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
-            supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-        } else {
-             displayError("Supabase library not loaded or client failed to initialize.");
-             return;
-        }
+    // *** Check if the GLOBAL supabaseClient is available ***
+    if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+        displayError("Supabase client not initialized (from common.js). Cannot fetch data.");
+        return;
     }
+    console.log("Directory.js using supabaseClient initialized in common.js");
 
+    // --- Get references to DOM elements (same as before) ---
     const resultsList = document.getElementById('results');
     const communityNameElement = document.getElementById('community-name');
     const pageTitle = document.querySelector('title');
@@ -58,7 +54,7 @@ async function fetchAndDisplayListings() {
         return;
     }
 
-    // Get parameters from URL
+    // --- Get parameters from URL (same as before) ---
     const urlParams = new URLSearchParams(window.location.search);
     const provinceName = urlParams.get("province");
     const communityName = urlParams.get("community");
@@ -97,7 +93,8 @@ async function fetchAndDisplayListings() {
     const tableName = decodedProvinceName.replace(/ /g, '_');
 
     try {
-        // Fetch Community ID and Logo
+        // --- Fetch Community ID and Logo ---
+        // *** USES GLOBAL supabaseClient ***
         console.log(`Fetching community data for: ${decodedCommunityName}`);
         const { data: communityData, error: communityError } = await supabaseClient
             .from('communities')
@@ -111,7 +108,6 @@ async function fetchAndDisplayListings() {
 
         const communityId = communityData.id;
         const logoFilename = communityData.logo_filename;
-
         console.log(`Community ID: ${communityId}`);
 
         // Display logo
@@ -131,13 +127,13 @@ async function fetchAndDisplayListings() {
             console.warn("Suggest change link element not found.")
         }
 
-        // Fetch Listings - Make sure all needed columns are selected
+        // --- Fetch Listings ---
+        // *** USES GLOBAL supabaseClient ***
         console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
         const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
-            .select('*') // Selects id, name, address, notes, phone_number, category, is_promoted, promotion_expires_at etc.
+            .select('*')
             .eq('community_id', communityId)
-            // We will sort by promotion status *after* fetching, but keep initial sort by name
             .order('category', { ascending: true, nullsFirst: false })
             .order('name', { ascending: true });
 
@@ -161,7 +157,7 @@ async function fetchAndDisplayListings() {
             return;
         }
 
-        // Group listings by category (original grouping)
+        // --- Group and Sort Listings (including promotion logic) ---
         const groupedListings = listings.reduce((acc, listing) => {
             const category = listing.category || 'Uncategorized';
             if (!acc[category]) { acc[category] = []; }
@@ -170,13 +166,12 @@ async function fetchAndDisplayListings() {
          }, {});
 
         const sortedCategories = Object.keys(groupedListings).sort((a, b) => {
-             if (a === 'Uncategorized') return 1; // Keep Uncategorized last
+             if (a === 'Uncategorized') return 1;
              if (b === 'Uncategorized') return -1;
-             return a.localeCompare(b); // Sort categories alphabetically
+             return a.localeCompare(b);
          });
 
-        // --- Render Listings ---
-        const now = new Date(); // Get current time once for checking expiry
+        const now = new Date();
 
         sortedCategories.forEach(category => {
              const categoryHeadingItem = document.createElement('li');
@@ -184,9 +179,7 @@ async function fetchAndDisplayListings() {
              categoryHeadingItem.textContent = category;
              resultsList.appendChild(categoryHeadingItem);
 
-             // --- START: Sort listings within category by promotion status ---
-             const listingsInCategory = groupedListings[category]; // Get listings for this category
-
+             const listingsInCategory = groupedListings[category];
              const promotedInCategory = [];
              const regularInCategory = [];
 
@@ -202,34 +195,27 @@ async function fetchAndDisplayListings() {
                  }
              });
 
-             // Combine lists: promoted first, then regular (both should already be name-sorted from DB query)
              const categorySortedListings = promotedInCategory.concat(regularInCategory);
-             // --- END: Sort listings within category ---
 
-
-             // --- Loop through the combined, sorted list for this category ---
+             // --- Render the sorted listings for the category ---
              categorySortedListings.forEach(listing => {
                  const listItem = document.createElement('li');
-                 listItem.className = 'directory-entry'; // Base class
+                 listItem.className = 'directory-entry';
 
-                 // --- Check if this listing is an active promotion AGAIN for styling ---
                  const isPromoted = listing.is_promoted === true;
                  const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
                  const isActivePromotion = isPromoted && expiresAt && expiresAt > now;
 
                  if (isActivePromotion) {
-                     listItem.classList.add('promoted-listing'); // Add class for special styling
+                     listItem.classList.add('promoted-listing');
                      console.log(`Applying promoted style to: ${listing.name}`);
                  }
-                 // --- End promotion check ---
 
-                 // Get listing ID
                  const listingId = listing.id;
                  if (!listingId) {
                      console.warn("Listing missing 'id'. Cannot create promote button:", listing);
                  }
 
-                 // Phone Button HTML
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
                  if (phoneNumber) {
@@ -240,9 +226,7 @@ async function fetchAndDisplayListings() {
                      `;
                  }
 
-                 // Promote Button HTML
                  let promoteButtonHtml = '';
-                 // Hide promote button if already actively promoted
                  if (listingId && !isActivePromotion) {
                      const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
                      promoteButtonHtml = `
@@ -252,19 +236,13 @@ async function fetchAndDisplayListings() {
                              </a>
                          </div>
                      `;
-                 } else if (isActivePromotion) {
-                     // Optionally show something else, like expiry date or nothing
-                     // promoteButtonHtml = `<div class="promoted-info" style="margin-top: 8px; font-size: 0.8em; color: green;">Promoted until ${expiresAt.toLocaleDateString()}</div>`;
                  }
 
-                 // --- Add "Sponsored" Label if active promotion ---
                  let sponsoredLabelHtml = '';
                  if (isActivePromotion) {
                       sponsoredLabelHtml = `<span class="sponsored-label">Sponsored</span>`;
                  }
-                 // ---
 
-                 // Construct the final HTML for the list item
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${listing.name || 'N/A'} ${sponsoredLabelHtml}</span>
@@ -286,7 +264,7 @@ async function fetchAndDisplayListings() {
 } // End fetchAndDisplayListings
 
 // ======================================================================
-// Initialize Search Functionality (Updated to respect promotion)
+// Initialize Search Functionality (Unchanged from previous step)
 // ======================================================================
 function initializeSearch() {
     const searchBox = document.getElementById('searchBox');
@@ -299,23 +277,19 @@ function initializeSearch() {
 
     searchBox.addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase().trim();
-        // Get ALL list items and headings every time search runs
         const listItems = resultsList.getElementsByClassName('directory-entry');
         const categoryHeadings = resultsList.getElementsByClassName('category-heading');
 
         let visibleCategories = new Set();
 
-        // Iterate through all list items (directory entries)
         Array.from(listItems).forEach(item => {
             const nameElement = item.querySelector('.name');
-            // Include sponsored label text in search if present, or just use name
-            const nameText = nameElement?.textContent.toLowerCase() || ''; // Includes "Sponsored" if present
+            const nameText = nameElement?.textContent.toLowerCase() || '';
             const addressText = item.querySelector('.address')?.textContent.toLowerCase() || '';
             const notesText = item.querySelector('.notes')?.textContent.toLowerCase() || '';
 
             let currentElement = item;
             let categoryText = '';
-            // Find the preceding category heading
             while (currentElement = currentElement.previousElementSibling) {
                 if (currentElement.classList.contains('category-heading')) {
                     categoryText = currentElement.textContent.toLowerCase();
@@ -323,29 +297,27 @@ function initializeSearch() {
                 }
             }
 
-            // Check if search term matches name, address, notes, or category
             const matchesSearch = nameText.includes(searchTerm) ||
                                   addressText.includes(searchTerm) ||
                                   notesText.includes(searchTerm) ||
                                   categoryText.includes(searchTerm);
 
             if (matchesSearch) {
-                item.style.display = ''; // Show item if matches
+                item.style.display = '';
                 if (categoryText) {
-                    visibleCategories.add(categoryText); // Mark category as having visible items
+                    visibleCategories.add(categoryText);
                 }
             } else {
-                item.style.display = 'none'; // Hide item if no match
+                item.style.display = 'none';
             }
         });
 
-        // Show/hide category headings based on visible items or if heading matches search term
         Array.from(categoryHeadings).forEach(heading => {
             const categoryText = heading.textContent.toLowerCase();
              if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) {
-                 heading.style.display = ''; // Show heading
+                 heading.style.display = '';
              } else {
-                 heading.style.display = 'none'; // Hide heading
+                 heading.style.display = 'none';
              }
         });
     });
@@ -462,33 +434,17 @@ function initializePopupInteraction() {
 
 
 // ======================================================================
-// Main Execution
+// Main Execution: Initialize functions AFTER DOM is ready
 // ======================================================================
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired for directory page.");
 
-    if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
-         displayError("Supabase library failed to load. Check script tags in HTML.");
-         return;
-    }
+    // *** NO Supabase client initialization here anymore ***
 
-    console.log("[DEBUG] Supabase library found. Initializing client...");
-
-    const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
-
-    supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
-    if (!supabaseClient) {
-        displayError("Failed to initialize Supabase client.");
-        return;
-    }
-
-    console.log("[DEBUG] Supabase client initialized.");
-
-    fetchAndDisplayListings(); // Fetch and display listings (now with promotion logic)
-    initializeSearch();       // Initialize search (now slightly updated)
-    initializePopupInteraction(); // Initialize popups
+    // Initialize functionalities
+    fetchAndDisplayListings(); // Call fetch immediately (it checks for supabaseClient)
+    initializeSearch();
+    initializePopupInteraction();
 
 });
 
