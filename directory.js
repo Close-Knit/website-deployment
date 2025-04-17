@@ -1,4 +1,4 @@
-// --- START OF directory.js (Add Promote Button - Attempt 1) ---
+// --- START OF directory.js (Syntax Error Fix) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -202,30 +202,29 @@ async function fetchAndDisplayListings() {
                      `;
                  }
 
-                 // --- START: MINIMAL CHANGE - Add Promote Button HTML ---
+                 // --- START: Promote Button HTML generation ---
                  let promoteButtonHtml = '';
-                 if (listingId) { // Only create button if we have a listing ID
+                 if (listingId) {
                      const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
 
-                     // Create the link styled as a button. Add a class for potential future styling.
                      promoteButtonHtml = `
-                         <div style="margin-top: 8px; text-align: right;"> {/* Basic wrapper for spacing/alignment */}
+                         <div style="margin-top: 8px; text-align: right;">
                              <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
                                  <i class="fa-solid fa-rocket"></i> Promote
                              </a>
                          </div>
                      `;
                  }
-                 // --- END: MINIMAL CHANGE ---
+                 // --- END: Promote Button HTML generation ---
 
                  // Construct the final HTML for the list item
-                 // Add the promoteButtonHtml INSIDE the entry-details div
+                 // ** FIX IS HERE: Removed the comment inside the template literal **
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${listing.name || 'N/A'}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${promoteButtonHtml}  ${/* Add promote button here */}
+                          ${promoteButtonHtml}
                      </div>
                      <div class="phone-container">
                           ${phoneHtml}
@@ -364,6 +363,7 @@ function initializePopupInteraction() {
 
     resultsList.addEventListener('click', function(event) {
         const revealButton = event.target.closest('.revealPhoneBtn');
+        const promoteButton = event.target.closest('.promote-button'); // Added check for promote button
 
         if (revealButton) {
             event.preventDefault();
@@ -378,8 +378,10 @@ function initializePopupInteraction() {
             } else {
                 console.warn("Clicked reveal button is missing phone data (data-phone attribute).");
             }
+        } else if (promoteButton) {
+             // Allow default link behavior for the promote button
+             console.log('Promote button clicked, allowing navigation to:', promoteButton.href);
         }
-        // --- No Promote button click handling here yet ---
     });
 
 
