@@ -1,4 +1,4 @@
-// --- START OF directory.js (Promote Button Left, Phone Button Right) ---
+// --- START OF directory.js (Display Promoted Listings) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -131,12 +131,13 @@ async function fetchAndDisplayListings() {
             console.warn("Suggest change link element not found.")
         }
 
-        // Fetch Listings - Make sure 'id' is selected
+        // Fetch Listings - Make sure all needed columns are selected
         console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
         const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
-            .select('*') // Select all columns, including 'id'
+            .select('*') // Selects id, name, address, notes, phone_number, category, is_promoted, promotion_expires_at etc.
             .eq('community_id', communityId)
+            // We will sort by promotion status *after* fetching, but keep initial sort by name
             .order('category', { ascending: true, nullsFirst: false })
             .order('name', { ascending: true });
 
@@ -160,7 +161,7 @@ async function fetchAndDisplayListings() {
             return;
         }
 
-        // Group and Sort Listings
+        // Group listings by category (original grouping)
         const groupedListings = listings.reduce((acc, listing) => {
             const category = listing.category || 'Uncategorized';
             if (!acc[category]) { acc[category] = []; }
@@ -169,21 +170,58 @@ async function fetchAndDisplayListings() {
          }, {});
 
         const sortedCategories = Object.keys(groupedListings).sort((a, b) => {
-             if (a === 'Uncategorized') return 1;
+             if (a === 'Uncategorized') return 1; // Keep Uncategorized last
              if (b === 'Uncategorized') return -1;
-             return a.localeCompare(b);
+             return a.localeCompare(b); // Sort categories alphabetically
          });
 
         // --- Render Listings ---
+        const now = new Date(); // Get current time once for checking expiry
+
         sortedCategories.forEach(category => {
              const categoryHeadingItem = document.createElement('li');
              categoryHeadingItem.className = 'category-heading';
              categoryHeadingItem.textContent = category;
              resultsList.appendChild(categoryHeadingItem);
 
-             groupedListings[category].forEach(listing => {
+             // --- START: Sort listings within category by promotion status ---
+             const listingsInCategory = groupedListings[category]; // Get listings for this category
+
+             const promotedInCategory = [];
+             const regularInCategory = [];
+
+             listingsInCategory.forEach(listing => {
+                 const isPromoted = listing.is_promoted === true;
+                 const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
+                 const isActivePromotion = isPromoted && expiresAt && expiresAt > now;
+
+                 if (isActivePromotion) {
+                     promotedInCategory.push(listing);
+                 } else {
+                     regularInCategory.push(listing);
+                 }
+             });
+
+             // Combine lists: promoted first, then regular (both should already be name-sorted from DB query)
+             const categorySortedListings = promotedInCategory.concat(regularInCategory);
+             // --- END: Sort listings within category ---
+
+
+             // --- Loop through the combined, sorted list for this category ---
+             categorySortedListings.forEach(listing => {
                  const listItem = document.createElement('li');
-                 listItem.className = 'directory-entry';
+                 listItem.className = 'directory-entry'; // Base class
+
+                 // --- Check if this listing is an active promotion AGAIN for styling ---
+                 const isPromoted = listing.is_promoted === true;
+                 const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
+                 const isActivePromotion = isPromoted && expiresAt && expiresAt > now;
+
+                 if (isActivePromotion) {
+                     listItem.classList.add('promoted-listing'); // Add class for special styling
+                     console.log(`Applying promoted style to: ${listing.name}`);
+                 }
+                 // --- End promotion check ---
 
                  // Get listing ID
                  const listingId = listing.id;
@@ -204,10 +242,9 @@ async function fetchAndDisplayListings() {
 
                  // Promote Button HTML
                  let promoteButtonHtml = '';
-                 if (listingId) {
+                 // Hide promote button if already actively promoted
+                 if (listingId && !isActivePromotion) {
                      const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
-                     // Create the link styled as a button. Add a class for potential future styling.
-                     // Ensure the container aligns left (default for div) or explicitly set style="text-align: left;" if needed.
                      promoteButtonHtml = `
                          <div class="promote-button-container" style="margin-top: 8px;">
                              <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
@@ -215,13 +252,22 @@ async function fetchAndDisplayListings() {
                              </a>
                          </div>
                      `;
+                 } else if (isActivePromotion) {
+                     // Optionally show something else, like expiry date or nothing
+                     // promoteButtonHtml = `<div class="promoted-info" style="margin-top: 8px; font-size: 0.8em; color: green;">Promoted until ${expiresAt.toLocaleDateString()}</div>`;
                  }
 
+                 // --- Add "Sponsored" Label if active promotion ---
+                 let sponsoredLabelHtml = '';
+                 if (isActivePromotion) {
+                      sponsoredLabelHtml = `<span class="sponsored-label">Sponsored</span>`;
+                 }
+                 // ---
+
                  // Construct the final HTML for the list item
-                 // Place promoteButtonHtml inside entry-details, phoneHtml inside phone-container
                  listItem.innerHTML = `
                      <div class="entry-details">
-                          <span class="name">${listing.name || 'N/A'}</span>
+                          <span class="name">${listing.name || 'N/A'} ${sponsoredLabelHtml}</span> {/* Add label next to name */}
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
                           ${promoteButtonHtml}
@@ -231,8 +277,8 @@ async function fetchAndDisplayListings() {
                      </div>
                  `;
                  resultsList.appendChild(listItem);
-             }); // End loop through listings
-        }); // End loop through categories
+             }); // End loop through categorySortedListings
+        }); // End loop through sortedCategories
 
     } catch (fetchError) {
         displayError(fetchError.message);
@@ -240,7 +286,7 @@ async function fetchAndDisplayListings() {
 } // End fetchAndDisplayListings
 
 // ======================================================================
-// Initialize Search Functionality (Unchanged)
+// Initialize Search Functionality (Updated to respect promotion)
 // ======================================================================
 function initializeSearch() {
     const searchBox = document.getElementById('searchBox');
@@ -253,15 +299,23 @@ function initializeSearch() {
 
     searchBox.addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase().trim();
+        // Get ALL list items and headings every time search runs
         const listItems = resultsList.getElementsByClassName('directory-entry');
         const categoryHeadings = resultsList.getElementsByClassName('category-heading');
 
         let visibleCategories = new Set();
 
+        // Iterate through all list items (directory entries)
         Array.from(listItems).forEach(item => {
-            const name = item.querySelector('.name')?.textContent.toLowerCase() || '';
+            const nameElement = item.querySelector('.name');
+            // Include sponsored label text in search if present, or just use name
+            const nameText = nameElement?.textContent.toLowerCase() || ''; // Includes "Sponsored" if present
+            const addressText = item.querySelector('.address')?.textContent.toLowerCase() || '';
+            const notesText = item.querySelector('.notes')?.textContent.toLowerCase() || '';
+
             let currentElement = item;
             let categoryText = '';
+            // Find the preceding category heading
             while (currentElement = currentElement.previousElementSibling) {
                 if (currentElement.classList.contains('category-heading')) {
                     categoryText = currentElement.textContent.toLowerCase();
@@ -269,31 +323,37 @@ function initializeSearch() {
                 }
             }
 
-            const matchesSearch = name.includes(searchTerm) || categoryText.includes(searchTerm);
+            // Check if search term matches name, address, notes, or category
+            const matchesSearch = nameText.includes(searchTerm) ||
+                                  addressText.includes(searchTerm) ||
+                                  notesText.includes(searchTerm) ||
+                                  categoryText.includes(searchTerm);
 
             if (matchesSearch) {
-                item.style.display = '';
+                item.style.display = ''; // Show item if matches
                 if (categoryText) {
-                    visibleCategories.add(categoryText);
+                    visibleCategories.add(categoryText); // Mark category as having visible items
                 }
             } else {
-                item.style.display = 'none';
+                item.style.display = 'none'; // Hide item if no match
             }
         });
 
+        // Show/hide category headings based on visible items or if heading matches search term
         Array.from(categoryHeadings).forEach(heading => {
             const categoryText = heading.textContent.toLowerCase();
              if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) {
-                 heading.style.display = '';
+                 heading.style.display = ''; // Show heading
              } else {
-                 heading.style.display = 'none';
+                 heading.style.display = 'none'; // Hide heading
              }
         });
     });
-}
+} // End initializeSearch
+
 
 // ======================================================================
-// Initialize Popup Interactivity (Unchanged from original)
+// Initialize Popup Interactivity (Unchanged from previous working state)
 // ======================================================================
 function initializePopupInteraction() {
     const resultsList = document.getElementById('results');
@@ -363,7 +423,7 @@ function initializePopupInteraction() {
 
     resultsList.addEventListener('click', function(event) {
         const revealButton = event.target.closest('.revealPhoneBtn');
-        const promoteButton = event.target.closest('.promote-button'); // Check for promote button click
+        const promoteButton = event.target.closest('.promote-button');
 
         if (revealButton) {
             event.preventDefault();
@@ -379,7 +439,6 @@ function initializePopupInteraction() {
                 console.warn("Clicked reveal button is missing phone data (data-phone attribute).");
             }
         } else if (promoteButton) {
-             // Allow default link behavior for the promote button
              console.log('Promote button clicked, allowing navigation to:', promoteButton.href);
         }
     });
@@ -427,9 +486,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("[DEBUG] Supabase client initialized.");
 
-    fetchAndDisplayListings();
-    initializeSearch();
-    initializePopupInteraction();
+    fetchAndDisplayListings(); // Fetch and display listings (now with promotion logic)
+    initializeSearch();       // Initialize search (now slightly updated)
+    initializePopupInteraction(); // Initialize popups
 
 });
 
