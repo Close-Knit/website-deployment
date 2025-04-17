@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promotion Successful!</title>
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QV1M0QM38B"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-QV1M0QM38B');
+    </script>
+    <!-- End Google tag -->
+
+    <!-- Link CSS and Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- AdSense Script -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174"
+         crossorigin="anonymous"></script>
+
+    <style>
+        .success-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            border: 1px solid #c3e6cb; /* Green border */
+            border-radius: 8px;
+            background-color: #d4edda; /* Light green background */
+            text-align: center;
+            color: #155724; /* Dark green text */
+        }
+        .success-container h1 {
+            color: #155724;
+            margin-bottom: 15px;
+        }
+        .success-container p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .success-container a {
+            color: #007bff; /* Link color */
+            text-decoration: underline;
+        }
+        .success-container .note {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 25px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Site Logo Link -->
+    <a href="index.html" id="site-logo-link" title="Go to Home Page">
+       <img src="images/Bizly_Logo_150px.webp" alt="Bizly Logo - Go to Home" id="site-logo">
+    </a>
+
+    <div class="success-container">
+        <h1><i class="fa-solid fa-check-circle"></i> Promotion Successful!</h1>
+        <p>Thank you for your payment. Your listing, <strong id="success-listing-name">...</strong>, will be promoted shortly.</p>
+        <p>A receipt has been sent to the email address you provided.</p>
+        <p><a href="index.html">Return to Homepage</a></p>
+
+        <p class="note">Please note: It may take a few minutes for the promotion to become visible on the directory page as the system updates.</p>
+        <p class="note">(In a real application, this update happens instantly via webhooks, but we haven't set that part up yet!)</p>
+    </div>
+
+    <script>
+        // Simple script to display the listing name from the URL parameter
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const listingName = urlParams.get('listingName');
+            const listingNameElement = document.getElementById('success-listing-name');
+
+            if (listingNameElement && listingName) {
+                listingNameElement.textContent = decodeURIComponent(listingName);
+            } else if (listingNameElement) {
+                listingNameElement.textContent = "your listing"; // Fallback text
+            }
+        });
+    </script>
+
+     <!-- Common JS (optional, if needed for BackToTop etc.) -->
+     <!-- <script src="common.js" defer></script> -->
+
+</body>
+</html>
