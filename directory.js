@@ -1,4 +1,4 @@
-// --- START OF ORIGINAL directory.js (Before Promote Button) ---
+// --- START OF directory.js (Add Promote Button - Attempt 1) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -30,10 +30,8 @@ function displayError(message) {
 // Fetch and Display Listings for a Specific Community
 // ======================================================================
 async function fetchAndDisplayListings() {
-    // Initialize Supabase client if not already done (essential check)
+    // Initialize Supabase client if not already done
     if (!supabaseClient) {
-        // Try initializing here if it wasn't done in DOMContentLoaded yet
-        // This is a fallback, ideally it's initialized earlier.
         const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
         if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
@@ -50,7 +48,7 @@ async function fetchAndDisplayListings() {
     const logoElement = document.getElementById('logo');
     const breadcrumbContainer = document.getElementById('breadcrumb-container');
 
-    // Initial setup and error checking for elements
+    // Initial setup
     if (resultsList) resultsList.innerHTML = '<li>Loading...</li>';
     if (breadcrumbContainer) breadcrumbContainer.innerHTML = '';
     if (communityNameElement) communityNameElement.innerHTML = 'Loading...';
@@ -73,10 +71,10 @@ async function fetchAndDisplayListings() {
     const decodedProvinceName = decodeURIComponent(provinceName);
     const decodedCommunityName = decodeURIComponent(communityName);
 
-    // Set page titles and headers
+    // Set titles and headers
     const baseTitle = `${decodedCommunityName}, ${decodedProvinceName}`;
     if (pageTitle) pageTitle.textContent = `${baseTitle} Directory`;
-    if (logoElement) logoElement.style.display = 'none'; // Hide initially
+    if (logoElement) logoElement.style.display = 'none';
 
     // Build Breadcrumbs
     if (breadcrumbContainer) {
@@ -91,42 +89,41 @@ async function fetchAndDisplayListings() {
         console.warn("Breadcrumb container not found.");
     }
 
-    // Set community name heading
     if (communityNameElement) {
         communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">Loading Telephone Directory...</span>`;
     }
 
-    // Determine the Supabase table name based on the province
+    // Determine Supabase table name
     const tableName = decodedProvinceName.replace(/ /g, '_');
 
     try {
-        // Fetch Community ID and Logo Filename
+        // Fetch Community ID and Logo
         console.log(`Fetching community data for: ${decodedCommunityName}`);
         const { data: communityData, error: communityError } = await supabaseClient
             .from('communities')
-            .select('id, logo_filename') // Select ID and logo filename
+            .select('id, logo_filename')
             .eq('community_name', decodedCommunityName)
             .limit(1)
-            .single(); // Expect only one matching community
+            .single();
 
         if (communityError) { throw new Error(`Could not verify community "${decodedCommunityName}". ${communityError.message}`); }
         if (!communityData) { throw new Error(`Community "${decodedCommunityName}" not found.`); }
 
-        const communityId = communityData.id; // Store community ID
+        const communityId = communityData.id;
         const logoFilename = communityData.logo_filename;
 
         console.log(`Community ID: ${communityId}`);
 
-        // Display logo if available
+        // Display logo
         if (logoElement && logoFilename) {
              logoElement.src = `images/logos/${logoFilename}`;
              logoElement.alt = `${decodedCommunityName} Logo`;
-             logoElement.style.display = 'block'; // Show logo
+             logoElement.style.display = 'block';
         } else if (logoElement) {
-             logoElement.style.display = 'none'; // Ensure it's hidden if no logo
+             logoElement.style.display = 'none';
         }
 
-        // Update "Suggest Change" link with correct context
+        // Update "Suggest Change" link
         const suggestChangeLink = document.getElementById('suggestChangeLink');
         if (suggestChangeLink) {
             suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`;
@@ -134,39 +131,36 @@ async function fetchAndDisplayListings() {
             console.warn("Suggest change link element not found.")
         }
 
-        // Fetch Listings - Ensure 'id' is selected if not using '*'
+        // Fetch Listings - Make sure 'id' is selected
         console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
         const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
-            .select('*') // Assuming '*' fetches the necessary 'id' column
+            .select('*') // Select all columns, including 'id'
             .eq('community_id', communityId)
             .order('category', { ascending: true, nullsFirst: false })
             .order('name', { ascending: true });
 
-        // Handle errors during listing fetch
         if (listingsError) {
             if (listingsError.code === '42P01') { throw new Error(`DB table "${tableName}" not found for province "${decodedProvinceName}".`); }
             if (listingsError.code === '42703') { throw new Error(`Column 'community_id' missing or misspelled in table "${tableName}". Check Supabase schema.`); }
             throw new Error(`Failed to fetch listings: ${listingsError.message}`);
         }
 
-        // Clear loading message
         resultsList.innerHTML = '';
 
-        // Update subtitle with listing count
+        // Update subtitle with count
         const listingCount = listings?.length || 0;
         const subTitleText = `Telephone Directory (${listingCount} listings)`;
         if (communityNameElement) {
             communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">${subTitleText}</span>`;
         }
 
-        // Handle case with no listings
         if (listingCount === 0) {
             resultsList.innerHTML = `<li>No listings found for ${decodedCommunityName}.</li>`;
             return;
         }
 
-        // Group listings by category
+        // Group and Sort Listings
         const groupedListings = listings.reduce((acc, listing) => {
             const category = listing.category || 'Uncategorized';
             if (!acc[category]) { acc[category] = []; }
@@ -174,27 +168,30 @@ async function fetchAndDisplayListings() {
             return acc;
          }, {});
 
-        // Sort categories alphabetically, keeping 'Uncategorized' last
         const sortedCategories = Object.keys(groupedListings).sort((a, b) => {
              if (a === 'Uncategorized') return 1;
              if (b === 'Uncategorized') return -1;
              return a.localeCompare(b);
          });
 
-        // Render listings grouped by category
+        // --- Render Listings ---
         sortedCategories.forEach(category => {
-             // Add category heading
              const categoryHeadingItem = document.createElement('li');
              categoryHeadingItem.className = 'category-heading';
              categoryHeadingItem.textContent = category;
              resultsList.appendChild(categoryHeadingItem);
 
-             // Loop through listings within this category
              groupedListings[category].forEach(listing => {
                  const listItem = document.createElement('li');
                  listItem.className = 'directory-entry';
 
-                 // --- Phone Button HTML generation ---
+                 // Get listing ID - critical for the promote link
+                 const listingId = listing.id;
+                 if (!listingId) {
+                     console.warn("Listing missing 'id'. Cannot create promote button:", listing);
+                 }
+
+                 // Phone Button HTML (original)
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
                  if (phoneNumber) {
@@ -205,26 +202,43 @@ async function fetchAndDisplayListings() {
                      `;
                  }
 
-                 // --- Construct the final HTML for the list item (ORIGINAL - NO PROMOTE BUTTON) ---
+                 // --- START: MINIMAL CHANGE - Add Promote Button HTML ---
+                 let promoteButtonHtml = '';
+                 if (listingId) { // Only create button if we have a listing ID
+                     const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
+
+                     // Create the link styled as a button. Add a class for potential future styling.
+                     promoteButtonHtml = `
+                         <div style="margin-top: 8px; text-align: right;"> {/* Basic wrapper for spacing/alignment */}
+                             <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
+                                 <i class="fa-solid fa-rocket"></i> Promote
+                             </a>
+                         </div>
+                     `;
+                 }
+                 // --- END: MINIMAL CHANGE ---
+
+                 // Construct the final HTML for the list item
+                 // Add the promoteButtonHtml INSIDE the entry-details div
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${listing.name || 'N/A'}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
+                          ${promoteButtonHtml}  ${/* Add promote button here */}
                      </div>
                      <div class="phone-container">
                           ${phoneHtml}
                      </div>
                  `;
                  resultsList.appendChild(listItem);
-             }); // End loop through listings in category
+             }); // End loop through listings
         }); // End loop through categories
 
     } catch (fetchError) {
-        // Catch any errors from fetching community or listings
         displayError(fetchError.message);
     }
-} // End fetchAndDisplayListings function
+} // End fetchAndDisplayListings
 
 // ======================================================================
 // Initialize Search Functionality (Unchanged)
@@ -245,12 +259,10 @@ function initializeSearch() {
 
         let visibleCategories = new Set();
 
-        // Filter list items
         Array.from(listItems).forEach(item => {
             const name = item.querySelector('.name')?.textContent.toLowerCase() || '';
             let currentElement = item;
             let categoryText = '';
-            // Find the preceding category heading for context
             while (currentElement = currentElement.previousElementSibling) {
                 if (currentElement.classList.contains('category-heading')) {
                     categoryText = currentElement.textContent.toLowerCase();
@@ -261,68 +273,62 @@ function initializeSearch() {
             const matchesSearch = name.includes(searchTerm) || categoryText.includes(searchTerm);
 
             if (matchesSearch) {
-                item.style.display = ''; // Show item
+                item.style.display = '';
                 if (categoryText) {
-                    visibleCategories.add(categoryText); // Mark category as having visible items
+                    visibleCategories.add(categoryText);
                 }
             } else {
-                item.style.display = 'none'; // Hide item
+                item.style.display = 'none';
             }
         });
 
-        // Filter category headings based on search term or visible items
         Array.from(categoryHeadings).forEach(heading => {
             const categoryText = heading.textContent.toLowerCase();
              if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) {
-                 heading.style.display = ''; // Show heading
+                 heading.style.display = '';
              } else {
-                 heading.style.display = 'none'; // Hide heading
+                 heading.style.display = 'none';
              }
         });
     });
 }
 
 // ======================================================================
-// Initialize Popup Interactivity (MODIFIED for Copy Button - Unchanged from previous state)
+// Initialize Popup Interactivity (Unchanged from original)
 // ======================================================================
 function initializePopupInteraction() {
     const resultsList = document.getElementById('results');
     const phonePopup = document.getElementById('phonePopup');
     const closePopupButton = document.getElementById('closePopup');
     const phoneNumberDisplay = document.getElementById('phoneNumber');
-    const copyPhoneButton = document.getElementById('copyPhoneBtn'); // Get copy button
-    const copyTextElement = copyPhoneButton?.querySelector('.copy-text'); // Get span inside copy button
-    const copyIconElement = copyPhoneButton?.querySelector('i'); // Get icon inside copy button
+    const copyPhoneButton = document.getElementById('copyPhoneBtn');
+    const copyTextElement = copyPhoneButton?.querySelector('.copy-text');
+    const copyIconElement = copyPhoneButton?.querySelector('i');
 
-    // Store original copy button state (ensure elements exist first)
     const originalCopyText = copyTextElement ? copyTextElement.textContent : 'Copy';
     const originalCopyIconClass = copyIconElement ? copyIconElement.className : 'fa-regular fa-copy';
-    let copyTimeout = null; // To manage the reset timer
+    let copyTimeout = null;
 
-    // Function to reset copy button state
     const resetCopyButton = () => {
          if (copyTextElement) copyTextElement.textContent = originalCopyText;
          if (copyIconElement) copyIconElement.className = originalCopyIconClass;
-         if (copyPhoneButton) copyPhoneButton.disabled = false; // Re-enable button
+         if (copyPhoneButton) copyPhoneButton.disabled = false;
          if (copyTimeout) {
              clearTimeout(copyTimeout);
-             copyTimeout = null; // Clear the timer ID
+             copyTimeout = null;
          }
     };
 
-    // Check for essential popup elements first
     if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay) {
         console.error("Core popup elements missing. Cannot initialize popup interaction.");
         return;
     }
-    // Check specifically for copy button elements, but don't stop initialization if missing
     if (!copyPhoneButton || !copyTextElement || !copyIconElement) {
          console.warn("Copy button or its inner elements missing.");
     }
 
 
-    // --- Copy Button Logic ---
-    if (copyPhoneButton) { // Only add listener if button exists
+    if (copyPhoneButton) {
         const handleCopyClick = async () => {
             const linkElement = phoneNumberDisplay.querySelector('a');
             const numberToCopy = linkElement ? linkElement.textContent : null;
@@ -331,7 +337,6 @@ function initializePopupInteraction() {
                 try {
                     await navigator.clipboard.writeText(numberToCopy);
                     console.log(`Phone number copied: ${numberToCopy}`);
-                    // Visual Feedback only if elements exist
                     if (copyTextElement) copyTextElement.textContent = 'Copied!';
                     if (copyIconElement) copyIconElement.className = 'fa-solid fa-check';
                     copyPhoneButton.disabled = true;
@@ -347,24 +352,21 @@ function initializePopupInteraction() {
             } else if (!navigator.clipboard) {
                  console.warn("Clipboard API not supported.");
                  alert("Copying to clipboard is not supported by your browser.");
-                 resetCopyButton(); // Reset state even if unsupported
+                 resetCopyButton();
             } else {
                 console.warn("Could not find number text to copy.");
-                resetCopyButton(); // Reset state if number somehow missing
+                resetCopyButton();
             }
         };
         copyPhoneButton.addEventListener('click', handleCopyClick);
     }
-    // --- End Copy Button Logic ---
 
 
-    // --- Reveal Button Logic (Event Delegation) ---
     resultsList.addEventListener('click', function(event) {
         const revealButton = event.target.closest('.revealPhoneBtn');
-        // No promote button check needed in original code
 
-        if (revealButton) { // Logic for Phone Button click
-            event.preventDefault(); // Prevent default if it was a link/button
+        if (revealButton) {
+            event.preventDefault();
             const numberToDisplay = revealButton.dataset.phone;
 
             if (numberToDisplay) {
@@ -372,32 +374,30 @@ function initializePopupInteraction() {
                 resetCopyButton();
                 phonePopup.classList.remove('hidden');
                 console.log(`Showing popup for number: ${numberToDisplay}`);
+
             } else {
                 console.warn("Clicked reveal button is missing phone data (data-phone attribute).");
             }
         }
+        // --- No Promote button click handling here yet ---
     });
-    // --- End Reveal Button Logic ---
 
-    // Close button listener
+
     closePopupButton.addEventListener('click', function() {
         phonePopup.classList.add('hidden');
         console.log("Popup closed via X button.");
-        resetCopyButton(); // Reset on close
+        resetCopyButton();
     });
 
-    // Close popup if clicking outside the content area
+
      phonePopup.addEventListener('click', function(event) {
          if (event.target === phonePopup) {
               phonePopup.classList.add('hidden');
               console.log("Popup closed by clicking outside.");
-              resetCopyButton(); // Reset on close
+              resetCopyButton();
          }
      });
 }
-// ======================================================================
-// End Popup Interactivity Function
-// ======================================================================
 
 
 // ======================================================================
@@ -406,7 +406,6 @@ function initializePopupInteraction() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired for directory page.");
 
-    // Check if Supabase library is loaded
     if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
          displayError("Supabase library failed to load. Check script tags in HTML.");
          return;
@@ -414,11 +413,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("[DEBUG] Supabase library found. Initializing client...");
 
-    // Define Supabase credentials
     const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
 
-    // Initialize Supabase client
     supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     if (!supabaseClient) {
@@ -428,11 +425,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("[DEBUG] Supabase client initialized.");
 
-    // Initialize functionalities after DOM is loaded and Supabase is ready
-    fetchAndDisplayListings(); // Fetch and display the directory listings
-    initializeSearch();       // Set up the search box functionality
-    initializePopupInteraction(); // Set up phone reveal popup
+    fetchAndDisplayListings();
+    initializeSearch();
+    initializePopupInteraction();
 
 });
 
-// --- END OF ORIGINAL directory.js ---
+// --- END OF directory.js ---
