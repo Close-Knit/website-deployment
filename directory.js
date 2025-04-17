@@ -1,4 +1,4 @@
-// --- START OF UPDATED directory.js (Button Alignment Attempt 2) ---
+// --- START OF directory.js (State after Step 2.2 - Comment Fix) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -189,10 +189,11 @@ async function fetchAndDisplayListings() {
                  // --- Get the listing's unique ID (CRITICAL) ---
                  const listingId = listing.id;
                  if (!listingId) {
+                     // Log a warning if a listing is missing its ID, skip promote button for it
                      console.warn("Listing missing 'id'. Cannot create promote button:", listing);
                  }
 
-                 // --- Phone Button HTML generation ---
+                 // --- Phone Button Logic (Unchanged) ---
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
                  if (phoneNumber) {
@@ -203,30 +204,36 @@ async function fetchAndDisplayListings() {
                      `;
                  }
 
-                 // --- Promote Button HTML generation ---
+                 // --- START: Promote Button Logic (State after Step 2.2) ---
                  let promoteButtonHtml = '';
-                 if (listingId) {
+                 if (listingId) { // Only create the button if we have the listing's ID
+                     // Construct the URL for the Promote button, including all necessary info
                      const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
-                     // Generate the link, styled as a button
+
+                     // Create the button HTML
+                     // Note: Inline style was added in Step 2, but removed in Step 2.2 fix - let's keep it removed for this baseline
                      promoteButtonHtml = `
-                         <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
-                             <i class="fa-solid fa-rocket"></i> Promote
-                         </a>
+                         <div class="promote-button-container" style="margin-top: 8px; text-align: right;">
+                             <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
+                                 <i class="fa-solid fa-rocket"></i> Promote
+                             </a>
+                         </div>
                      `;
                  }
+                 // --- END: Promote Button Logic ---
 
 
-                 // --- Construct the final HTML for the list item ---
-                 // Put BOTH buttons inside phone-container
+                 // --- Construct the final HTML for the list item (State after Step 2.2) ---
+                 // Promote button is inside entry-details
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${listing.name || 'N/A'}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
+                          ${promoteButtonHtml}
                      </div>
                      <div class="phone-container">
-                          ${promoteButtonHtml}  ${/* Promote button HTML */''}
-                          ${phoneHtml}          ${/* Phone button HTML */}
+                         ${phoneHtml}
                      </div>
                  `;
                  resultsList.appendChild(listItem);
@@ -454,4 +461,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-// --- END OF UPDATED directory.js ---
+// --- END OF directory.js ---
