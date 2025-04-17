@@ -1,4 +1,4 @@
-// --- START OF directory.js (State after Step 2.2 - Comment Fix) ---
+// --- START OF ORIGINAL directory.js (Before Promote Button) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -32,8 +32,16 @@ function displayError(message) {
 async function fetchAndDisplayListings() {
     // Initialize Supabase client if not already done (essential check)
     if (!supabaseClient) {
-        displayError("Supabase client not initialized. Cannot fetch data.");
-        return;
+        // Try initializing here if it wasn't done in DOMContentLoaded yet
+        // This is a fallback, ideally it's initialized earlier.
+        const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
+        if (typeof supabase !== 'undefined' && typeof supabase.createClient === 'function') {
+            supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        } else {
+             displayError("Supabase library not loaded or client failed to initialize.");
+             return;
+        }
     }
 
     const resultsList = document.getElementById('results');
@@ -126,11 +134,11 @@ async function fetchAndDisplayListings() {
             console.warn("Suggest change link element not found.")
         }
 
-        // Fetch Listings - IMPORTANT: Ensure 'id' is selected. '*' includes it.
+        // Fetch Listings - Ensure 'id' is selected if not using '*'
         console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
         const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
-            .select('*') // Select all columns, including the new 'id', 'is_promoted', etc.
+            .select('*') // Assuming '*' fetches the necessary 'id' column
             .eq('community_id', communityId)
             .order('category', { ascending: true, nullsFirst: false })
             .order('name', { ascending: true });
@@ -186,14 +194,7 @@ async function fetchAndDisplayListings() {
                  const listItem = document.createElement('li');
                  listItem.className = 'directory-entry';
 
-                 // --- Get the listing's unique ID (CRITICAL) ---
-                 const listingId = listing.id;
-                 if (!listingId) {
-                     // Log a warning if a listing is missing its ID, skip promote button for it
-                     console.warn("Listing missing 'id'. Cannot create promote button:", listing);
-                 }
-
-                 // --- Phone Button Logic (Unchanged) ---
+                 // --- Phone Button HTML generation ---
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
                  if (phoneNumber) {
@@ -204,36 +205,15 @@ async function fetchAndDisplayListings() {
                      `;
                  }
 
-                 // --- START: Promote Button Logic (State after Step 2.2) ---
-                 let promoteButtonHtml = '';
-                 if (listingId) { // Only create the button if we have the listing's ID
-                     // Construct the URL for the Promote button, including all necessary info
-                     const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
-
-                     // Create the button HTML
-                     // Note: Inline style was added in Step 2, but removed in Step 2.2 fix - let's keep it removed for this baseline
-                     promoteButtonHtml = `
-                         <div class="promote-button-container" style="margin-top: 8px; text-align: right;">
-                             <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
-                                 <i class="fa-solid fa-rocket"></i> Promote
-                             </a>
-                         </div>
-                     `;
-                 }
-                 // --- END: Promote Button Logic ---
-
-
-                 // --- Construct the final HTML for the list item (State after Step 2.2) ---
-                 // Promote button is inside entry-details
+                 // --- Construct the final HTML for the list item (ORIGINAL - NO PROMOTE BUTTON) ---
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${listing.name || 'N/A'}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${promoteButtonHtml}
                      </div>
                      <div class="phone-container">
-                         ${phoneHtml}
+                          ${phoneHtml}
                      </div>
                  `;
                  resultsList.appendChild(listItem);
@@ -380,10 +360,8 @@ function initializePopupInteraction() {
 
     // --- Reveal Button Logic (Event Delegation) ---
     resultsList.addEventListener('click', function(event) {
-        // IMPORTANT: Check for clicks on BOTH button types now within this handler if needed,
-        // BUT for now, only the phone button triggers the popup.
         const revealButton = event.target.closest('.revealPhoneBtn');
-        const promoteButton = event.target.closest('.promote-button'); // Check if click was on promote button
+        // No promote button check needed in original code
 
         if (revealButton) { // Logic for Phone Button click
             event.preventDefault(); // Prevent default if it was a link/button
@@ -397,10 +375,6 @@ function initializePopupInteraction() {
             } else {
                 console.warn("Clicked reveal button is missing phone data (data-phone attribute).");
             }
-        } else if (promoteButton) {
-            // If the promote button is clicked, we *don't* preventDefault,
-            // because we WANT the browser to follow the link ('href') to promote.html.
-            console.log('Promote button clicked, allowing navigation to:', promoteButton.href);
         }
     });
     // --- End Reveal Button Logic ---
@@ -461,4 +435,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-// --- END OF directory.js ---
+// --- END OF ORIGINAL directory.js ---
