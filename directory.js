@@ -224,10 +224,10 @@ async function fetchAndDisplayListings() {
                           <span class="name">${listing.name || 'N/A'}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${promoteButtonHtml}  ${/* Promote button stays here */}
+                          ${promoteButtonHtml}
                      </div>
                      <div class="phone-container">
-                          ${phoneHtml}          ${/* Phone button stays here */}
+                          ${phoneHtml}
                      </div>
                  `;
                  resultsList.appendChild(listItem);
