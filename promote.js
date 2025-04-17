@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const stripePriceId = 'price_1REiFhQSnCFma2DMiheznLJE'; // Use the correct ID
+        const stripePriceId = 'price_1REiFhQSnCFma2DMiheznLJB'; // Use the correct ID
 
         if (!stripePriceId) {
              console.error("Stripe Price ID is missing in promote.js!");
