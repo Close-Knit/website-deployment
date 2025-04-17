@@ -1,4 +1,4 @@
-// --- START OF UPDATED directory.js (With Copy Phone Button Logic, Print Removed) ---
+// --- START OF UPDATED directory.js (With Promote Button Added) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -30,7 +30,7 @@ function displayError(message) {
 // Fetch and Display Listings for a Specific Community
 // ======================================================================
 async function fetchAndDisplayListings() {
-    // ... (Code for initializing, getting params, setting titles - unchanged) ...
+    // Initialize Supabase client if not already done (essential check)
     if (!supabaseClient) {
         displayError("Supabase client not initialized. Cannot fetch data.");
         return;
@@ -42,6 +42,7 @@ async function fetchAndDisplayListings() {
     const logoElement = document.getElementById('logo');
     const breadcrumbContainer = document.getElementById('breadcrumb-container');
 
+    // Initial setup and error checking for elements
     if (resultsList) resultsList.innerHTML = '<li>Loading...</li>';
     if (breadcrumbContainer) breadcrumbContainer.innerHTML = '';
     if (communityNameElement) communityNameElement.innerHTML = 'Loading...';
@@ -51,6 +52,7 @@ async function fetchAndDisplayListings() {
         return;
     }
 
+    // Get parameters from URL
     const urlParams = new URLSearchParams(window.location.search);
     const provinceName = urlParams.get("province");
     const communityName = urlParams.get("community");
@@ -63,10 +65,12 @@ async function fetchAndDisplayListings() {
     const decodedProvinceName = decodeURIComponent(provinceName);
     const decodedCommunityName = decodeURIComponent(communityName);
 
+    // Set page titles and headers
     const baseTitle = `${decodedCommunityName}, ${decodedProvinceName}`;
     if (pageTitle) pageTitle.textContent = `${baseTitle} Directory`;
-    if (logoElement) logoElement.style.display = 'none';
+    if (logoElement) logoElement.style.display = 'none'; // Hide initially
 
+    // Build Breadcrumbs
     if (breadcrumbContainer) {
         breadcrumbContainer.innerHTML = `
             <ol class="breadcrumb">
@@ -79,35 +83,42 @@ async function fetchAndDisplayListings() {
         console.warn("Breadcrumb container not found.");
     }
 
+    // Set community name heading
     if (communityNameElement) {
         communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">Loading Telephone Directory...</span>`;
     }
 
+    // Determine the Supabase table name based on the province
     const tableName = decodedProvinceName.replace(/ /g, '_');
 
     try {
-        // ... (Fetch Community ID and Logo - unchanged) ...
+        // Fetch Community ID and Logo Filename
+        console.log(`Fetching community data for: ${decodedCommunityName}`);
         const { data: communityData, error: communityError } = await supabaseClient
             .from('communities')
-            .select('id, logo_filename')
+            .select('id, logo_filename') // Select ID and logo filename
             .eq('community_name', decodedCommunityName)
             .limit(1)
-            .single();
+            .single(); // Expect only one matching community
 
         if (communityError) { throw new Error(`Could not verify community "${decodedCommunityName}". ${communityError.message}`); }
         if (!communityData) { throw new Error(`Community "${decodedCommunityName}" not found.`); }
 
-        const communityId = communityData.id;
+        const communityId = communityData.id; // Store community ID
         const logoFilename = communityData.logo_filename;
 
+        console.log(`Community ID: ${communityId}`);
+
+        // Display logo if available
         if (logoElement && logoFilename) {
              logoElement.src = `images/logos/${logoFilename}`;
              logoElement.alt = `${decodedCommunityName} Logo`;
-             logoElement.style.display = 'block';
+             logoElement.style.display = 'block'; // Show logo
         } else if (logoElement) {
-             logoElement.style.display = 'none';
+             logoElement.style.display = 'none'; // Ensure it's hidden if no logo
         }
 
+        // Update "Suggest Change" link with correct context
         const suggestChangeLink = document.getElementById('suggestChangeLink');
         if (suggestChangeLink) {
             suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`;
@@ -115,36 +126,39 @@ async function fetchAndDisplayListings() {
             console.warn("Suggest change link element not found.")
         }
 
-        // ... (Fetch Listings - unchanged select, order) ...
-         const { data: listings, error: listingsError } = await supabaseClient
+        // Fetch Listings - IMPORTANT: Ensure 'id' is selected. '*' includes it.
+        console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
+        const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
-            .select('*')
+            .select('*') // Select all columns, including the new 'id', 'is_promoted', etc.
             .eq('community_id', communityId)
             .order('category', { ascending: true, nullsFirst: false })
             .order('name', { ascending: true });
 
-
+        // Handle errors during listing fetch
         if (listingsError) {
             if (listingsError.code === '42P01') { throw new Error(`DB table "${tableName}" not found for province "${decodedProvinceName}".`); }
-            if (listingsError.code === '42703') { throw new Error(`Column 'community_id' missing in table "${tableName}".`); }
+            if (listingsError.code === '42703') { throw new Error(`Column 'community_id' missing or misspelled in table "${tableName}". Check Supabase schema.`); }
             throw new Error(`Failed to fetch listings: ${listingsError.message}`);
         }
 
+        // Clear loading message
         resultsList.innerHTML = '';
 
+        // Update subtitle with listing count
         const listingCount = listings?.length || 0;
         const subTitleText = `Telephone Directory (${listingCount} listings)`;
         if (communityNameElement) {
             communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">${subTitleText}</span>`;
         }
 
-
+        // Handle case with no listings
         if (listingCount === 0) {
             resultsList.innerHTML = `<li>No listings found for ${decodedCommunityName}.</li>`;
             return;
         }
 
-        // ... (Group and Render Listings - unchanged structure) ...
+        // Group listings by category
         const groupedListings = listings.reduce((acc, listing) => {
             const category = listing.category || 'Uncategorized';
             if (!acc[category]) { acc[category] = []; }
@@ -152,22 +166,34 @@ async function fetchAndDisplayListings() {
             return acc;
          }, {});
 
+        // Sort categories alphabetically, keeping 'Uncategorized' last
         const sortedCategories = Object.keys(groupedListings).sort((a, b) => {
              if (a === 'Uncategorized') return 1;
              if (b === 'Uncategorized') return -1;
              return a.localeCompare(b);
          });
 
+        // Render listings grouped by category
         sortedCategories.forEach(category => {
+             // Add category heading
              const categoryHeadingItem = document.createElement('li');
              categoryHeadingItem.className = 'category-heading';
              categoryHeadingItem.textContent = category;
              resultsList.appendChild(categoryHeadingItem);
 
+             // Loop through listings within this category
              groupedListings[category].forEach(listing => {
                  const listItem = document.createElement('li');
                  listItem.className = 'directory-entry';
 
+                 // --- Get the listing's unique ID (CRITICAL) ---
+                 const listingId = listing.id;
+                 if (!listingId) {
+                     // Log a warning if a listing is missing its ID, skip promote button for it
+                     console.warn("Listing missing 'id'. Cannot create promote button:", listing);
+                 }
+
+                 // --- Phone Button Logic (Unchanged) ---
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
                  if (phoneNumber) {
@@ -177,28 +203,51 @@ async function fetchAndDisplayListings() {
                          </button>
                      `;
                  }
+
+                 // --- START: Promote Button Logic ---
+                 let promoteButtonHtml = '';
+                 if (listingId) { // Only create the button if we have the listing's ID
+                     // Construct the URL for the Promote button, including all necessary info
+                     const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
+
+                     // Create the button HTML
+                     promoteButtonHtml = `
+                         <div class="promote-button-container" style="margin-top: 8px; text-align: right;"> {/* Basic styling for spacing and alignment */}
+                             <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
+                                 <i class="fa-solid fa-rocket"></i> Promote
+                             </a>
+                         </div>
+                     `;
+                 }
+                 // --- END: Promote Button Logic ---
+
+
+                 // --- Construct the final HTML for the list item ---
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${listing.name || 'N/A'}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
+                          ${promoteButtonHtml} {/* Inject the promote button HTML here */}
                      </div>
-                     <div class="phone-container"> ${phoneHtml} </div>
+                     <div class="phone-container">
+                         ${phoneHtml} {/* Phone button remains in its container */}
+                     </div>
                  `;
                  resultsList.appendChild(listItem);
-             });
-        });
+             }); // End loop through listings in category
+        }); // End loop through categories
 
     } catch (fetchError) {
+        // Catch any errors from fetching community or listings
         displayError(fetchError.message);
     }
-}
+} // End fetchAndDisplayListings function
 
 // ======================================================================
 // Initialize Search Functionality (Unchanged)
 // ======================================================================
 function initializeSearch() {
-    // ... (unchanged) ...
     const searchBox = document.getElementById('searchBox');
     const resultsList = document.getElementById('results');
 
@@ -214,10 +263,12 @@ function initializeSearch() {
 
         let visibleCategories = new Set();
 
+        // Filter list items
         Array.from(listItems).forEach(item => {
             const name = item.querySelector('.name')?.textContent.toLowerCase() || '';
             let currentElement = item;
             let categoryText = '';
+            // Find the preceding category heading for context
             while (currentElement = currentElement.previousElementSibling) {
                 if (currentElement.classList.contains('category-heading')) {
                     categoryText = currentElement.textContent.toLowerCase();
@@ -228,33 +279,29 @@ function initializeSearch() {
             const matchesSearch = name.includes(searchTerm) || categoryText.includes(searchTerm);
 
             if (matchesSearch) {
-                item.style.display = '';
+                item.style.display = ''; // Show item
                 if (categoryText) {
-                    visibleCategories.add(categoryText);
+                    visibleCategories.add(categoryText); // Mark category as having visible items
                 }
             } else {
-                item.style.display = 'none';
+                item.style.display = 'none'; // Hide item
             }
         });
 
+        // Filter category headings based on search term or visible items
         Array.from(categoryHeadings).forEach(heading => {
             const categoryText = heading.textContent.toLowerCase();
              if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) {
-                 heading.style.display = '';
+                 heading.style.display = ''; // Show heading
              } else {
-                 heading.style.display = 'none';
+                 heading.style.display = 'none'; // Hide heading
              }
         });
     });
 }
 
 // ======================================================================
-// Initialize Print Functionality (REMOVED)
-// ======================================================================
-// Function was here, now deleted.
-
-// ======================================================================
-// Initialize Popup Interactivity (MODIFIED for Copy Button)
+// Initialize Popup Interactivity (MODIFIED for Copy Button - Unchanged from previous state)
 // ======================================================================
 function initializePopupInteraction() {
     const resultsList = document.getElementById('results');
@@ -380,6 +427,7 @@ function initializePopupInteraction() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired for directory page.");
 
+    // Check if Supabase library is loaded
     if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
          displayError("Supabase library failed to load. Check script tags in HTML.");
          return;
@@ -387,9 +435,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("[DEBUG] Supabase library found. Initializing client...");
 
+    // Define Supabase credentials
     const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
 
+    // Initialize Supabase client
     supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     if (!supabaseClient) {
@@ -399,11 +449,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("[DEBUG] Supabase client initialized.");
 
-    // Initialize functionalities
-    fetchAndDisplayListings();
-    initializeSearch();
-    // initializePrint(); // Call REMOVED
-    initializePopupInteraction();
+    // Initialize functionalities after DOM is loaded and Supabase is ready
+    fetchAndDisplayListings(); // Fetch and display the directory listings
+    initializeSearch();       // Set up the search box functionality
+    initializePopupInteraction(); // Set up phone reveal popup
 
 });
 
