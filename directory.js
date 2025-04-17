@@ -1,4 +1,4 @@
-// --- START OF UPDATED directory.js (With Promote Button Added) ---
+// --- START OF UPDATED directory.js (With Comments Fixed) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -212,7 +212,7 @@ async function fetchAndDisplayListings() {
 
                      // Create the button HTML
                      promoteButtonHtml = `
-                         <div class="promote-button-container" style="margin-top: 8px; text-align: right;"> {/* Basic styling for spacing and alignment */}
+                         <div class="promote-button-container" style="margin-top: 8px; text-align: right;">
                              <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
                                  <i class="fa-solid fa-rocket"></i> Promote
                              </a>
@@ -222,16 +222,16 @@ async function fetchAndDisplayListings() {
                  // --- END: Promote Button Logic ---
 
 
-                 // --- Construct the final HTML for the list item ---
+                 // --- Construct the final HTML for the list item (REMOVED COMMENTS INSIDE) ---
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${listing.name || 'N/A'}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${promoteButtonHtml} {/* Inject the promote button HTML here */}
+                          ${promoteButtonHtml}
                      </div>
                      <div class="phone-container">
-                         ${phoneHtml} {/* Phone button remains in its container */}
+                         ${phoneHtml}
                      </div>
                  `;
                  resultsList.appendChild(listItem);
