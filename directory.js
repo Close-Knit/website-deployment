@@ -209,7 +209,7 @@ async function fetchAndDisplayListings() {
                      // Create the link styled as a button. Add a class for potential future styling.
                      // Ensure the container aligns left (default for div) or explicitly set style="text-align: left;" if needed.
                      promoteButtonHtml = `
-                         <div class="promote-button-container" style="margin-top: 8px;"> {/* Wrapper div with margin, default left alignment */}
+                         <div class="promote-button-container" style="margin-top: 8px;">
                              <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
                                  <i class="fa-solid fa-rocket"></i> Promote
                              </a>
