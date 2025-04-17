@@ -267,7 +267,7 @@ async function fetchAndDisplayListings() {
                  // Construct the final HTML for the list item
                  listItem.innerHTML = `
                      <div class="entry-details">
-                          <span class="name">${listing.name || 'N/A'} ${sponsoredLabelHtml}</span> {/* Add label next to name */}
+                          <span class="name">${listing.name || 'N/A'} ${sponsoredLabelHtml}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
                           ${promoteButtonHtml}
