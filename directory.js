@@ -1,4 +1,4 @@
-// --- START OF directory.js (Syntax Error Fix) ---
+// --- START OF directory.js (Promote Button Left, Phone Button Right) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -185,13 +185,13 @@ async function fetchAndDisplayListings() {
                  const listItem = document.createElement('li');
                  listItem.className = 'directory-entry';
 
-                 // Get listing ID - critical for the promote link
+                 // Get listing ID
                  const listingId = listing.id;
                  if (!listingId) {
                      console.warn("Listing missing 'id'. Cannot create promote button:", listing);
                  }
 
-                 // Phone Button HTML (original)
+                 // Phone Button HTML
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
                  if (phoneNumber) {
@@ -202,32 +202,32 @@ async function fetchAndDisplayListings() {
                      `;
                  }
 
-                 // --- START: Promote Button HTML generation ---
+                 // Promote Button HTML
                  let promoteButtonHtml = '';
                  if (listingId) {
                      const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
-
+                     // Create the link styled as a button. Add a class for potential future styling.
+                     // Ensure the container aligns left (default for div) or explicitly set style="text-align: left;" if needed.
                      promoteButtonHtml = `
-                         <div style="margin-top: 8px; text-align: right;">
+                         <div class="promote-button-container" style="margin-top: 8px;"> {/* Wrapper div with margin, default left alignment */}
                              <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
                                  <i class="fa-solid fa-rocket"></i> Promote
                              </a>
                          </div>
                      `;
                  }
-                 // --- END: Promote Button HTML generation ---
 
                  // Construct the final HTML for the list item
-                 // ** FIX IS HERE: Removed the comment inside the template literal **
+                 // Place promoteButtonHtml inside entry-details, phoneHtml inside phone-container
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${listing.name || 'N/A'}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${promoteButtonHtml}
+                          ${promoteButtonHtml}  ${/* Promote button stays here */}
                      </div>
                      <div class="phone-container">
-                          ${phoneHtml}
+                          ${phoneHtml}          ${/* Phone button stays here */}
                      </div>
                  `;
                  resultsList.appendChild(listItem);
@@ -363,7 +363,7 @@ function initializePopupInteraction() {
 
     resultsList.addEventListener('click', function(event) {
         const revealButton = event.target.closest('.revealPhoneBtn');
-        const promoteButton = event.target.closest('.promote-button'); // Added check for promote button
+        const promoteButton = event.target.closest('.promote-button'); // Check for promote button click
 
         if (revealButton) {
             event.preventDefault();

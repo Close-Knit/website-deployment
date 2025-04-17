@@ -86,9 +86,54 @@ a:hover, a:focus { text-decoration: underline; }
 .search-container { text-align: center; margin-bottom: 25px; }
 .search-container input#searchBox { padding: 10px 12px; width: 90%; max-width: 350px; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 4px; font-size: 1em; }
 .action-buttons { text-align: center; margin-top: 15px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
-.button-style { display: inline-block; padding: 8px 15px; font-size: 1em; cursor: pointer; background-color: #ffffff; color: #333; border: 1px solid #adb5bd; border-radius: 5px; text-decoration: none; transition: background-color 0.2s ease, border-color 0.2s ease; white-space: nowrap; }
-.button-style:hover { background-color: #f8f9fa; border-color: #adb5bd; color: #333; text-decoration: none; /* Remove underline on hover for buttons */ }
-.button-style i { margin-right: 6px; }
+
+/* --- START: Button Style Harmonization --- */
+/* Base style used by Promote button and others */
+.button-style {
+    display: inline-block;
+    padding: 5px 10px; /* Harmonized padding */
+    font-size: 0.9em;  /* Harmonized font size */
+    line-height: 1.5;  /* Harmonized line height */
+    vertical-align: baseline; /* Align buttons nicely */
+    cursor: pointer;
+    background-color: #ffffff;
+    color: #333;
+    border: 1px solid #adb5bd;
+    border-radius: 4px; /* Harmonized border radius */
+    text-decoration: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap;
+    margin: 0; /* Reset margin if needed */
+}
+.button-style:hover { background-color: #f8f9fa; border-color: #adb5bd; color: #333; text-decoration: none; }
+.button-style i {
+    margin-right: 5px; /* Harmonized icon margin */
+    vertical-align: middle; /* Helps icon alignment */
+}
+
+/* Style specifically for the reveal phone button */
+.revealPhoneBtn {
+    display: inline-block; /* Ensure it behaves correctly */
+    padding: 5px 10px; /* MATCH .button-style */
+    font-size: 0.9em;  /* MATCH .button-style */
+    line-height: 1.5;  /* MATCH .button-style */
+    vertical-align: baseline; /* Align with other buttons */
+    cursor: pointer;
+    background-color: #e9ecef; /* Keep its distinct background */
+    color: #212529;
+    border: 1px solid #ced4da;
+    border-radius: 4px; /* MATCH .button-style */
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+    margin: 0; /* Reset margin if needed */
+}
+.revealPhoneBtn i {
+    margin-right: 5px; /* MATCH .button-style */
+    vertical-align: middle; /* Helps icon alignment */
+}
+.revealPhoneBtn:hover { background-color: #dee2e6; border-color: #adb5bd; }
+/* --- END: Button Style Harmonization --- */
+
 
 /* --- ADDED: Style for visited links styled as buttons --- */
 a.button-style:visited {
@@ -98,7 +143,6 @@ a.button-style:visited {
 /* --- END ADDITION --- */
 
 /* --- REMOVED styles specific to #printButton if any existed --- */
-/* Usually covered by hiding .action-buttons in print */
 
 /* --- ADDED: Style for H1 subtitle --- */
 .directory-subtitle {
@@ -119,18 +163,46 @@ a.button-style:visited {
 #results li.category-heading:first-child { margin-top: 0px; }
 
 /* Individual Directory Entry on community.html */
-#results li.directory-entry { list-style: none !important; padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px 15px; }
+#results li.directory-entry {
+    list-style: none !important;
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline; /* Use baseline alignment */
+    flex-wrap: wrap;
+    gap: 5px 15px; /* Keep gap */
+}
 #results li.directory-entry:last-child { border-bottom: none; }
-.entry-details { flex-grow: 1; margin-right: 15px; text-align: left; }
-.name { font-weight: bold; font-size: 1.1em; display: block; color: #212529; }
+
+/* Details container on the left */
+.entry-details {
+    flex-grow: 1;
+    margin-right: 15px; /* Space between details and phone button */
+    text-align: left;
+}
+.name { font-weight: bold; font-size: 1.1em; display: block; color: #212529; margin-bottom: 4px; /* Add space below name */ }
 .address { display: block; font-size: 0.9em; color: #555; margin-top: 4px; }
-.notes { display: block; font-size: 0.9em; color: #6c757d; margin-top: 4px; }
-/* Style for the reveal button itself */
-.revealPhoneBtn { padding: 5px 10px; font-size: 0.9em; cursor: pointer; background-color: #e9ecef; color: #212529; border: 1px solid #ced4da; border-radius: 4px; transition: background-color 0.2s ease; white-space: nowrap; }
-.revealPhoneBtn i { margin-right: 5px; }
-.revealPhoneBtn:hover { background-color: #dee2e6; border-color: #adb5bd; }
-/* Container for the phone button in the listing */
-.phone-container { text-align: right; flex-shrink: 0; }
+.notes { display: block; font-size: 0.9em; color: #6c757d; margin-top: 4px; margin-bottom: 4px; /* Add space below notes before promote button */ }
+
+/* Container ONLY for the phone button on the right */
+.phone-container {
+    text-align: right; /* Keep button aligned right */
+    flex-shrink: 0; /* Prevent shrinking */
+    /* NO display: flex needed here */
+}
+
+/* Container for the promote button (inside entry-details) */
+.promote-button-container {
+     margin-top: 8px; /* Space above the promote button */
+     text-align: left; /* Explicitly align left if needed */
+}
+
+/* Specific class for promote button if needed */
+.promote-button {
+    /* Styles inherited from .button-style */
+}
+
 
 /* Notice Text */
 .notice { font-size: 0.85em; color: #6c757d; margin-top: 40px; text-align: center; padding: 0 15px; line-height: 1.4; }
@@ -363,10 +435,36 @@ a.button-style:visited {
     #logo { max-width: 100px; margin-bottom: 8px; }
     #community-name { font-size: 1.5em; line-height: 1.3; }
     .directory-subtitle { font-size: 0.8em; }
-    #results li.directory-entry { flex-direction: column; align-items: stretch; gap: 3px 0; padding-top: 10px; padding-bottom: 10px; }
-    .entry-details { margin-right: 0; margin-bottom: 4px; order: 1; text-align: left; }
+    #results li.directory-entry {
+        flex-direction: column;
+        align-items: stretch;
+        /* gap: 3px 0; /* Original */
+        gap: 8px 0; /* Increased gap slightly for stacked view */
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .entry-details {
+        margin-right: 0;
+        /* margin-bottom: 4px; /* Original */
+        margin-bottom: 8px; /* More space before phone button */
+        order: 1;
+        text-align: left;
+    }
     .address { font-size: 0.85em; }
-    .phone-container { text-align: right; width: 100%; margin-top: 4px; order: 2; white-space: normal; }
+    .phone-container {
+        text-align: right; /* Align button to the right */
+        width: 100%;
+        /* margin-top: 4px; /* Original */
+        margin-top: 0; /* Remove top margin as gap handles spacing */
+        order: 2;
+        white-space: normal;
+        /* NO flex needed here if only one button */
+    }
+    .promote-button-container {
+        /* On mobile, promote button is inside entry-details which is order: 1 */
+        margin-top: 8px; /* Keep space above */
+        text-align: left; /* Ensure it's left aligned */
+    }
     .action-buttons { gap: 10px; }
     /* Mobile Form Page */
      #suggestion-form { padding: 20px 15px; }
