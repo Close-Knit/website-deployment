@@ -1,20 +1,12 @@
-// --- promote.js ---
-// Handles the promote.html page interaction (with Supabase client fix + CSS classes for messages)
+// --- promote.js (Using Centralized Supabase Client) ---
 
-// Initialize Supabase Client
-const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
-let promotePage_supabaseClient;
-// Check if the Supabase library is loaded (it should be now)
-if (typeof supabase !== 'undefined' && supabase.createClient) {
-    promotePage_supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-    console.log("Supabase client initialized for promote page.");
-} else {
-    console.error("Supabase client library STILL not found or failed to initialize!");
-    // Attempt to inform the user on the page itself if possible
-    const loadingDisplay = document.getElementById('listing-details');
-    if (loadingDisplay) loadingDisplay.textContent = "Critical Error: Cannot load payment services.";
-}
+// ======================================================================
+// NO Supabase Client Initialization HERE - Assumes 'supabaseClient' is globally available from common.js
+// ======================================================================
+// const supabaseUrl = '...'; // REMOVED
+// const supabaseKey = '...'; // REMOVED
+// let promotePage_supabaseClient; // REMOVED
+// if (typeof supabase !== 'undefined' && supabase.createClient) { ... } // REMOVED
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Promote page DOMContentLoaded.');
@@ -27,24 +19,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageArea = document.getElementById('message-area');
     const goBackLink = document.getElementById('go-back-link');
 
-    // Check if essential elements exist
+    // *** Check if the GLOBAL supabaseClient is available ***
+    // This check runs after DOMContentLoaded, ensuring common.js likely ran
+    if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+        console.error("Supabase client not initialized (from common.js). Cannot proceed.");
+        if(listingDetailsDisplay) listingDetailsDisplay.textContent = "Page Error: Service unavailable.";
+        if(paymentButton) {
+            paymentButton.disabled = true;
+            paymentButton.textContent = 'Service Unavailable';
+        }
+        if(messageArea) showMessage('Error: Cannot connect to backend service.', 'error'); // Use showMessage if available
+        return; // Stop execution
+    }
+    console.log("Promote.js using supabaseClient initialized in common.js");
+
+
+    // Check if other essential elements exist
     if (!listingDetailsDisplay || !emailInput || !paymentButton || !messageArea || !goBackLink) {
         console.error("Essential page elements missing on promote.html");
         if(listingDetailsDisplay) listingDetailsDisplay.textContent = "Page Error: Elements missing.";
         if(paymentButton) paymentButton.disabled = true;
         return;
     }
-     if (!promotePage_supabaseClient) { // Check again now that DOM is ready
-        console.error("Supabase client is not available.");
-        showMessage('Error: Cannot connect to backend service.', 'error'); // Use showMessage
-        paymentButton.disabled = true;
-        paymentButton.textContent = "Service Unavailable";
-        return;
-    }
 
     console.log("All essential elements and Supabase client seem available.");
 
-    // --- 1. Read URL Parameters ---
+
+    // --- 1. Read URL Parameters (unchanged) ---
     const urlParams = new URLSearchParams(window.location.search);
     const listingId = urlParams.get('lid');
     const communityId = urlParams.get('cid');
@@ -55,12 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("--- URL Parameters Read ---");
     console.log("listingId:", listingId);
-    console.log("listingName (raw):", listingName); // Check this!
-    // Add logs for others if needed
+    console.log("listingName (raw):", listingName);
     console.log("--------------------------");
 
 
-    // --- 2. Validate and Display Listing Info ---
+    // --- 2. Validate and Display Listing Info (unchanged) ---
     if (!listingId || !communityId || !provinceName || !communityName || !listingName || !tableName) {
         console.error("Validation Failed: One or more required URL parameters are missing!");
         listingDetailsDisplay.textContent = "Error: Listing information missing.";
@@ -79,17 +79,17 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Promotion Context seems valid.');
     }
 
-    // --- 3. Make "Cancel and Go Back" Link Work ---
+    // --- 3. Make "Cancel and Go Back" Link Work (unchanged) ---
     goBackLink.addEventListener('click', (event) => {
         event.preventDefault();
         console.log('Go back clicked');
         history.back();
     });
 
-    // --- 4. Payment Button Click Handler ---
+    // --- 4. Payment Button Click Handler (unchanged logic, uses global client) ---
     paymentButton.addEventListener('click', async () => {
         console.log('Payment button clicked');
-        showMessage(''); // Clear previous messages
+        showMessage('');
         const promoterEmail = emailInput.value.trim();
 
         if (!promoterEmail || !/\S+@\S+\.\S+/.test(promoterEmail)) {
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const stripePriceId = 'price_1REiFhQSnCFma2DMiheznLJB'; // Use the correct ID
+        const stripePriceId = 'price_1REiFhQSnCFma2DMiheznLJE'; // Ensure this is correct
 
         if (!stripePriceId) {
              console.error("Stripe Price ID is missing in promote.js!");
@@ -124,7 +124,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             console.log('Invoking create-checkout-session with payload:', functionPayload);
 
-            const { data, error } = await promotePage_supabaseClient.functions.invoke(
+            // *** USES GLOBAL supabaseClient ***
+            const { data, error } = await supabaseClient.functions.invoke(
                 'create-checkout-session',
                 { body: functionPayload }
             );
@@ -157,13 +158,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }); // End paymentButton click listener
 
-    // Helper function to show messages using CSS classes
+    // Helper function to show messages using CSS classes (unchanged)
     function showMessage(msg, type = 'info') {
         messageArea.textContent = msg;
-        // Reset classes first
-        messageArea.className = ''; // Remove existing type classes
+        messageArea.className = '';
         if (msg) {
-            // Add class based on type for styling defined in CSS
             messageArea.classList.add(type === 'error' ? 'error-message' : 'info-message');
             messageArea.style.display = 'block';
         } else {
