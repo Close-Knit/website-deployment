@@ -1,15 +1,15 @@
-// --- START OF UPDATED home.js (With "&" for Newfoundland Display) ---
+// --- START OF home.js (Using Centralized Supabase Client) ---
 
 // ======================================================================
-// Initialize Supabase (Same as before)
+// NO Supabase Client Initialization HERE - Assumes 'supabaseClient' is globally available from common.js
 // ======================================================================
-const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
-const { createClient } = supabase;
-const supabaseClient = createClient(supabaseUrl, supabaseKey);
+// const supabaseUrl = '...'; // REMOVED
+// const supabaseKey = '...'; // REMOVED
+// const { createClient } = supabase; // REMOVED
+// const supabaseClient = createClient(supabaseUrl, supabaseKey); // REMOVED
 
 // ======================================================================
-// Helper to display error messages (Same as before)
+// Helper to display error messages
 // ======================================================================
 function displayHomeError(message) {
     console.error("Home Page Error:", message);
@@ -20,12 +20,12 @@ function displayHomeError(message) {
 }
 
 // ======================================================================
-// Define Territories (Same as before)
+// Define Territories
 // ======================================================================
 const territoryNames = ["Yukon", "Northwest Territories", "Nunavut"];
 
 // ======================================================================
-// Max Communities to Display Initially (Same as before)
+// Max Communities to Display Initially
 // ======================================================================
 const MAX_COMMUNITIES_VISIBLE = 5;
 
@@ -34,76 +34,98 @@ const MAX_COMMUNITIES_VISIBLE = 5;
 // ======================================================================
 async function populateHomePage() {
     const regionContainer = document.getElementById("province-list");
-    if (!regionContainer) { console.error("Fatal Error: Could not find #province-list container element."); return; }
+    if (!regionContainer) {
+        console.error("Fatal Error: Could not find #province-list container element.");
+        return;
+    }
     regionContainer.innerHTML = '<p>Loading available communities...</p>';
 
+    // *** Check if the GLOBAL supabaseClient is available ***
+    if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+        displayHomeError("Supabase client not initialized (from common.js). Cannot fetch data.");
+        return;
+    }
+    console.log("Home.js using supabaseClient initialized in common.js");
+
     try {
-        // 1. Fetch all provinces/territories (Same as before)
+        // 1. Fetch all provinces/territories
+        // *** USES GLOBAL supabaseClient ***
         console.log("Fetching provinces/territories...");
-        const { data: regionsData, error: regionsError } = await supabaseClient.from('provinces').select('id, province_name').order('province_name', { ascending: true });
+        const { data: regionsData, error: regionsError } = await supabaseClient
+            .from('provinces')
+            .select('id, province_name')
+            .order('province_name', { ascending: true });
+
         if (regionsError) throw new Error(`Failed to fetch regions: ${regionsError.message}`);
         if (!regionsData || regionsData.length === 0) throw new Error('No provinces or territories found.');
 
-        // 2. Fetch all communities - INCLUDE 'status' COLUMN
+        // 2. Fetch all communities
+        // *** USES GLOBAL supabaseClient ***
         console.log("Fetching communities...");
         const { data: communitiesData, error: communitiesError } = await supabaseClient
             .from('communities')
-            .select('community_name, province_id, status') // Select status column
+            .select('community_name, province_id, status')
             .order('community_name', { ascending: true });
 
         if (communitiesError) throw new Error(`Failed to fetch communities: ${communitiesError.message}`);
         console.log(`Fetched ${communitiesData?.length || 0} communities.`);
 
-        // 3. Organize data - Store status along with name (Same as before)
+        // 3. Organize data (unchanged logic)
         const regionMap = new Map(regionsData.map(r => [r.id, r.province_name]));
         const communitiesByRegion = {};
         const provinces = [];
         const territories = [];
-        regionsData.forEach(region => { communitiesByRegion[region.province_name] = []; if (territoryNames.includes(region.province_name)) { territories.push(region.province_name); } else { provinces.push(region.province_name); } });
-        if (communitiesData && communitiesData.length > 0) { communitiesData.forEach(community => { const regionName = regionMap.get(community.province_id); if (regionName && communitiesByRegion.hasOwnProperty(regionName)) { communitiesByRegion[regionName].push({ name: community.community_name, status: community.status }); } else { console.warn(`Community "${community.community_name}" has an invalid province_id or region name mapping.`); } }); }
+        regionsData.forEach(region => {
+            communitiesByRegion[region.province_name] = [];
+            if (territoryNames.includes(region.province_name)) {
+                territories.push(region.province_name);
+            } else {
+                provinces.push(region.province_name);
+            }
+        });
+        if (communitiesData && communitiesData.length > 0) {
+            communitiesData.forEach(community => {
+                const regionName = regionMap.get(community.province_id);
+                if (regionName && communitiesByRegion.hasOwnProperty(regionName)) {
+                    communitiesByRegion[regionName].push({ name: community.community_name, status: community.status });
+                } else {
+                    console.warn(`Community "${community.community_name}" has an invalid province_id or region name mapping.`);
+                }
+            });
+        }
 
-        // 4. Render the HTML
+        // 4. Render the HTML (unchanged logic, just formatting)
         regionContainer.innerHTML = '';
         regionContainer.className = 'region-container';
 
         const renderRegionSection = (regionName) => {
-            const communities = communitiesByRegion[regionName] || []; // Ensure communities is always an array
+            const communities = communitiesByRegion[regionName] || [];
             const regionSection = document.createElement("section");
-            regionSection.className = 'region-column'; // This column will become a flex container via CSS
+            regionSection.className = 'region-column';
 
             const regionHeader = document.createElement("h2");
-
-            // --- START: MODIFICATION for Newfoundland Heading ---
-            // Check if this is the specific province and adjust display text
             let displayRegionName = regionName;
             if (regionName === "Newfoundland and Labrador") {
                 displayRegionName = "Newfoundland & Labrador";
             }
-            regionHeader.textContent = displayRegionName; // Use the potentially modified name for display
-            // --- END: MODIFICATION for Newfoundland Heading ---
-
+            regionHeader.textContent = displayRegionName;
             regionSection.appendChild(regionHeader);
 
-            // Create container for the list items (will grow to fill space)
             const communityListContainer = document.createElement("div");
-            communityListContainer.className = 'community-list'; // This list will grow via CSS
+            communityListContainer.className = 'community-list';
 
             if (communities.length > 0) {
-                // Display up to MAX_COMMUNITIES_VISIBLE
                 const communitiesToDisplay = communities.slice(0, MAX_COMMUNITIES_VISIBLE);
-
                 communitiesToDisplay.forEach(community => {
                     const communityItemContainer = document.createElement('div');
                     communityItemContainer.className = 'community-item-container';
 
                     const communityLink = document.createElement("a");
                     communityLink.className = 'community-link';
-                    // Use original regionName for the link URL to ensure data consistency
                     communityLink.href = `community.html?province=${encodeURIComponent(regionName)}&community=${encodeURIComponent(community.name)}`;
                     communityLink.textContent = community.name;
                     communityItemContainer.appendChild(communityLink);
 
-                    // Add Status Span Conditionally
                     if (community.status === 'NEW') {
                         const statusSpan = document.createElement('span');
                         statusSpan.className = 'status-label status-new';
@@ -115,44 +137,37 @@ async function populateHomePage() {
                         statusSpan.textContent = ' Coming Soon';
                         communityItemContainer.appendChild(statusSpan);
                     }
-
                     communityListContainer.appendChild(communityItemContainer);
                 });
             } else {
-                 // Display message if no communities
                  const noCommunitiesMsg = document.createElement('p');
                  noCommunitiesMsg.className = 'no-communities-message';
                  noCommunitiesMsg.textContent = 'No communities listed yet.';
                  communityListContainer.appendChild(noCommunitiesMsg);
             }
-            // Add the list container to the section
             regionSection.appendChild(communityListContainer);
 
-            // Add Button Container if communities exist
             if (communities.length > 0) {
                 const buttonContainer = document.createElement('div');
                 buttonContainer.className = 'view-all-button-container';
-
                 const viewAllLink = document.createElement("a");
                 viewAllLink.className = 'button-style view-all-button';
-                // Use original regionName for the link URL
                 viewAllLink.href = `province_page.html?province=${encodeURIComponent(regionName)}`;
                 viewAllLink.textContent = "View All";
-                // Use original regionName for the title attribute for accuracy
                 viewAllLink.title = `View all communities in ${regionName}`;
-
                 buttonContainer.appendChild(viewAllLink);
                 regionSection.appendChild(buttonContainer);
             }
-
-            // Add the fully constructed section to the main container
             regionContainer.appendChild(regionSection);
         };
 
-        // Render Provinces and Territories (Same logic as before)
         provinces.sort().forEach(renderRegionSection);
-        if (territories.length > 0) { territories.sort().forEach(renderRegionSection); }
-        if (regionContainer.childElementCount === 0) { regionContainer.innerHTML = '<p>No regions found.</p>'; }
+        if (territories.length > 0) {
+            territories.sort().forEach(renderRegionSection);
+        }
+        if (regionContainer.childElementCount === 0) {
+            regionContainer.innerHTML = '<p>No regions found.</p>';
+        }
 
     } catch (error) {
         displayHomeError(error.message);
@@ -160,11 +175,17 @@ async function populateHomePage() {
 }
 
 // ======================================================================
-// Main Execution (Same as before)
+// Main Execution
 // ======================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') { displayHomeError("Supabase library not loaded."); return; }
+    // *** REMOVED Supabase library check here - assume common.js handled it ***
+    // if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
+    //     displayHomeError("Supabase library not loaded.");
+    //     return;
+    // }
+
+    // Call populate function directly
     populateHomePage();
 });
 
-// --- END OF UPDATED home.js ---
+// --- END OF home.js ---
