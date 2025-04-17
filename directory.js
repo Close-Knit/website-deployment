@@ -1,4 +1,4 @@
-// --- START OF UPDATED directory.js (With Comments Fixed) ---
+// --- START OF UPDATED directory.js (Button Alignment Fix) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -189,11 +189,10 @@ async function fetchAndDisplayListings() {
                  // --- Get the listing's unique ID (CRITICAL) ---
                  const listingId = listing.id;
                  if (!listingId) {
-                     // Log a warning if a listing is missing its ID, skip promote button for it
                      console.warn("Listing missing 'id'. Cannot create promote button:", listing);
                  }
 
-                 // --- Phone Button Logic (Unchanged) ---
+                 // --- Phone Button HTML generation ---
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
                  if (phoneNumber) {
@@ -204,34 +203,30 @@ async function fetchAndDisplayListings() {
                      `;
                  }
 
-                 // --- START: Promote Button Logic ---
+                 // --- Promote Button HTML generation ---
                  let promoteButtonHtml = '';
-                 if (listingId) { // Only create the button if we have the listing's ID
-                     // Construct the URL for the Promote button, including all necessary info
+                 if (listingId) {
                      const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
-
-                     // Create the button HTML
+                     // Note: Removed the wrapper div and inline style from here
                      promoteButtonHtml = `
-                         <div class="promote-button-container" style="margin-top: 8px; text-align: right;">
-                             <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
-                                 <i class="fa-solid fa-rocket"></i> Promote
-                             </a>
-                         </div>
+                         <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
+                             <i class="fa-solid fa-rocket"></i> Promote
+                         </a>
                      `;
                  }
-                 // --- END: Promote Button Logic ---
 
 
-                 // --- Construct the final HTML for the list item (REMOVED COMMENTS INSIDE) ---
+                 // --- Construct the final HTML for the list item ---
+                 // Put BOTH buttons inside phone-container
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${listing.name || 'N/A'}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${promoteButtonHtml}
                      </div>
                      <div class="phone-container">
-                         ${phoneHtml}
+                          ${promoteButtonHtml}  {/* Promote button now comes first */}
+                          ${phoneHtml}          {/* Phone button comes second */}
                      </div>
                  `;
                  resultsList.appendChild(listItem);
@@ -378,24 +373,27 @@ function initializePopupInteraction() {
 
     // --- Reveal Button Logic (Event Delegation) ---
     resultsList.addEventListener('click', function(event) {
+        // IMPORTANT: Check for clicks on BOTH button types now within this handler if needed,
+        // BUT for now, only the phone button triggers the popup.
         const revealButton = event.target.closest('.revealPhoneBtn');
+        const promoteButton = event.target.closest('.promote-button'); // Check if click was on promote button
 
-        if (revealButton) {
-            event.preventDefault();
+        if (revealButton) { // Logic for Phone Button click
+            event.preventDefault(); // Prevent default if it was a link/button
             const numberToDisplay = revealButton.dataset.phone;
 
             if (numberToDisplay) {
                 phoneNumberDisplay.innerHTML = `<a href="tel:${numberToDisplay}">${numberToDisplay}</a>`;
-
-                // Reset copy button to its default state *before* showing popup
                 resetCopyButton();
-
                 phonePopup.classList.remove('hidden');
                 console.log(`Showing popup for number: ${numberToDisplay}`);
-
             } else {
                 console.warn("Clicked reveal button is missing phone data (data-phone attribute).");
             }
+        } else if (promoteButton) {
+            // If the promote button is clicked, we *don't* preventDefault,
+            // because we WANT the browser to follow the link ('href') to promote.html.
+            console.log('Promote button clicked, allowing navigation to:', promoteButton.href);
         }
     });
     // --- End Reveal Button Logic ---

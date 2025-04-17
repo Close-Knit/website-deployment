@@ -1,388 +1,126 @@
 /* ====================================================================== */
-/* Global / Shared Styles */
-/* ====================================================================== */
-html { scroll-behavior: smooth; /* Enable smooth scrolling for back-to-top */ }
-body { font-family: sans-serif; padding: 20px; color: #333; } /* Default padding */
-h1 { margin-top: 0; text-align: center; margin-bottom: 25px; }
-a, a:visited { color: #1a0dab; text-decoration: none; }
-a:hover, a:focus { text-decoration: underline; }
-
-/* --- Site Logo Styles --- */
-#site-logo-link { display: inline-block; text-decoration: none; border: none; position: absolute; top: 15px; left: 15px; z-index: 10; }
-#site-logo { display: block; width: 60px; height: auto; vertical-align: middle; }
-
-/* ====================================================================== */
-/* Styles for Home Page List (index.html) */
-/* ====================================================================== */
-.region-container { display: flex; flex-wrap: wrap; gap: 20px; padding-left: 0; list-style: none; }
-
-/* --- MODIFIED: Make Region Column a Flex Container --- */
-.region-column {
-    flex: 1 1 calc(20% - 17px);
-    box-sizing: border-box;
-    border: 1px solid #e0e0e0;
-    border-radius: 5px;
-    padding: 15px; /* Keep padding */
-    padding-bottom: 20px; /* Add more padding at bottom for button space */
-    min-width: 160px;
-    display: flex; /* Enable Flexbox */
-    flex-direction: column; /* Stack children vertically */
-    min-height: 250px; /* Optional: Give columns a minimum height */
-}
-/* --- END MODIFICATION --- */
-
-.region-column h2 {
-    background-color: #f5f1e6;
-    font-size: 1.3em;
-    font-weight: bold;
-    color: #495057;
-    margin: -15px -15px 15px -15px; /* Adjust margin to account for padding */
-    padding: 10px 15px;
-    border-bottom: 2px solid #dee2e6;
-    list-style: none;
-    border-radius: 5px 5px 0 0;
-    text-align: center;
-    flex-shrink: 0; /* Prevent header from shrinking */
-}
-
-/* --- MODIFIED: Make Community List grow --- */
-.community-list {
-    margin-top: 10px;
-    text-align: left;
-    flex-grow: 1; /* Allow list to take available vertical space */
-    margin-bottom: 15px; /* Add space between list and button */
-}
-/* --- END MODIFICATION --- */
-
-.community-item-container { margin-bottom: 8px; line-height: 1.4; display: flex; justify-content: space-between; align-items: baseline; }
-.community-link { flex-grow: 1; text-align: left; margin-right: 5px; display: block; }
-.status-label { flex-shrink: 0; display: inline-block; font-size: 0.75em; font-weight: bold; padding: 1px 4px; border-radius: 3px; margin-left: 6px; vertical-align: baseline; white-space: nowrap; text-align: right; }
-.status-new { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-.status-coming-soon { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
-.no-communities-message { display: block; font-style: italic; color: #666; font-size: 0.9em; margin-top: 10px; text-align: center;}
-
-/* --- ADDED: Style for the Button Container --- */
-.view-all-button-container {
-    text-align: center; /* Center the button inside */
-    margin-top: auto; /* Push this container to the bottom of the flex column */
-    flex-shrink: 0; /* Prevent container from shrinking */
-    padding-top: 10px; /* Add a little space above the button if list is short */
-}
-/* --- END ADDITION --- */
-
-/* Style for the 'View All' button itself */
-.view-all-button {
-  /* Inherits most styles from .button-style */
-  display: inline-block; /* Ensure it behaves like a button */
-}
-
-
-/* ====================================================================== */
 /* Styles for Community Directory Page (community.html) */
 /* ====================================================================== */
-.community-header { text-align: center; padding-top: 40px; margin-bottom: 25px; } /* Default padding-top */
-#logo { display: block; margin: 0 auto 10px auto; max-width: 150px; height: auto; }
-#community-name { margin-top: 0; margin-bottom: 0; text-align: center; /* Line height ensures <br> works well */ line-height: 1.4; }
-.search-container { text-align: center; margin-bottom: 25px; }
-.search-container input#searchBox { padding: 10px 12px; width: 90%; max-width: 350px; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 4px; font-size: 1em; }
-.action-buttons { text-align: center; margin-top: 15px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
-.button-style { display: inline-block; padding: 8px 15px; font-size: 1em; cursor: pointer; background-color: #ffffff; color: #333; border: 1px solid #adb5bd; border-radius: 5px; text-decoration: none; transition: background-color 0.2s ease, border-color 0.2s ease; white-space: nowrap; }
-.button-style:hover { background-color: #f8f9fa; border-color: #adb5bd; color: #333; text-decoration: none; /* Remove underline on hover for buttons */ }
-.button-style i { margin-right: 6px; }
 
-/* --- ADDED: Style for visited links styled as buttons --- */
-a.button-style:visited {
-    color: #333; /* Match default text color */
-    background-color: #ffffff; /* Match default background */
-}
-/* --- END ADDITION --- */
+/* ... other styles ... */
 
-/* --- REMOVED styles specific to #printButton if any existed --- */
-/* Usually covered by hiding .action-buttons in print */
-
-/* --- ADDED: Style for H1 subtitle --- */
-.directory-subtitle {
-    display: block; /* Ensures it takes its own line */
-    font-size: 0.85em; /* Smaller font size */
-    color: #6c757d; /* Lighter gray color (like notice text) */
-    font-weight: normal; /* Ensure it's not bold like the main H1 */
-    margin-top: 2px; /* Small space below main title */
-}
-/* --- END ADDITION --- */
-
-
-/* Results List Container */
-#results { padding-left: 0; margin-top: 20px; list-style: none; border-top: 1px solid #dee2e6; padding-top: 15px; }
-
-/* Category Heading for Community Page */
-#results .category-heading { background-color: #f5f1e6; font-size: 1.4em; font-weight: bold; color: #495057; margin-top: 25px; margin-bottom: 10px; padding: 10px 15px; border-bottom: 2px solid #dee2e6; list-style: none; border-radius: 4px; }
-#results li.category-heading:first-child { margin-top: 0px; }
 
 /* Individual Directory Entry on community.html */
-#results li.directory-entry { list-style: none !important; padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px 15px; }
+/* Ensure it remains a flex container to align details and phone container */
+#results li.directory-entry {
+    list-style: none !important;
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    /* align-items: center; */ /* Let items align to top (baseline might be better) */
+    align-items: baseline; /* Align based on the text baseline for better look */
+    flex-wrap: wrap;
+    gap: 5px 15px;
+}
 #results li.directory-entry:last-child { border-bottom: none; }
-.entry-details { flex-grow: 1; margin-right: 15px; text-align: left; }
-.name { font-weight: bold; font-size: 1.1em; display: block; color: #212529; }
+
+/* Left side details container */
+.entry-details {
+    flex-grow: 1;
+    margin-right: 15px; /* Keep space between details and buttons */
+    text-align: left; /* Ensure text inside is left-aligned */
+}
+.name { font-weight: bold; font-size: 1.1em; display: block; color: #212529; margin-bottom: 4px; /* Added margin */ }
 .address { display: block; font-size: 0.9em; color: #555; margin-top: 4px; }
 .notes { display: block; font-size: 0.9em; color: #6c757d; margin-top: 4px; }
+
 /* Style for the reveal button itself */
-.revealPhoneBtn { padding: 5px 10px; font-size: 0.9em; cursor: pointer; background-color: #e9ecef; color: #212529; border: 1px solid #ced4da; border-radius: 4px; transition: background-color 0.2s ease; white-space: nowrap; }
+/* Make sure it has similar padding/font to button-style */
+.revealPhoneBtn {
+    padding: 5px 10px; /* Adjust padding to match .button-style if needed */
+    font-size: 0.9em; /* Adjust font size to match .button-style if needed */
+    line-height: 1.5; /* Ensure consistent line height */
+    cursor: pointer;
+    background-color: #e9ecef;
+    color: #212529;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+    vertical-align: baseline; /* Align buttons nicely */
+    display: inline-block; /* Needed for proper spacing/alignment */
+}
 .revealPhoneBtn i { margin-right: 5px; }
 .revealPhoneBtn:hover { background-color: #dee2e6; border-color: #adb5bd; }
-/* Container for the phone button in the listing */
-.phone-container { text-align: right; flex-shrink: 0; }
 
-/* Notice Text */
-.notice { font-size: 0.85em; color: #6c757d; margin-top: 40px; text-align: center; padding: 0 15px; line-height: 1.4; }
+/* Container for the phone AND promote buttons */
+.phone-container {
+    text-align: right; /* Align the buttons themselves to the right */
+    flex-shrink: 0; /* Prevent container from shrinking */
+    display: flex; /* Use flexbox to layout buttons */
+    flex-direction: row; /* Layout buttons horizontally */
+    align-items: baseline; /* Align buttons along their text baseline */
+    gap: 8px; /* Add space between the buttons */
+}
 
-/* ====================================================================== */
-/* Form Styles (for suggest_change.html) - UNCHANGED */
-/* ====================================================================== */
-#suggestion-form { max-width: 650px; margin: 30px auto; padding: 25px 30px; border: 1px solid #dee2e6; border-radius: 8px; background-color: #fdfdfd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-.form-group { margin-bottom: 20px; }
-.form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #495057; }
-.form-group input[type="text"],
-.form-group input[type="tel"],
-.form-group input[type="email"],
-.form-group textarea,
-.form-group select { width: 100%; padding: 10px 12px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-size: 1em; line-height: 1.5; }
-.form-group input[type="radio"] { margin-right: 8px; vertical-align: middle; }
-.form-group input[type="radio"] + label { display: inline-block; margin-bottom: 0; font-weight: normal; vertical-align: middle;}
-.form-group div { margin-bottom: 8px; }
-#suggestion-form button[type="submit"] { padding: 12px 25px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1.1em; transition: background-color 0.2s ease; display: block; margin: 20px auto 0 auto; }
-#suggestion-form button[type="submit"]:hover { background-color: #0056b3; }
-#suggestion-form button[type="submit"]:disabled { background-color: #6c757d; cursor: not-allowed; }
-.form-message { margin-top: 20px; padding: 12px; border-radius: 4px; display: none; text-align: center;}
-.form-message.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-.form-message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-#form-context { font-size: 1.2em; color: #495057; text-align: center; margin-bottom: 25px; font-weight: bold;}
-#suggestion-form hr { border: none; border-top: 1px solid #e9ecef; margin: 25px 0; }
-#suggestion-form p { margin-top: 20px; margin-bottom: 10px; }
-.form-back-link { text-align: center; margin-top: 25px; font-size: 0.9em; }
-
-/* ====================================================================== */
-/* Styles for Click-to-Reveal Phone Popup */
-/* ====================================================================== */
-/* The hidden class to control visibility */
-.hidden { display: none !important; }
-
-/* Popup main container - Fixed position, centered */
-.popup {
-    position: fixed;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 350px;
+/* --- Ensure Promote button (.button-style) has compatible styles --- */
+/* Find your existing .button-style rule and ensure padding/font-size are good */
+.button-style {
+    display: inline-block;
+    /* padding: 8px 15px; */ /* Default style */
+    padding: 5px 10px;  /* MODIFIED: Try matching revealPhoneBtn padding */
+    /* font-size: 1em; */   /* Default style */
+    font-size: 0.9em; /* MODIFIED: Try matching revealPhoneBtn font-size */
+    line-height: 1.5; /* Ensure consistent line height */
+    cursor: pointer;
     background-color: #ffffff;
-    border: 1px solid #adb5bd;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-/* Popup content area */
-.popup-content { position: relative; text-align: center; }
-
-/* Close button ('X') */
-.close-button {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    font-size: 2.2em;
-    font-weight: bold;
-    color: #dc3545;
-    background: transparent;
-    border-radius: 0;
-    padding: 0;
-    line-height: 0.8;
-    cursor: pointer;
-    transition: color 0.2s ease;
-    border: none;
-}
-.close-button:hover { color: #a71d2a; }
-
-/* Styles for the revealed phone number paragraph */
-.popup-phone-number { font-size: 1.4em; font-weight: bold; color: #007bff; margin-top: 5px; margin-bottom: 5px; /* Reduced bottom margin */ }
-
-/* Style the phone number link within the popup */
-.popup-phone-number a,
-.popup-phone-number a:visited { color: inherit; text-decoration: none; font-weight: inherit; }
-.popup-phone-number a:hover { text-decoration: underline; }
-
-/* --- ADDED: Styles for Copy Button in Popup --- */
-.copy-button {
-    background: none;
-    border: none;
-    color: #6c757d; /* Grey color like separator */
-    cursor: pointer;
-    padding: 4px 8px;
-    margin-bottom: 10px; /* Space below copy button */
-    font-size: 0.9em;
-    border-radius: 4px;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    vertical-align: middle; /* Align with adjacent text if needed */
-}
-.copy-button i {
-    margin-right: 4px;
-}
-.copy-button:hover {
     color: #333;
-    background-color: #e9ecef;
+    border: 1px solid #adb5bd;
+    border-radius: 5px; /* Or 4px to match revealPhoneBtn */
+    text-decoration: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap;
+    vertical-align: baseline; /* Align buttons nicely */
 }
-.copy-button:disabled {
-    cursor: default;
-    opacity: 0.7;
-}
-/* --- END ADDITION --- */
+/* You might already have this hover style */
+.button-style:hover { background-color: #f8f9fa; border-color: #adb5bd; color: #333; text-decoration: none; }
+/* Ensure icon spacing is consistent */
+.button-style i { margin-right: 5px; /* Match revealPhoneBtn */ }
 
-
-/* --- MODIFIED: Notice text inside popup --- */
-.popup-notice {
-    font-size: 0.85em;
-    color: #1E3D3A; /* Forest Teal */
-    margin-bottom: 20px;
-    margin-top: 0;
-}
-/* --- END MODIFICATION --- */
-
-
-/* Placeholder ad container */
-.popup-ad-container { margin-top: 15px; padding: 10px; border: 1px dashed #ced4da; background-color: #f8f9fa; font-size: 0.8em; color: #6c757d; min-height: 50px; display: flex; justify-content: center; align-items: center; }
-.popup-ad-container small { display: block; margin-bottom: 5px; }
-.popup-ad-container .adsbygoogle { display: block; }
-
-
-/* ====================================================================== */
-/* Styles for Province Page List (province_page.html) */
-/* ====================================================================== */
-
-/* Style for the overall list container on province page */
-.community-list-grouped {
-    padding-left: 0; margin: 20px auto; max-width: 800px; list-style: none; border-top: 1px solid #eee; padding-top: 15px; }
-
-/* Style for the letter headings */
-.letter-heading { background-color: #f5f1e6; font-size: 1.4em; font-weight: bold; color: #495057; margin-top: 25px; margin-bottom: 10px; padding: 10px 15px; border-bottom: 2px solid #dee2e6; list-style: none; border-radius: 4px; }
-.community-list-grouped li.letter-heading:first-child { margin-top: 0px; }
-
-/* Style for individual community list items on province page */
-.community-list-item { padding: 8px 12px; border-bottom: 1px solid #f1f1f1; }
-.community-list-item:last-child { border-bottom: none; }
-.community-list-item a { text-decoration: none; color: #1a0dab; }
-.community-list-item a:hover { text-decoration: underline; }
-
-/* Container within province page list item */
-.province-community-item-container { display: flex; justify-content: space-between; align-items: baseline; line-height: 1.4; }
-.province-community-item-container .community-link { flex-grow: 1; margin-right: 5px; text-align: left; }
-
-
-/* ====================================================================== */
-/* Breadcrumb Styles */
-/* ====================================================================== */
-.breadcrumb-nav { padding: 10px 0; margin-bottom: 20px; text-align: center; }
-.breadcrumb { display: inline-flex; flex-wrap: wrap; padding: 0.5rem 1rem; margin: 0; list-style: none; background-color: #e9ecef; border-radius: 0.25rem; }
-.breadcrumb-item { display: flex; align-items: center; }
-.breadcrumb-item + .breadcrumb-item::before { content: ">"; display: inline-block; padding: 0 0.6rem; color: #6c757d; pointer-events: none; }
-.breadcrumb-item a { color: #007bff; text-decoration: none; }
-.breadcrumb-item a:hover { text-decoration: underline; }
-.breadcrumb-item.active { color: #495057; font-weight: bold; pointer-events: none; }
-
-/* ====================================================================== */
-/* Back to Top Button Styles */
-/* ====================================================================== */
-#backToTopBtn { display: none; position: fixed; bottom: 20px; right: 25px; z-index: 999; border: none; outline: none; background-color: rgba(108, 117, 125, 0.7); color: white; cursor: pointer; padding: 10px 12px; border-radius: 5px; font-size: 1.1em; opacity: 0; transition: opacity 0.3s ease-in-out, background-color 0.2s ease; }
-#backToTopBtn.show { display: block; opacity: 1; }
-#backToTopBtn:hover { background-color: rgba(80, 85, 90, 0.9); }
-
-
-/* ====================================================================== */
-/* Print Specific Styles */
-/* ====================================================================== */
-@media print {
-    html { scroll-behavior: auto; /* Disable smooth scroll for print */ }
-    body { padding: 10px; font-size: 10pt; color: #000; }
-    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton /* Hide share button */ { display: none !important; }
-    /* Home page print */
-    .region-container { display: block !important; }
-    .region-column { display: block !important; border: none !important; padding: 0 !important; margin-bottom: 20px; text-align: left !important; min-height: unset !important; }
-    .region-column h2 { text-align: left !important; background-color: transparent !important; border-bottom: 1px solid #000 !important; padding: 0 0 2px 0 !important; margin: 0 0 5px 0 !important; font-size: 12pt;}
-    .community-list { text-align: left !important; flex-grow: unset !important; }
-    .community-item-container { display: block !important; }
-    .community-link { text-align: left !important; margin-bottom: 3px; }
-    .status-label { display: none !important; }
-    #province-list { display: block; }
-    /* Community page print */
-    #results { border-top: none; margin-top: 0; padding-top: 0; }
-    #results .category-heading { background-color: #eee !important; color: #000 !important; border-bottom: 1px solid #ccc !important; padding: 5px; margin-top: 15px; font-size: 12pt; border-radius: 0; }
-    #results li.category-heading:first-child { margin-top: 0; }
-    #results li.directory-entry { display: flex !important; justify-content: space-between !important; align-items: flex-start !important; border-bottom: 1px solid #ccc; padding: 4px 0; page-break-inside: avoid;}
-    .entry-details { margin-right: 10px !important; flex-grow: 1 !important; }
-    .name, .phone, .category, .notes, .address, .entry-details { color: #000 !important; font-size: 10pt; }
-    .name { font-weight: bold;}
-    .notes, .address { font-size: 9pt; margin-top: 2px;}
-    /* Phone reveal/popup print styles */
-    .revealPhoneBtn, #phonePopup, .phone-container, .copy-button /* Hide copy button */ { display: none !important; }
-    /* Province Page print styles */
-    #province-name-heading { font-size: 14pt !important; text-align: left !important; }
-    .community-list-grouped { margin: 0 !important; max-width: none !important; border: none !important; padding: 0 !important; }
-    .letter-heading { background-color: transparent !important; border-bottom: 1px solid #000 !important; font-size: 12pt !important; padding: 5px 0 !important; margin: 10px 0 !important; }
-    .community-list-item { padding: 2px 0 !important; border: none !important; }
-    .province-community-item-container { display: block !important; }
-    .community-list-item a { color: #000 !important; text-decoration: none !important; }
+/* Specific class for promote button if needed, but button-style should cover it */
+.promote-button {
+    /* Add specific styles only if needed */
 }
 
-/* ====================================================================== */
-/* Responsive adjustments for smaller screens */
-/* ====================================================================== */
-@media (max-width: 1200px) { /* Larger Tablets */
-    .region-column { flex-basis: calc(33.33% - 14px); }
-}
-@media (max-width: 768px) { /* Smaller Tablets */
-    .region-column { flex-basis: calc(50% - 10px); }
-    .region-column h2 { font-size: 1.2em; }
-    .community-list-grouped { max-width: 95%; }
-}
 
-/* Combined Mobile Breakpoint */
+/* ... other styles ... */
+
+/* --- Adjustments for Mobile --- */
 @media (max-width: 600px) {
-    /* Mobile Body Padding */
-    body { padding-top: 65px; padding-left: 15px; padding-right: 15px; padding-bottom: 15px; }
-    /* Mobile Home Page */
-    .region-container { gap: 15px; }
-    .region-column { flex-basis: 100%; padding: 10px; padding-bottom: 15px; min-height: unset; }
-    .region-column h2 { margin: -10px -10px 10px -10px; padding: 8px 10px; }
-    .community-item-container { margin-bottom: 6px; line-height: 1.3; }
-    .community-link { font-size: 0.95em;}
-    .status-label { font-size: 0.7em; padding: 1px 3px; }
-    .community-list { margin-bottom: 10px; }
-    .view-all-button-container { padding-top: 5px; }
-    /* Mobile Community Page */
-    .community-header { margin-bottom: 20px; padding-top: 0; }
-    #logo { max-width: 100px; margin-bottom: 8px; }
-    #community-name { font-size: 1.5em; line-height: 1.3; }
-    .directory-subtitle { font-size: 0.8em; }
-    #results li.directory-entry { flex-direction: column; align-items: stretch; gap: 3px 0; padding-top: 10px; padding-bottom: 10px; }
-    .entry-details { margin-right: 0; margin-bottom: 4px; order: 1; text-align: left; }
-    .address { font-size: 0.85em; }
-    .phone-container { text-align: right; width: 100%; margin-top: 4px; order: 2; white-space: normal; }
-    .action-buttons { gap: 10px; }
-    /* Mobile Form Page */
-     #suggestion-form { padding: 20px 15px; }
-     #suggestion-form button[type="submit"] { width: 100%; }
-    /* Mobile Province Page */
-    #province-name-heading { margin-bottom: 15px; }
-    .community-list-grouped { max-width: 100%; margin: 15px 0; }
-    .letter-heading { font-size: 1.2em; padding: 6px 10px; }
-    .community-list-item { padding: 6px 10px; }
-    .province-community-item-container { display: flex; }
-    /* Mobile Breadcrumbs */
-    .breadcrumb-nav { text-align: left; margin-bottom: 15px; padding: 5px 0; }
-    .breadcrumb { display: flex; padding: 0.4rem 0.8rem; }
-    .breadcrumb-item + .breadcrumb-item::before { padding: 0 0.4rem; }
-    /* Mobile Back to Top */
-    #backToTopBtn { bottom: 15px; right: 15px; padding: 8px 10px; font-size: 1em; }
-    /* Mobile Copy Button */
-    .copy-button { padding: 2px 6px; font-size: 0.85em; }
+    /* ... other mobile styles ... */
+
+    #results li.directory-entry {
+        flex-direction: column; /* Stack details and phone container */
+        align-items: stretch; /* Make children full width */
+        gap: 8px 0; /* Adjust gap for vertical stacking */
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .entry-details {
+        margin-right: 0; /* No right margin needed when stacked */
+        margin-bottom: 8px; /* Add space below details */
+        order: 1; /* Details first */
+        text-align: left;
+    }
+    .phone-container {
+        text-align: right; /* Keep buttons aligned right within the container */
+        width: 100%; /* Container takes full width */
+        order: 2; /* Buttons second */
+        justify-content: flex-end; /* Push buttons to the right */
+        gap: 10px; /* Space between buttons */
+    }
+
+    /* Optional: Make buttons slightly smaller on mobile if needed */
+    .revealPhoneBtn, .button-style.promote-button {
+       /* font-size: 0.85em; */ /* Example: uncomment to make smaller */
+       /* padding: 4px 8px; */  /* Example: uncomment to make smaller */
+    }
+
+    /* ... other mobile styles ... */
 }
