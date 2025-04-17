@@ -1,41 +1,37 @@
-/* ====================================================================== */
+/* In styles.css */
+
 /* Styles for Community Directory Page (community.html) */
-/* ====================================================================== */
+/* ... existing styles ... */
 
-/* ... other styles ... */
-
-
-/* Individual Directory Entry on community.html */
-/* Ensure it remains a flex container to align details and phone container */
+/* Individual Directory Entry - Keep original flex setup for now */
 #results li.directory-entry {
     list-style: none !important;
     padding: 12px 10px;
     border-bottom: 1px solid #eee;
     display: flex;
     justify-content: space-between;
-    /* align-items: center; */ /* Let items align to top (baseline might be better) */
-    align-items: baseline; /* Align based on the text baseline for better look */
+    align-items: center; /* Revert to center or try baseline later if needed */
     flex-wrap: wrap;
     gap: 5px 15px;
 }
-#results li.directory-entry:last-child { border-bottom: none; }
 
-/* Left side details container */
-.entry-details {
-    flex-grow: 1;
-    margin-right: 15px; /* Keep space between details and buttons */
-    text-align: left; /* Ensure text inside is left-aligned */
+/* Container for the phone AND promote buttons */
+.phone-container {
+    text-align: right; /* Keep alignment */
+    flex-shrink: 0;
+    /* --- NEW Flexbox rules for button layout --- */
+    display: inline-flex; /* Use inline-flex to keep container size minimal */
+    flex-direction: row; /* Horizontal layout */
+    align-items: center; /* Vertically center buttons */
+    gap: 8px; /* Space between buttons */
 }
-.name { font-weight: bold; font-size: 1.1em; display: block; color: #212529; margin-bottom: 4px; /* Added margin */ }
-.address { display: block; font-size: 0.9em; color: #555; margin-top: 4px; }
-.notes { display: block; font-size: 0.9em; color: #6c757d; margin-top: 4px; }
 
-/* Style for the reveal button itself */
-/* Make sure it has similar padding/font to button-style */
+/* Style for the reveal phone button */
+/* Ensure padding/font are compatible with .button-style */
 .revealPhoneBtn {
-    padding: 5px 10px; /* Adjust padding to match .button-style if needed */
-    font-size: 0.9em; /* Adjust font size to match .button-style if needed */
-    line-height: 1.5; /* Ensure consistent line height */
+    padding: 5px 10px;
+    font-size: 0.9em;
+    line-height: 1.5; /* Add line-height for consistency */
     cursor: pointer;
     background-color: #e9ecef;
     color: #212529;
@@ -43,84 +39,52 @@
     border-radius: 4px;
     transition: background-color 0.2s ease;
     white-space: nowrap;
-    vertical-align: baseline; /* Align buttons nicely */
-    display: inline-block; /* Needed for proper spacing/alignment */
+    /* vertical-align: baseline; */ /* Remove or use center if align-items: center is on container */
+    display: inline-block;
 }
 .revealPhoneBtn i { margin-right: 5px; }
 .revealPhoneBtn:hover { background-color: #dee2e6; border-color: #adb5bd; }
 
-/* Container for the phone AND promote buttons */
-.phone-container {
-    text-align: right; /* Align the buttons themselves to the right */
-    flex-shrink: 0; /* Prevent container from shrinking */
-    display: flex; /* Use flexbox to layout buttons */
-    flex-direction: row; /* Layout buttons horizontally */
-    align-items: baseline; /* Align buttons along their text baseline */
-    gap: 8px; /* Add space between the buttons */
-}
 
-/* --- Ensure Promote button (.button-style) has compatible styles --- */
-/* Find your existing .button-style rule and ensure padding/font-size are good */
+/* --- Ensure Promote button (which uses .button-style) has compatible styles --- */
 .button-style {
     display: inline-block;
-    /* padding: 8px 15px; */ /* Default style */
-    padding: 5px 10px;  /* MODIFIED: Try matching revealPhoneBtn padding */
-    /* font-size: 1em; */   /* Default style */
-    font-size: 0.9em; /* MODIFIED: Try matching revealPhoneBtn font-size */
-    line-height: 1.5; /* Ensure consistent line height */
+    padding: 5px 10px; /* Match revealPhoneBtn */
+    font-size: 0.9em; /* Match revealPhoneBtn */
+    line-height: 1.5; /* Match revealPhoneBtn */
     cursor: pointer;
     background-color: #ffffff;
     color: #333;
     border: 1px solid #adb5bd;
-    border-radius: 5px; /* Or 4px to match revealPhoneBtn */
+    border-radius: 4px; /* Match revealPhoneBtn */
     text-decoration: none;
     transition: background-color 0.2s ease, border-color 0.2s ease;
     white-space: nowrap;
-    vertical-align: baseline; /* Align buttons nicely */
+    /* vertical-align: baseline; */ /* Remove or use center if align-items: center is on container */
 }
-/* You might already have this hover style */
-.button-style:hover { background-color: #f8f9fa; border-color: #adb5bd; color: #333; text-decoration: none; }
-/* Ensure icon spacing is consistent */
 .button-style i { margin-right: 5px; /* Match revealPhoneBtn */ }
 
-/* Specific class for promote button if needed, but button-style should cover it */
-.promote-button {
-    /* Add specific styles only if needed */
-}
-
-
-/* ... other styles ... */
-
-/* --- Adjustments for Mobile --- */
+/* --- Mobile adjustments for the button container --- */
 @media (max-width: 600px) {
     /* ... other mobile styles ... */
-
     #results li.directory-entry {
         flex-direction: column; /* Stack details and phone container */
-        align-items: stretch; /* Make children full width */
-        gap: 8px 0; /* Adjust gap for vertical stacking */
-        padding-top: 10px;
-        padding-bottom: 10px;
+        align-items: stretch;
+        gap: 8px 0;
     }
     .entry-details {
-        margin-right: 0; /* No right margin needed when stacked */
-        margin-bottom: 8px; /* Add space below details */
-        order: 1; /* Details first */
+        margin-right: 0;
+        margin-bottom: 8px;
+        order: 1;
         text-align: left;
     }
     .phone-container {
-        text-align: right; /* Keep buttons aligned right within the container */
-        width: 100%; /* Container takes full width */
-        order: 2; /* Buttons second */
+        width: 100%;
+        order: 2;
         justify-content: flex-end; /* Push buttons to the right */
-        gap: 10px; /* Space between buttons */
+        /* text-align: right; is inherited, flex properties override */
+        display: flex; /* Ensure flex is also applied on mobile */
+        gap: 10px;
     }
-
-    /* Optional: Make buttons slightly smaller on mobile if needed */
-    .revealPhoneBtn, .button-style.promote-button {
-       /* font-size: 0.85em; */ /* Example: uncomment to make smaller */
-       /* padding: 4px 8px; */  /* Example: uncomment to make smaller */
-    }
-
     /* ... other mobile styles ... */
 }

@@ -1,4 +1,4 @@
-// --- START OF UPDATED directory.js (Button Alignment Fix) ---
+// --- START OF UPDATED directory.js (Button Alignment Attempt 2) ---
 
 // ======================================================================
 // Declare Supabase Client Variable Globally
@@ -207,7 +207,7 @@ async function fetchAndDisplayListings() {
                  let promoteButtonHtml = '';
                  if (listingId) {
                      const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
-                     // Note: Removed the wrapper div and inline style from here
+                     // Generate the link, styled as a button
                      promoteButtonHtml = `
                          <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}">
                              <i class="fa-solid fa-rocket"></i> Promote
@@ -225,8 +225,8 @@ async function fetchAndDisplayListings() {
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
                      </div>
                      <div class="phone-container">
-                          ${promoteButtonHtml}  {/* Promote button now comes first */}
-                          ${phoneHtml}          {/* Phone button comes second */}
+                          ${promoteButtonHtml}  ${/* Promote button HTML */''}
+                          ${phoneHtml}          ${/* Phone button HTML */}
                      </div>
                  `;
                  resultsList.appendChild(listItem);
