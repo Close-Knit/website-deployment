@@ -52,6 +52,33 @@
             color: #007bff; /* Blue color for price */
             margin: 15px 0;
         }
+        /* Styles for Duration Selection */
+         .duration-options {
+             margin: 20px 0;
+             padding: 15px;
+             border: 1px solid #eee;
+             border-radius: 5px;
+             background-color: #f9f9f9;
+         }
+         .duration-options label {
+             display: block; /* Stack options vertically */
+             margin-bottom: 10px;
+             cursor: pointer;
+             font-size: 1.05em;
+         }
+          .duration-options label:last-child {
+             margin-bottom: 0;
+         }
+         .duration-options input[type="radio"] {
+             margin-right: 10px;
+             vertical-align: middle;
+         }
+         .duration-options .duration-price {
+             font-weight: bold;
+             color: #28a745; /* Green for price */
+             margin-left: 5px;
+         }
+        /* End Duration Styles */
         .email-input-group {
             margin-top: 20px;
             margin-bottom: 25px;
@@ -71,11 +98,10 @@
             box-sizing: border-box;
             font-size: 1em;
             line-height: 1.5;
-            text-align: center; /* Center text inside input */
+            text-align: center;
         }
         #payment-button {
-             /* Uses .button-style, but can add specifics */
-             background-color: #28a745; /* Green color */
+             background-color: #28a745;
              border-color: #28a745;
              color: white;
              padding: 12px 25px;
@@ -90,21 +116,21 @@
             border-color: #6c757d;
             cursor: not-allowed;
         }
-        #message-area { /* General styling moved from JS to CSS */
+        #message-area {
             padding: 10px;
             margin-top: 15px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            display: none; /* Hidden by default */
+            display: none;
             text-align: center;
             font-weight: bold;
         }
-        #message-area.error-message { /* Class for error styling */
+        #message-area.error-message {
             color: #721c24;
             background-color: #f8d7da;
             border-color: #f5c6cb;
         }
-        #message-area.info-message { /* Class for info styling */
+        #message-area.info-message {
              color: #383d41;
              background-color: #e2e3e5;
              border-color: #d6d8db;
@@ -131,12 +157,32 @@
 
         <div class="promotion-info">
             <p>Make your listing stand out! Promoted listings appear at the top of their category with special highlighting.</p>
-            <p class="price" id="promotion-price">Price: $5.00 CAD / month</p> <!-- Placeholder price -->
-            <p>Your promotion will be active for one month after successful payment.</p>
-            <p><small>(This is currently a one-time payment. We'll notify you before it expires.)</small></p>
+             <!-- Price display removed from here, will be shown with options -->
+            <!-- <p class="price" id="promotion-price">Price: $5.00 CAD / month</p> -->
+            <p>Your promotion will be active for the selected duration after successful payment.</p>
+            <p><small>(Payment is processed securely via Stripe. This is currently a one-time payment.)</small></p>
         </div>
 
         <hr style="margin: 25px 0;">
+
+        <!-- == START: Duration Selection == -->
+        <div class="duration-options">
+            <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 1.1em;">Select Promotion Duration:</h3>
+            <label>
+                <input type="radio" name="promotion_duration" value="1" data-priceid="price_1REiFhQSnCFma2DMiheznLJB" data-price="5.00" checked>
+                1 Month <span class="duration-price">($5.00 CAD)</span>
+            </label>
+            <label>
+                <input type="radio" name="promotion_duration" value="6" data-priceid="price_1RGPcEQSnCFma2DMQCtoglOF" data-price="25.00">
+                 6 Months <span class="duration-price">($25.00 CAD - Save $5)</span> <!-- Example Pricing -->
+            </label>
+            <label>
+                <input type="radio" name="promotion_duration" value="12" data-priceid="price_1RGPjrQSnCFma2DMpuVkaJaz" data-price="45.00">
+                12 Months <span class="duration-price">($45.00 CAD - Save $15)</span> <!-- Example Pricing -->
+            </label>
+        </div>
+        <!-- == END: Duration Selection == -->
+
 
         <div class="email-input-group">
             <label for="promoter-email">Your Email Address (for receipt):</label>
@@ -152,15 +198,24 @@
         <p class="back-link"><a href="#" id="go-back-link">Cancel and Go Back</a></p>
     </div>
 
-    <!-- === START: ADDED SCRIPT TAG === -->
+    <!-- ====================================================== -->
+    <!-- SCRIPT LOADING ORDER - CRITICAL FOR CENTRALIZED CLIENT -->
+    <!-- ====================================================== -->
+
     <!-- Load Supabase library FIRST -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- === END: ADDED SCRIPT TAG === -->
 
-    <!-- THEN load JavaScript for this page -->
+    <!-- Load Common JS SECOND (initializes supabaseClient) -->
+    <!-- Removed 'defer' to ensure it executes before promote.js -->
+    <script src="common.js"></script>
+
+    <!-- Load Promote page script THIRD (uses supabaseClient from common.js) -->
+    <!-- Keep 'defer' here -->
     <script src="promote.js" defer></script>
-    <!-- Common JS if needed (uncomment if BackToTop etc. is desired here) -->
-    <!-- <script src="common.js" defer></script> -->
+
+     <!-- Optional Common JS (if BackToTop etc. used on this page) -->
+     <!-- <script src="common.js" defer></script> -->
+
 
 </body>
 </html>

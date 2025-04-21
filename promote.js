@@ -1,26 +1,20 @@
-// --- promote.js (Using Centralized Supabase Client) ---
+// --- promote.js (Handle Duration Selection) ---
 
-// ======================================================================
-// NO Supabase Client Initialization HERE - Assumes 'supabaseClient' is globally available from common.js
-// ======================================================================
-// const supabaseUrl = '...'; // REMOVED
-// const supabaseKey = '...'; // REMOVED
-// let promotePage_supabaseClient; // REMOVED
-// if (typeof supabase !== 'undefined' && supabase.createClient) { ... } // REMOVED
+// Assumes supabaseClient is initialized and available globally via common.js
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Promote page DOMContentLoaded.');
 
     // Get elements
     const listingDetailsDisplay = document.getElementById('listing-details');
-    const promotionPriceDisplay = document.getElementById('promotion-price');
+    // const promotionPriceDisplay = document.getElementById('promotion-price'); // No longer used directly
+    const durationOptionsContainer = document.querySelector('.duration-options'); // Get the container for radio buttons
     const emailInput = document.getElementById('promoter-email');
     const paymentButton = document.getElementById('payment-button');
     const messageArea = document.getElementById('message-area');
     const goBackLink = document.getElementById('go-back-link');
 
-    // *** Check if the GLOBAL supabaseClient is available ***
-    // This check runs after DOMContentLoaded, ensuring common.js likely ran
+    // Check if the global supabaseClient is available
     if (typeof supabaseClient === 'undefined' || !supabaseClient) {
         console.error("Supabase client not initialized (from common.js). Cannot proceed.");
         if(listingDetailsDisplay) listingDetailsDisplay.textContent = "Page Error: Service unavailable.";
@@ -28,22 +22,21 @@ document.addEventListener('DOMContentLoaded', () => {
             paymentButton.disabled = true;
             paymentButton.textContent = 'Service Unavailable';
         }
-        if(messageArea) showMessage('Error: Cannot connect to backend service.', 'error'); // Use showMessage if available
-        return; // Stop execution
+        if(messageArea) showMessage('Error: Cannot connect to backend service.', 'error');
+        return;
     }
     console.log("Promote.js using supabaseClient initialized in common.js");
 
-
     // Check if other essential elements exist
-    if (!listingDetailsDisplay || !emailInput || !paymentButton || !messageArea || !goBackLink) {
-        console.error("Essential page elements missing on promote.html");
+    // ** Added check for durationOptionsContainer **
+    if (!listingDetailsDisplay || !durationOptionsContainer || !emailInput || !paymentButton || !messageArea || !goBackLink) {
+        console.error("Essential page elements missing on promote.html (incl. duration options)");
         if(listingDetailsDisplay) listingDetailsDisplay.textContent = "Page Error: Elements missing.";
         if(paymentButton) paymentButton.disabled = true;
         return;
     }
 
     console.log("All essential elements and Supabase client seem available.");
-
 
     // --- 1. Read URL Parameters (unchanged) ---
     const urlParams = new URLSearchParams(window.location.search);
@@ -55,9 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableName = urlParams.get('table');
 
     console.log("--- URL Parameters Read ---");
-    console.log("listingId:", listingId);
+    // console.log("listingId:", listingId); // Optional logs
     console.log("listingName (raw):", listingName);
-    console.log("--------------------------");
+    // console.log("--------------------------");
 
 
     // --- 2. Validate and Display Listing Info (unchanged) ---
@@ -86,31 +79,51 @@ document.addEventListener('DOMContentLoaded', () => {
         history.back();
     });
 
-    // --- 4. Payment Button Click Handler (unchanged logic, uses global client) ---
+    // --- 4. Payment Button Click Handler (MODIFIED) ---
     paymentButton.addEventListener('click', async () => {
         console.log('Payment button clicked');
         showMessage('');
         const promoterEmail = emailInput.value.trim();
 
+        // --- START: Get Selected Duration and Price ID ---
+        const selectedDurationInput = durationOptionsContainer.querySelector('input[name="promotion_duration"]:checked');
+        let selectedDurationMonths = null;
+        let selectedPriceId = null;
+
+        if (!selectedDurationInput) {
+            showMessage('Please select a promotion duration.', 'error');
+            return; // Stop if no duration is selected
+        }
+
+        selectedDurationMonths = selectedDurationInput.value; // e.g., "1", "6", "12"
+        selectedPriceId = selectedDurationInput.dataset.priceid; // Get from data-priceid attribute
+
+        console.log(`Selected Duration: ${selectedDurationMonths} months`);
+        console.log(`Selected Price ID: ${selectedPriceId}`);
+
+        // Validate that we got a Price ID
+        if (!selectedPriceId || selectedPriceId.startsWith('YOUR_')) { // Basic check if placeholder wasn't replaced
+            console.error("Stripe Price ID is missing or invalid for the selected duration!");
+            showMessage('Payment configuration error for selected duration. Please contact support.', 'error');
+            return;
+        }
+        // --- END: Get Selected Duration and Price ID ---
+
+
+        // Validate email
         if (!promoterEmail || !/\S+@\S+\.\S+/.test(promoterEmail)) {
             showMessage('Please enter a valid email address.', 'error');
             emailInput.focus();
             return;
         }
 
-        const stripePriceId = 'price_1REiFhQSnCFma2DMiheznLJE'; // Ensure this is correct
-
-        if (!stripePriceId) {
-             console.error("Stripe Price ID is missing in promote.js!");
-             showMessage('Payment configuration error. Please contact support.', 'error');
-             return;
-        }
-
+        // Disable button and show processing message
         paymentButton.disabled = true;
         paymentButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
         showMessage('Contacting payment processor...', 'info');
 
         try {
+            // Prepare data for the Edge Function - now includes duration and uses selected price ID
             const functionPayload = {
                 listingId: listingId,
                 tableName: tableName,
@@ -119,27 +132,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 communityName: decodeURIComponent(communityName),
                 listingName: decodeURIComponent(listingName),
                 promoterEmail: promoterEmail,
-                priceId: stripePriceId
+                priceId: selectedPriceId, // Use the selected Price ID
+                durationMonths: selectedDurationMonths // Send the selected duration
             };
 
             console.log('Invoking create-checkout-session with payload:', functionPayload);
 
-            // *** USES GLOBAL supabaseClient ***
+            // Invoke the Supabase Edge Function (uses global supabaseClient)
             const { data, error } = await supabaseClient.functions.invoke(
                 'create-checkout-session',
                 { body: functionPayload }
             );
 
+            // Handle response (same as before)
             if (error) {
                 console.error('Function invocation error:', error);
                 throw new Error(`Error calling payment function: ${error.message}`);
             }
-
             if (data.error) {
                  console.error('Error returned from function:', data.error);
                  throw new Error(`Payment processing error: ${data.error}`);
             }
-
             if (data.checkoutUrl) {
                 console.log('Received checkout URL:', data.checkoutUrl);
                 showMessage('Redirecting to secure payment page...', 'info');
@@ -152,6 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Payment initiation failed:', err);
             showMessage(`Error: ${err.message}`, 'error');
+            // Re-enable the button on failure
             paymentButton.disabled = false;
             paymentButton.innerHTML = '<i class="fa-brands fa-stripe-s"></i> Proceed to Payment';
         }
