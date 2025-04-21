@@ -38,46 +38,13 @@ a:hover, a:focus { text-decoration: underline; }
 .search-container input#searchBox { padding: 10px 12px; width: 90%; max-width: 350px; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 4px; font-size: 1em; }
 .action-buttons { text-align: center; margin-top: 15px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
 
-/* --- Button Style Harmonization --- */
-.button-style {
-    display: inline-block;
-    padding: 5px 10px;
-    font-size: 0.9em;
-    line-height: 1.5;
-    vertical-align: middle;
-    cursor: pointer;
-    background-color: #ffffff;
-    color: #333;
-    border: 1px solid #adb5bd;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    white-space: nowrap;
-    margin: 0;
-}
+/* --- Button Style Harmonization (Keep as is) --- */
+.button-style { display: inline-block; padding: 5px 10px; font-size: 0.9em; line-height: 1.5; vertical-align: middle; cursor: pointer; background-color: #ffffff; color: #333; border: 1px solid #adb5bd; border-radius: 4px; text-decoration: none; transition: background-color 0.2s ease, border-color 0.2s ease; white-space: nowrap; margin: 0; }
 .button-style:hover { background-color: #f8f9fa; border-color: #adb5bd; color: #333; text-decoration: none; }
 .button-style i { margin-right: 5px; vertical-align: middle; }
-
-.revealPhoneBtn {
-    display: inline-block;
-    padding: 5px 10px;
-    font-size: 0.9em;
-    line-height: 1.5;
-    vertical-align: middle;
-    cursor: pointer;
-    background-color: #e9ecef;
-    color: #212529;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    transition: background-color 0.2s ease;
-    white-space: nowrap;
-    margin: 0;
-}
+.revealPhoneBtn { display: inline-block; padding: 5px 10px; font-size: 0.9em; line-height: 1.5; vertical-align: middle; cursor: pointer; background-color: #e9ecef; color: #212529; border: 1px solid #ced4da; border-radius: 4px; transition: background-color 0.2s ease; white-space: nowrap; margin: 0; }
 .revealPhoneBtn i { margin-right: 5px; vertical-align: middle; }
 .revealPhoneBtn:hover { background-color: #dee2e6; border-color: #adb5bd; }
-/* --- END: Button Style Harmonization --- */
-
-
 a.button-style:visited { color: #333; background-color: #ffffff; }
 .directory-subtitle { display: block; font-size: 0.85em; color: #6c757d; font-weight: normal; margin-top: 2px; }
 
@@ -97,52 +64,84 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     flex-wrap: wrap;
     gap: 5px 15px;
     position: relative;
+    border-radius: 3px; /* Add slight rounding */
+    margin-bottom: 2px; /* Add tiny space between entries */
 }
-#results li.directory-entry:last-child { border-bottom: none; }
+#results li.directory-entry:last-child { border-bottom: none; margin-bottom: 0;}
 
 
-/* --- START: Re-added Tiered Promotion Styles --- */
+/* --- START: Enhanced Tiered Promotion Styles --- */
+
+/* Common styles for all promoted tiers */
+#results li.promoted-gold,
+#results li.promoted-silver,
+#results li.promoted-bronze {
+    border-left-width: 5px; /* Make border thicker */
+    border-style: solid;
+    padding-left: 8px;
+    /* Add subtle shadow */
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    /* Keep standard bottom border, remove potential double borders */
+    border-right: 1px solid #eee;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee; /* Default bottom */
+    margin-left: 0; /* Reset any negative margins */
+    margin-right: 0;
+}
+/* Ensure last item border rule still applies correctly */
+#results li.promoted-gold:last-child,
+#results li.promoted-silver:last-child,
+#results li.promoted-bronze:last-child {
+    border-bottom: none;
+}
+
 /* GOLD Tier (12 Months) */
 #results li.promoted-gold {
-    background-color: #fff8e1; /* Lighter Gold/Cream */
-    border-left: 4px solid #ffc107; /* Gold */
-    padding-left: 8px; /* Adjust left padding for border */
+    background-color: #fffaf0; /* Existing Light Gold/Cream */
+    border-left-color: #ffc107; /* Gold */
 }
-#results li.promoted-gold:last-child { border-bottom: none; }
-.sponsored-label.gold { background-color: #ffc107; color: #333; }
+.sponsored-label.gold {
+    background-color: #ffc107; /* Gold */
+    color: #333;
+    border: 1px solid #e0a800; /* Slightly darker border for label */
+}
 
 /* SILVER Tier (6 Months) */
 #results li.promoted-silver {
-    background-color: #f8f9fa; /* Light Grey */
-    border-left: 4px solid #adb5bd; /* Medium Grey */
-    padding-left: 8px;
+    background-color: #e9ecef; /* Slightly stronger Light Grey */
+    border-left-color: #6c757d; /* Standard Grey */
 }
-#results li.promoted-silver:last-child { border-bottom: none; }
-.sponsored-label.silver { background-color: #adb5bd; color: #fff; }
+.sponsored-label.silver {
+    background-color: #6c757d; /* Standard Grey */
+    color: #fff;
+    border: 1px solid #5a6268;
+}
 
 /* BRONZE Tier (1 Month) */
 #results li.promoted-bronze {
-    background-color: #fdf1e6; /* Light Bronze/Orange tint */
-    border-left: 4px solid #e0a866; /* Bronze/Orange */
-    padding-left: 8px;
+    background-color: #fff3cd; /* Borrowing 'coming soon' yellow hint */
+    border-left-color: #e0a866; /* Existing Bronze/Orange */
 }
-#results li.promoted-bronze:last-child { border-bottom: none; }
-.sponsored-label.bronze { background-color: #e0a866; color: #fff; }
+.sponsored-label.bronze {
+    background-color: #e0a866; /* Existing Bronze/Orange */
+    color: #fff;
+    border: 1px solid #c69555;
+}
 
-/* Base Sponsored Label Styles */
+/* Base Sponsored Label Styles (Adjusted) */
 .sponsored-label {
     display: inline-block;
-    font-size: 0.7em;
+    font-size: 0.75em; /* Slightly larger label */
     font-weight: bold;
-    padding: 1px 5px;
-    border-radius: 3px;
-    margin-left: 8px;
+    padding: 2px 6px; /* Slightly more padding */
+    border-radius: 4px;
+    margin-left: 10px; /* More space */
     vertical-align: middle;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     line-height: 1.2;
 }
-/* --- END: Re-added Tiered Promotion Styles --- */
+/* --- END: Enhanced Tiered Promotion Styles --- */
 
 
 /* Details container */
@@ -239,6 +238,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
         margin-left: 0 !important;
         margin-right: 0 !important;
         border-bottom: 1px solid #ccc !important; /* Restore default border */
+        box-shadow: none !important; /* Remove shadow */
     }
      #results li.directory-entry:last-child, /* Include last entry */
      #results li.promoted-gold:last-child,
@@ -286,14 +286,14 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     .directory-subtitle { font-size: 0.8em; }
     #results li.directory-entry { flex-direction: column; align-items: stretch; gap: 8px 0; padding-top: 10px; padding-bottom: 10px; }
     /* Promoted items on mobile */
-    #results li.promoted-gold { border-left-width: 3px; padding-left: 8px; }
-    #results li.promoted-silver { border-left-width: 3px; padding-left: 8px; }
-    #results li.promoted-bronze { border-left-width: 3px; padding-left: 8px; }
+    #results li.promoted-gold,
+    #results li.promoted-silver,
+    #results li.promoted-bronze { border-left-width: 4px; padding-left: 8px; box-shadow: 1px 1px 2px rgba(0,0,0,0.08); } /* Keep border, adjust shadow */
     .entry-details { margin-right: 0; margin-bottom: 8px; order: 1; text-align: left; }
     .address { font-size: 0.85em; }
     .phone-container { text-align: right; width: 100%; margin-top: 0; order: 2; white-space: normal; }
     .promote-button-container { margin-top: 8px; text-align: left; }
-    .sponsored-label { font-size: 0.65em; margin-left: 6px; } /* Ensure label looks ok */
+    .sponsored-label { font-size: 0.7em; margin-left: 6px; padding: 2px 5px; } /* Slightly larger on mobile */
     /* ... rest of mobile styles ... */
     .action-buttons { gap: 10px; }
      #suggestion-form { padding: 20px 15px; }
