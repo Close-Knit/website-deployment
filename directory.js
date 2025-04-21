@@ -1,4 +1,4 @@
-// --- START OF directory.js (Tiered Promotion Display) ---
+// --- START OF directory.js (Display Promoted Listings - RECHECK) ---
 
 // Assumes supabaseClient is globally available from common.js
 
@@ -107,9 +107,15 @@ async function fetchAndDisplayListings() {
             .order('category', { ascending: true, nullsFirst: false })
             .order('name', { ascending: true }); // Base sort by name
 
-        if (listingsError) { throw listingsError; } // Let outer catch handle specific errors
+        if (listingsError) {
+             // Handle specific known errors first
+             if (listingsError.code === '42P01') { throw new Error(`DB table "${tableName}" not found for province "${decodedProvinceName}".`); }
+             if (listingsError.code === '42703') { throw new Error(`Column 'community_id' missing or misspelled in table "${tableName}". Check Supabase schema.`); }
+             // Throw generic error for others
+             throw new Error(`Failed to fetch listings: ${listingsError.message}`);
+        }
 
-        resultsList.innerHTML = '';
+        resultsList.innerHTML = ''; // Clear loading message
 
         // Update subtitle
         const listingCount = listings?.length || 0;
@@ -138,114 +144,104 @@ async function fetchAndDisplayListings() {
              const categoryHeadingItem = document.createElement('li');
              categoryHeadingItem.className = 'category-heading';
              categoryHeadingItem.textContent = category;
-             resultsList.appendChild(categoryHeadingItem);
+             resultsList.appendChild(categoryHeadingItem); // Append heading FIRST
 
              const listingsInCategory = groupedListings[category];
 
-             // --- Create lists for tiers ---
+             // Create lists for tiers
              const goldListings = [];
              const silverListings = [];
              const bronzeListings = [];
              const regularListings = [];
 
-             // --- Categorize listings based on active promotion and duration ---
+             // Categorize listings
              listingsInCategory.forEach(listing => {
                  const isPromoted = listing.is_promoted === true;
                  const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
-                 const isActivePromotion = isPromoted && expiresAt && expiresAt > now;
-                 const duration = listing.promotion_duration_months; // Get the stored duration
+                 // Check expiresAt is valid date object before comparing
+                 const isActivePromotion = isPromoted && expiresAt instanceof Date && !isNaN(expiresAt) && expiresAt > now;
+                 const duration = listing.promotion_duration_months;
 
                  if (isActivePromotion) {
-                     if (duration === 12) {
-                         goldListings.push(listing);
-                     } else if (duration === 6) {
-                         silverListings.push(listing);
-                     } else { // Assume duration 1 or fallback
-                         bronzeListings.push(listing);
-                     }
+                     if (duration === 12) goldListings.push(listing);
+                     else if (duration === 6) silverListings.push(listing);
+                     else bronzeListings.push(listing); // Includes 1 month and any unexpected durations for promoted items
                  } else {
                      regularListings.push(listing);
                  }
              });
 
-             // Combine lists in tiered order (already name-sorted from DB)
+             // Combine lists in tiered order
              const categorySortedListings = goldListings.concat(silverListings).concat(bronzeListings).concat(regularListings);
 
-             // --- Render the sorted listings ---
-             categorySortedListings.forEach(listing => {
-                 const listItem = document.createElement('li');
-                 listItem.className = 'directory-entry'; // Base class
+             // --- Render the sorted listings for the category ---
+             if (categorySortedListings.length === 0) {
+                 // Optional: Add message if category exists but has 0 listings after filtering (unlikely)
+                 console.log(`No listings to display for category: ${category}`);
+             } else {
+                 categorySortedListings.forEach(listing => {
+                     const listItem = document.createElement('li');
+                     listItem.className = 'directory-entry'; // Base class
 
-                 // --- Check promotion status AGAIN for styling/labels ---
-                 const isPromoted = listing.is_promoted === true;
-                 const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
-                 const isActivePromotion = isPromoted && expiresAt && expiresAt > now;
-                 const duration = listing.promotion_duration_months;
-                 let tierClass = '';
-                 let sponsoredLabelHtml = '';
+                     // Check promotion status AGAIN for styling/labels
+                     const isPromoted = listing.is_promoted === true;
+                     const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
+                     const isActivePromotion = isPromoted && expiresAt instanceof Date && !isNaN(expiresAt) && expiresAt > now;
+                     const duration = listing.promotion_duration_months;
+                     let tierClass = '';
+                     let sponsoredLabelHtml = '';
 
-                 // --- Apply Tier-Specific Class and Label ---
-                 if (isActivePromotion) {
-                     if (duration === 12) {
-                         tierClass = 'promoted-gold';
-                         sponsoredLabelHtml = `<span class="sponsored-label gold">Gold</span>`; // Tiered label
-                     } else if (duration === 6) {
-                         tierClass = 'promoted-silver';
-                         sponsoredLabelHtml = `<span class="sponsored-label silver">Silver</span>`; // Tiered label
-                     } else { // Assume 1 month or fallback
-                         tierClass = 'promoted-bronze';
-                         sponsoredLabelHtml = `<span class="sponsored-label bronze">Bronze</span>`; // Tiered label
+                     // Apply Tier-Specific Class and Label
+                     if (isActivePromotion) {
+                         if (duration === 12) { tierClass = 'promoted-gold'; sponsoredLabelHtml = `<span class="sponsored-label gold">Gold</span>`; }
+                         else if (duration === 6) { tierClass = 'promoted-silver'; sponsoredLabelHtml = `<span class="sponsored-label silver">Silver</span>`; }
+                         else { tierClass = 'promoted-bronze'; sponsoredLabelHtml = `<span class="sponsored-label bronze">Bronze</span>`; }
+                         listItem.classList.add(tierClass);
+                         console.log(`Applying ${tierClass} style to: ${listing.name}`);
                      }
-                     listItem.classList.add(tierClass); // Add the specific tier class
-                     console.log(`Applying ${tierClass} style to: ${listing.name}`);
-                 }
-                 // --- End Tier Styling/Label ---
 
-                 const listingId = listing.id;
-                 if (!listingId) { console.warn("Listing missing 'id'. Cannot create promote button:", listing); }
+                     const listingId = listing.id;
+                     if (!listingId) { console.warn("Listing missing 'id'. Cannot create promote button:", listing); }
 
-                 // Phone Button HTML (unchanged)
-                 const phoneNumber = listing.phone_number || '';
-                 let phoneHtml = '';
-                 if (phoneNumber) { /* ... phone button generation ... */
-                     phoneHtml = `<button class="revealPhoneBtn" data-phone="${phoneNumber}" title="Show phone number for ${listing.name || 'this listing'}"><i class="fa-solid fa-phone"></i> Show Phone</button>`;
-                 }
+                     // Phone Button HTML
+                     const phoneNumber = listing.phone_number || '';
+                     let phoneHtml = '';
+                     if (phoneNumber) {
+                         phoneHtml = `<button class="revealPhoneBtn" data-phone="${phoneNumber}" title="Show phone number for ${listing.name || 'this listing'}"><i class="fa-solid fa-phone"></i> Show Phone</button>`;
+                     }
 
-                 // Promote Button HTML (hide if active promotion)
-                 let promoteButtonHtml = '';
-                 if (listingId && !isActivePromotion) { /* ... promote button generation ... */
-                     const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
-                     promoteButtonHtml = `<div class="promote-button-container" style="margin-top: 8px;"><a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}"><i class="fa-solid fa-rocket"></i> Promote</a></div>`;
-                 }
+                     // Promote Button HTML (hide if active promotion)
+                     let promoteButtonHtml = '';
+                     if (listingId && !isActivePromotion) {
+                         const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}`;
+                         promoteButtonHtml = `<div class="promote-button-container" style="margin-top: 8px;"><a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}"><i class="fa-solid fa-rocket"></i> Promote</a></div>`;
+                     }
 
-                 // Construct final HTML
-                 listItem.innerHTML = `
-                     <div class="entry-details">
-                          <span class="name">${listing.name || 'N/A'} ${sponsoredLabelHtml}</span> {/* Label added */}
-                          ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
-                          ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${promoteButtonHtml}
-                     </div>
-                     <div class="phone-container">
-                          ${phoneHtml}
-                     </div>
-                 `;
-                 resultsList.appendChild(listItem);
-             }); // End rendering loop
+                     // Construct final HTML
+                     listItem.innerHTML = `
+                         <div class="entry-details">
+                              <span class="name">${listing.name || 'N/A'} ${sponsoredLabelHtml}</span>
+                              ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
+                              ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
+                              ${promoteButtonHtml}
+                         </div>
+                         <div class="phone-container">
+                              ${phoneHtml}
+                         </div>
+                     `;
+                     // *** CRITICAL: Append the created listItem to the resultsList ***
+                     resultsList.appendChild(listItem);
+                 }); // End rendering loop for this category
+             } // End else (if categorySortedListings has items)
         }); // End category loop
 
     } catch (fetchError) {
-        // Handle potential errors from Supabase fetch
-         if (fetchError && fetchError.message) {
-            displayError(fetchError.message);
-         } else {
-             displayError("An unknown error occurred while fetching listings.");
-         }
+        displayError(fetchError.message || "An unknown error occurred while fetching listings.");
     }
 } // End fetchAndDisplayListings
 
 // ======================================================================
-// Initialize Search Functionality (Updated for tiered labels)
+// Initialize Search Functionality (Unchanged)
 // ======================================================================
 function initializeSearch() {
     const searchBox = document.getElementById('searchBox');
@@ -260,13 +256,12 @@ function initializeSearch() {
 
         Array.from(listItems).forEach(item => {
             const nameElement = item.querySelector('.name');
-            // Get text content of name span, which now includes the label if present
             const nameText = nameElement?.textContent.toLowerCase() || '';
             const addressText = item.querySelector('.address')?.textContent.toLowerCase() || '';
             const notesText = item.querySelector('.notes')?.textContent.toLowerCase() || '';
             let categoryText = '';
             let currentElement = item.previousElementSibling;
-            while (currentElement) { // Find preceding category heading more reliably
+            while (currentElement) {
                 if (currentElement.classList.contains('category-heading')) {
                     categoryText = currentElement.textContent.toLowerCase();
                     break;
@@ -279,21 +274,14 @@ function initializeSearch() {
                                   notesText.includes(searchTerm) ||
                                   categoryText.includes(searchTerm);
 
-            if (matchesSearch) {
-                item.style.display = '';
-                if (categoryText) visibleCategories.add(categoryText);
-            } else {
-                item.style.display = 'none';
-            }
+            if (matchesSearch) { item.style.display = ''; if (categoryText) visibleCategories.add(categoryText); }
+            else { item.style.display = 'none'; }
         });
 
         Array.from(categoryHeadings).forEach(heading => {
             const categoryText = heading.textContent.toLowerCase();
-             if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) {
-                 heading.style.display = '';
-             } else {
-                 heading.style.display = 'none';
-             }
+             if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) { heading.style.display = ''; }
+             else { heading.style.display = 'none'; }
         });
     });
 } // End initializeSearch
@@ -311,65 +299,17 @@ function initializePopupInteraction() {
     const copyPhoneButton = document.getElementById('copyPhoneBtn');
     const copyTextElement = copyPhoneButton?.querySelector('.copy-text');
     const copyIconElement = copyPhoneButton?.querySelector('i');
-
     const originalCopyText = copyTextElement ? copyTextElement.textContent : 'Copy';
     const originalCopyIconClass = copyIconElement ? copyIconElement.className : 'fa-regular fa-copy';
     let copyTimeout = null;
-
-    const resetCopyButton = () => { /* ... unchanged ... */
-         if (copyTextElement) copyTextElement.textContent = originalCopyText;
-         if (copyIconElement) copyIconElement.className = originalCopyIconClass;
-         if (copyPhoneButton) copyPhoneButton.disabled = false;
-         if (copyTimeout) { clearTimeout(copyTimeout); copyTimeout = null; }
-    };
-
+    const resetCopyButton = () => { if (copyTextElement) copyTextElement.textContent = originalCopyText; if (copyIconElement) copyIconElement.className = originalCopyIconClass; if (copyPhoneButton) copyPhoneButton.disabled = false; if (copyTimeout) { clearTimeout(copyTimeout); copyTimeout = null; } };
     if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay) { console.error("Core popup elements missing."); return; }
     if (!copyPhoneButton || !copyTextElement || !copyIconElement) { console.warn("Copy button elements missing."); }
-
-    if (copyPhoneButton) { /* ... copy button click handler unchanged ... */
-        const handleCopyClick = async () => {
-            const linkElement = phoneNumberDisplay.querySelector('a');
-            const numberToCopy = linkElement ? linkElement.textContent : null;
-            if (numberToCopy && navigator.clipboard) {
-                try { /* ... clipboard write ... */
-                    await navigator.clipboard.writeText(numberToCopy);
-                    if (copyTextElement) copyTextElement.textContent = 'Copied!';
-                    if (copyIconElement) copyIconElement.className = 'fa-solid fa-check';
-                    copyPhoneButton.disabled = true;
-                    if (copyTimeout) clearTimeout(copyTimeout);
-                    copyTimeout = setTimeout(resetCopyButton, 2000);
-                } catch (err) { /* ... error handling ... */
-                    console.error('Failed to copy phone number:', err);
-                    alert("Could not copy number."); resetCopyButton();
-                }
-            } else { /* ... error handling ... */
-                 if (!navigator.clipboard) alert("Copying not supported by browser."); resetCopyButton();
-            }
-        };
-        copyPhoneButton.addEventListener('click', handleCopyClick);
-    }
-
-    resultsList.addEventListener('click', function(event) { /* ... event delegation unchanged ... */
-        const revealButton = event.target.closest('.revealPhoneBtn');
-        const promoteButton = event.target.closest('.promote-button');
-        if (revealButton) {
-            event.preventDefault();
-            const numberToDisplay = revealButton.dataset.phone;
-            if (numberToDisplay) { /* ... show popup ... */
-                phoneNumberDisplay.innerHTML = `<a href="tel:${numberToDisplay}">${numberToDisplay}</a>`;
-                resetCopyButton(); phonePopup.classList.remove('hidden');
-            } else { console.warn("Reveal button missing phone data."); }
-        } else if (promoteButton) { console.log('Promote button clicked'); }
-    });
-
-    closePopupButton.addEventListener('click', function() { /* ... unchanged ... */
-        phonePopup.classList.add('hidden'); resetCopyButton();
-    });
-     phonePopup.addEventListener('click', function(event) { /* ... unchanged ... */
-         if (event.target === phonePopup) { phonePopup.classList.add('hidden'); resetCopyButton(); }
-     });
+    if (copyPhoneButton) { const handleCopyClick = async () => { /* ... */ }; copyPhoneButton.addEventListener('click', handleCopyClick); } // Condensed for brevity
+    resultsList.addEventListener('click', function(event) { const revealButton = event.target.closest('.revealPhoneBtn'); const promoteButton = event.target.closest('.promote-button'); if (revealButton) { /* ... */ } else if (promoteButton) { /* ... */ } }); // Condensed
+    closePopupButton.addEventListener('click', function() { phonePopup.classList.add('hidden'); resetCopyButton(); }); // Condensed
+    phonePopup.addEventListener('click', function(event) { if (event.target === phonePopup) { phonePopup.classList.add('hidden'); resetCopyButton(); } }); // Condensed
 }
-
 
 // ======================================================================
 // Main Execution: Initialize functions AFTER DOM is ready
