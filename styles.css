@@ -54,66 +54,83 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 #results li.category-heading:first-child { margin-top: 0px; }
 
 /* Base Directory Entry */
-#results li.directory-entry { list-style: none !important; padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px 15px; position: relative; border-radius: 3px; margin-bottom: 2px; }
+#results li.directory-entry {
+    list-style: none !important;
+    padding: 11px 9px; /* Slightly adjust padding to account for border */
+    border-bottom: 1px solid #eee; /* Keep bottom border */
+    /* Remove default border */
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px 15px;
+    position: relative;
+    border-radius: 5px; /* Slightly larger radius */
+    margin-bottom: 3px; /* Slightly more space */
+}
 #results li.directory-entry:last-child { border-bottom: none; margin-bottom: 0;}
 
 
-/* --- START: Enhanced Tiered Promotion Styles (Using Standard Colors) --- */
+/* --- START: Tiered Promotion Styles (Full Border) --- */
 
 /* Common styles for all promoted tiers */
 #results li.promoted-gold,
 #results li.promoted-silver,
 #results li.promoted-bronze {
-    border-left-width: 5px; /* Make border thicker */
+    border-width: 2px; /* Define border thickness */
     border-style: solid;
-    padding-left: 8px;
+    padding: 10px 8px; /* Re-adjust padding (original - border width) */
     box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
-    border-right: 1px solid #eee;
-    border-top: 1px solid #eee;
-    border-bottom: 1px solid #eee;
-    margin-left: 0;
-    margin-right: 0;
+    /* Remove specific border overrides, default bottom border is overridden by full border */
+    border-bottom-width: 2px; /* Make bottom same thickness */
 }
+/* Last item border removal */
 #results li.promoted-gold:last-child,
 #results li.promoted-silver:last-child,
-#results li.promoted-bronze:last-child { border-bottom: none; }
+#results li.promoted-bronze:last-child {
+    border-bottom-width: 2px; /* Keep border on last promoted item too unless it's absolutely last overall */
+}
+/* If the very last LI on the whole page is promoted, remove its bottom border */
+#results > li:last-child.promoted-gold,
+#results > li:last-child.promoted-silver,
+#results > li:last-child.promoted-bronze {
+     border-bottom-width: 2px; /* Or set to 0 if desired: border-bottom: none; */
+}
 
-/* GOLD Tier (12 Months) - Using Standard #FFD700 */
+
+/* GOLD Tier (12 Months) */
 #results li.promoted-gold {
-    background-color: #fffbea; /* Very light yellow */
-    /* Option A: border-left-color: #ffc107; */ /* Slightly darker/more orange gold */
-    border-left-color: #FFD700; /* Standard Gold */
+    background-color: #fffaf0;
+    border-color: #FFD700; /* Standard Gold */
 }
 .sponsored-label.gold {
-    /* Option A: background-color: #ffc107; */
-    background-color: #FFD700; /* Standard Gold */
-    color: #493d00; /* Darker text for better contrast on standard gold */
-    border: 1px solid #e6c300; /* Slightly darker border */
+    background-color: #FFD700;
+    color: #493d00;
+    border: 1px solid #e6c300;
 }
 
-/* SILVER Tier (6 Months) - Using Standard #C0C0C0 */
+/* SILVER Tier (6 Months) */
 #results li.promoted-silver {
-    background-color: #f5f5f5; /* Lighter Grey */
-    /* Option A: border-left-color: #adb5bd; */ /* Medium Grey */
-    border-left-color: #C0C0C0; /* Standard Silver */
+    background-color: #f5f5f5;
+    border-color: #C0C0C0; /* Standard Silver */
 }
 .sponsored-label.silver {
-     /* Option A: background-color: #adb5bd; */
-     background-color: #C0C0C0; /* Standard Silver */
-    color: #333; /* Dark text on silver */
+     background-color: #C0C0C0;
+    color: #333;
     border: 1px solid #a8a8a8;
 }
 
-/* BRONZE Tier (1 Month) - Using Standard #CD7F32 */
+/* BRONZE Tier (1 Month) */
 #results li.promoted-bronze {
-    background-color: #fff0e1; /* Light peach/bronze tint */
-    /* Option A: border-left-color: #e0a866; */ /* Existing Bronze/Orange */
-     border-left-color: #CD7F32; /* Standard Bronze */
+    background-color: #fff0e1;
+    border-color: #CD7F32; /* Standard Bronze */
 }
 .sponsored-label.bronze {
-    /* Option A: background-color: #e0a866; */
-     background-color: #CD7F32; /* Standard Bronze */
-    color: #fff; /* White text on bronze */
+     background-color: #CD7F32;
+    color: #fff;
     border: 1px solid #b8732d;
 }
 
@@ -130,7 +147,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     letter-spacing: 0.5px;
     line-height: 1.2;
 }
-/* --- END: Enhanced Tiered Promotion Styles --- */
+/* --- END: Tiered Promotion Styles --- */
 
 
 /* Details container */
@@ -149,11 +166,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 #suggestion-form { max-width: 650px; margin: 30px auto; padding: 25px 30px; border: 1px solid #dee2e6; border-radius: 8px; background-color: #fdfdfd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 .form-group { margin-bottom: 20px; }
 .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #495057; }
-.form-group input[type="text"],
-.form-group input[type="tel"],
-.form-group input[type="email"],
-.form-group textarea,
-.form-group select { width: 100%; padding: 10px 12px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-size: 1em; line-height: 1.5; }
+.form-group input[type="text"], .form-group input[type="tel"], .form-group input[type="email"], .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-size: 1em; line-height: 1.5; }
 .form-group input[type="radio"] { margin-right: 8px; vertical-align: middle; }
 .form-group input[type="radio"] + label { display: inline-block; margin-bottom: 0; font-weight: normal; vertical-align: middle;}
 .form-group div { margin-bottom: 8px; }
@@ -217,36 +230,21 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     html { scroll-behavior: auto; }
     body { padding: 10px; font-size: 10pt; color: #000; }
     h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton, .promote-button-container, .sponsored-label { display: none !important; }
+    /* Reset ALL promoted styles for print */
     #results li.promoted-gold,
     #results li.promoted-silver,
-    #results li.promoted-bronze { background-color: transparent !important; border: none !important; padding-left: 10px !important; margin-left: 0 !important; margin-right: 0 !important; border-bottom: 1px solid #ccc !important; box-shadow: none !important; }
-     #results li.directory-entry:last-child,
+    #results li.promoted-bronze {
+        background-color: transparent !important;
+        border: none !important; /* Remove colored border */
+        padding: 12px 10px !important; /* Revert to default padding */
+        box-shadow: none !important;
+        border-bottom: 1px solid #ccc !important; /* Restore default border */
+    }
+     #results li.directory-entry:last-child, /* Apply to base and promoted */
      #results li.promoted-gold:last-child,
      #results li.promoted-silver:last-child,
      #results li.promoted-bronze:last-child { border-bottom: none !important; }
-    .region-container { display: block !important; }
-    .region-column { display: block !important; border: none !important; padding: 0 !important; margin-bottom: 20px; text-align: left !important; min-height: unset !important; }
-    .region-column h2 { text-align: left !important; background-color: transparent !important; border-bottom: 1px solid #000 !important; padding: 0 0 2px 0 !important; margin: 0 0 5px 0 !important; font-size: 12pt;}
-    .community-list { text-align: left !important; flex-grow: unset !important; }
-    .community-item-container { display: block !important; }
-    .community-link { text-align: left !important; margin-bottom: 3px; }
-    .status-label { display: none !important; }
-    #province-list { display: block; }
-    #results { border-top: none; margin-top: 0; padding-top: 0; }
-    #results .category-heading { background-color: #eee !important; color: #000 !important; border-bottom: 1px solid #ccc !important; padding: 5px; margin-top: 15px; font-size: 12pt; border-radius: 0; }
-    #results li.category-heading:first-child { margin-top: 0; }
-    #results li.directory-entry { display: flex !important; justify-content: space-between !important; align-items: flex-start !important; padding: 4px 0; page-break-inside: avoid;}
-    .entry-details { margin-right: 10px !important; flex-grow: 1 !important; }
-    .name, .phone, .category, .notes, .address, .entry-details { color: #000 !important; font-size: 10pt; }
-    .name { font-weight: bold;}
-    .notes, .address { font-size: 9pt; margin-top: 2px;}
-    .revealPhoneBtn, #phonePopup, .phone-container, .copy-button { display: none !important; }
-    #province-name-heading { font-size: 14pt !important; text-align: left !important; }
-    .community-list-grouped { margin: 0 !important; max-width: none !important; border: none !important; padding: 0 !important; }
-    .letter-heading { background-color: transparent !important; border-bottom: 1px solid #000 !important; font-size: 12pt !important; padding: 5px 0 !important; margin: 10px 0 !important; }
-    .community-list-item { padding: 2px 0 !important; border: none !important; }
-    .province-community-item-container { display: block !important; }
-    .community-list-item a { color: #000 !important; text-decoration: none !important; }
+    /* ... rest of print styles ... */
 }
 
 /* Responsive Styles (Adjusted for Tiered Labels & Mobile Label Alignment) */
@@ -254,43 +252,51 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 @media (max-width: 768px) { .region-column { flex-basis: calc(50% - 10px); } .region-column h2 { font-size: 1.2em; } .community-list-grouped { max-width: 95%; } }
 @media (max-width: 600px) {
     body { padding-top: 65px; padding-left: 15px; padding-right: 15px; padding-bottom: 15px; }
+    /* ... home page mobile ... */
     .region-container { gap: 15px; }
     .region-column { flex-basis: 100%; padding: 10px; padding-bottom: 15px; min-height: unset; }
     .region-column h2 { margin: -10px -10px 10px -10px; padding: 8px 10px; }
+    /* ... community page mobile ... */
     .community-header { margin-bottom: 20px; padding-top: 0; }
     #logo { max-width: 100px; margin-bottom: 8px; }
     #community-name { font-size: 1.5em; line-height: 1.3; }
     .directory-subtitle { font-size: 0.8em; }
     #results li.directory-entry { flex-direction: column; align-items: stretch; gap: 8px 0; padding-top: 10px; padding-bottom: 10px; }
+    /* Promoted items on mobile */
     #results li.promoted-gold,
     #results li.promoted-silver,
-    #results li.promoted-bronze { border-left-width: 4px; padding-left: 8px; box-shadow: 1px 1px 2px rgba(0,0,0,0.08); }
+    #results li.promoted-bronze {
+        border-left-width: 0; /* Remove left border */
+        border-width: 2px; /* Keep border thickness */
+        padding: 10px 8px; /* Match desktop padding */
+        box-shadow: 1px 1px 2px rgba(0,0,0,0.08);
+    }
     .entry-details { margin-right: 0; margin-bottom: 8px; order: 1; text-align: left; }
     .address { font-size: 0.85em; }
 
     /* --- START: Mobile Label Alignment Fix --- */
     .name {
-        display: flex; /* Make name span a flex container on mobile */
-        justify-content: space-between; /* Push items to ends */
-        align-items: baseline; /* Align text and label baseline */
-        flex-wrap: wrap; /* Allow wrap just in case */
-        line-height: normal; /* Override any inherited line-height that might interfere */
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        flex-wrap: nowrap; /* Prevent wrapping of label itself */
+        line-height: normal;
     }
-    .name span { /* This targets the inline span holding the actual name text IF needed, often not */
-        flex-grow: 1; /* Allow name to take up space */
-        margin-right: 5px; /* Add small space before label */
-        /* No specific styling needed usually */
+    .name span { /* Container for actual name text */
+       display: inline; /* Let text flow naturally */
+       margin-right: 5px; /* Space before label */
+       /* Let flexbox handle width - no flex-grow needed here */
     }
     .name .sponsored-label {
-       flex-shrink: 0; /* Prevent label from shrinking */
-       /* font-size: 0.7em; /* Adjusted size */
-       /* margin-left: auto; /* This might not be needed with justify-content: space-between */
+       flex-shrink: 0; /* Prevent label shrinking */
+       margin-left: auto; /* Push to far right */
+       white-space: nowrap; /* Ensure label text doesn't wrap */
     }
      /* --- END: Mobile Label Alignment Fix --- */
 
     .phone-container { text-align: right; width: 100%; margin-top: 0; order: 2; white-space: normal; }
     .promote-button-container { margin-top: 8px; text-align: left; order: 3; }
-    .sponsored-label { font-size: 0.7em; margin-left: 6px; padding: 2px 5px; }
+    .sponsored-label { font-size: 0.7em; padding: 2px 5px; }
     .action-buttons { gap: 10px; }
      #suggestion-form { padding: 20px 15px; }
      #suggestion-form button[type="submit"] { width: 100%; }
