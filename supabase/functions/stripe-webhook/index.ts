@@ -1,11 +1,11 @@
-// supabase/functions/stripe-webhook/index.ts (Calculate expiry based on duration)
+// supabase/functions/stripe-webhook/index.ts (v3 - Save duration to DB)
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import Stripe from 'npm:stripe@^14'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders } from '../_shared/cors.ts' // Assuming cors.ts is set up correctly
+import { corsHeaders } from '../_shared/cors.ts'
 
-console.log(`Stripe Webhook Function Initializing (v2 - Dynamic Expiry)`)
+console.log(`Stripe Webhook Function Initializing (v3 - Save Duration)`)
 
 // Get required environment variables
 const stripeApiKey = Deno.env.get('STRIPE_SECRET_KEY');
@@ -16,7 +16,7 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 // Validate required secrets
 if (!stripeApiKey || !webhookSigningSecret || !supabaseUrl || !supabaseServiceKey) {
   console.error('FATAL ERROR: Missing one or more required environment variables.')
-  throw new Error("Function configuration error: Missing secrets."); // Throw error during init if secrets missing
+  throw new Error("Function configuration error: Missing secrets.");
 }
 
 // Initialize Stripe client
@@ -29,10 +29,10 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 serve(async (req: Request) => {
   const signature = req.headers.get('Stripe-Signature')
-  const body = await req.text() // Read body as text first for verification
-  const requestOrigin = req.headers.get('origin'); // Get origin for CORS response
+  const body = await req.text()
+  const requestOrigin = req.headers.get('origin');
 
-  // Handle CORS preflight (needed for Stripe retries sometimes)
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
       return new Response('ok', { headers: corsHeaders(requestOrigin) });
   }
@@ -75,17 +75,16 @@ serve(async (req: Request) => {
     const listingId = metadata.listing_id;
     const tableName = metadata.table_name;
     const promoterEmail = metadata.promoter_email;
-    const durationMonths = metadata.durationMonths; // <-- Get the duration
+    const durationMonths = metadata.durationMonths; // Get the duration
 
     console.log("Extracted Metadata:", metadata);
 
-    // Validate essential metadata (including duration)
+    // Validate essential metadata
     if (!listingId || !tableName || !promoterEmail || !durationMonths) {
       console.error("Essential metadata (listing_id, table_name, promoter_email, durationMonths) missing:", metadata);
       return new Response('Essential metadata missing', { status: 400 });
     }
 
-    // Convert durationMonths to a number
     const durationNum = parseInt(durationMonths, 10);
     if (isNaN(durationNum) || durationNum <= 0) {
         console.error("Invalid durationMonths value received:", durationMonths);
@@ -93,28 +92,26 @@ serve(async (req: Request) => {
     }
 
     try {
-      // --- 4. Calculate expiry date based on durationMonths ---
+      // --- 4. Calculate expiry date ---
       const now = new Date();
-      // Create a new date object to avoid modifying 'now' directly
       const expiryDate = new Date(now);
-      // Add the specified number of months
       expiryDate.setMonth(expiryDate.getMonth() + durationNum);
-
-      // Format for Supabase timestampz column
       const expiryTimestamp = expiryDate.toISOString();
       console.log(`Calculated expiry timestamp for ${durationNum} months: ${expiryTimestamp}`);
 
       // --- 5. Update the correct listing in the Supabase database ---
+      // *** ADD promotion_duration_months to the update object ***
       console.log(`Attempting to update listing ID ${listingId} in table ${tableName}`);
       const { data: updateData, error: updateError } = await supabaseAdmin
         .from(tableName)
         .update({
           is_promoted: true,
-          promotion_expires_at: expiryTimestamp, // Use dynamically calculated expiry
-          promoter_email: promoterEmail
+          promotion_expires_at: expiryTimestamp,
+          promoter_email: promoterEmail,
+          promotion_duration_months: durationNum // <-- ADDED THIS LINE
         })
-        .eq('id', parseInt(listingId, 10)) // Ensure listingId is integer if needed
-        .select();
+        .eq('id', parseInt(listingId, 10))
+        .select(); // Optionally select to confirm update
 
       if (updateError) {
         console.error(`Error updating listing ${listingId} in table ${tableName}:`, updateError);
@@ -123,9 +120,8 @@ serve(async (req: Request) => {
 
       if (!updateData || updateData.length === 0) {
           console.warn(`Listing ID ${listingId} not found in table ${tableName} during update attempt.`);
-          // Don't fail the webhook, but log it.
       } else {
-          console.log(`Successfully updated listing ID ${listingId} in table ${tableName}.`);
+          console.log(`Successfully updated listing ID ${listingId} in table ${tableName} with duration ${durationNum}.`);
       }
 
       // --- 6. Respond successfully to Stripe ---
@@ -139,8 +135,6 @@ serve(async (req: Request) => {
 
   } else {
     console.log(`Received unhandled event type: ${receivedEvent.type}`)
-    // It's good practice to return 200 even for unhandled events Stripe might send
-    // return new Response(`Unhandled event type: ${receivedEvent.type}`, { status: 400 }) // Changed to 200
     return new Response(JSON.stringify({ received: true, handled: false }), { status: 200 })
   }
 })
