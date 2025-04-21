@@ -54,23 +54,11 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 #results li.category-heading:first-child { margin-top: 0px; }
 
 /* Base Directory Entry */
-#results li.directory-entry {
-    list-style: none !important;
-    padding: 12px 10px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* Keep center alignment */
-    flex-wrap: wrap;
-    gap: 5px 15px;
-    position: relative;
-    border-radius: 3px; /* Add slight rounding */
-    margin-bottom: 2px; /* Add tiny space between entries */
-}
+#results li.directory-entry { list-style: none !important; padding: 12px 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px 15px; position: relative; border-radius: 3px; margin-bottom: 2px; }
 #results li.directory-entry:last-child { border-bottom: none; margin-bottom: 0;}
 
 
-/* --- START: Enhanced Tiered Promotion Styles --- */
+/* --- START: Enhanced Tiered Promotion Styles (Using Standard Colors) --- */
 
 /* Common styles for all promoted tiers */
 #results li.promoted-gold,
@@ -79,63 +67,64 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     border-left-width: 5px; /* Make border thicker */
     border-style: solid;
     padding-left: 8px;
-    /* Add subtle shadow */
     box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
-    /* Keep standard bottom border, remove potential double borders */
     border-right: 1px solid #eee;
     border-top: 1px solid #eee;
-    border-bottom: 1px solid #eee; /* Default bottom */
-    margin-left: 0; /* Reset any negative margins */
+    border-bottom: 1px solid #eee;
+    margin-left: 0;
     margin-right: 0;
 }
-/* Ensure last item border rule still applies correctly */
 #results li.promoted-gold:last-child,
 #results li.promoted-silver:last-child,
-#results li.promoted-bronze:last-child {
-    border-bottom: none;
-}
+#results li.promoted-bronze:last-child { border-bottom: none; }
 
-/* GOLD Tier (12 Months) */
+/* GOLD Tier (12 Months) - Using Standard #FFD700 */
 #results li.promoted-gold {
-    background-color: #fffaf0; /* Existing Light Gold/Cream */
-    border-left-color: #ffc107; /* Gold */
+    background-color: #fffbea; /* Very light yellow */
+    /* Option A: border-left-color: #ffc107; */ /* Slightly darker/more orange gold */
+    border-left-color: #FFD700; /* Standard Gold */
 }
 .sponsored-label.gold {
-    background-color: #ffc107; /* Gold */
-    color: #333;
-    border: 1px solid #e0a800; /* Slightly darker border for label */
+    /* Option A: background-color: #ffc107; */
+    background-color: #FFD700; /* Standard Gold */
+    color: #493d00; /* Darker text for better contrast on standard gold */
+    border: 1px solid #e6c300; /* Slightly darker border */
 }
 
-/* SILVER Tier (6 Months) */
+/* SILVER Tier (6 Months) - Using Standard #C0C0C0 */
 #results li.promoted-silver {
-    background-color: #e9ecef; /* Slightly stronger Light Grey */
-    border-left-color: #6c757d; /* Standard Grey */
+    background-color: #f5f5f5; /* Lighter Grey */
+    /* Option A: border-left-color: #adb5bd; */ /* Medium Grey */
+    border-left-color: #C0C0C0; /* Standard Silver */
 }
 .sponsored-label.silver {
-    background-color: #6c757d; /* Standard Grey */
-    color: #fff;
-    border: 1px solid #5a6268;
+     /* Option A: background-color: #adb5bd; */
+     background-color: #C0C0C0; /* Standard Silver */
+    color: #333; /* Dark text on silver */
+    border: 1px solid #a8a8a8;
 }
 
-/* BRONZE Tier (1 Month) */
+/* BRONZE Tier (1 Month) - Using Standard #CD7F32 */
 #results li.promoted-bronze {
-    background-color: #fff3cd; /* Borrowing 'coming soon' yellow hint */
-    border-left-color: #e0a866; /* Existing Bronze/Orange */
+    background-color: #fff0e1; /* Light peach/bronze tint */
+    /* Option A: border-left-color: #e0a866; */ /* Existing Bronze/Orange */
+     border-left-color: #CD7F32; /* Standard Bronze */
 }
 .sponsored-label.bronze {
-    background-color: #e0a866; /* Existing Bronze/Orange */
-    color: #fff;
-    border: 1px solid #c69555;
+    /* Option A: background-color: #e0a866; */
+     background-color: #CD7F32; /* Standard Bronze */
+    color: #fff; /* White text on bronze */
+    border: 1px solid #b8732d;
 }
 
-/* Base Sponsored Label Styles (Adjusted) */
+/* Base Sponsored Label Styles */
 .sponsored-label {
     display: inline-block;
-    font-size: 0.75em; /* Slightly larger label */
+    font-size: 0.75em;
     font-weight: bold;
-    padding: 2px 6px; /* Slightly more padding */
+    padding: 2px 6px;
     border-radius: 4px;
-    margin-left: 10px; /* More space */
+    margin-left: 10px;
     vertical-align: middle;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -228,23 +217,13 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     html { scroll-behavior: auto; }
     body { padding: 10px; font-size: 10pt; color: #000; }
     h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton, .promote-button-container, .sponsored-label { display: none !important; }
-    /* Reset ALL promoted styles for print */
     #results li.promoted-gold,
     #results li.promoted-silver,
-    #results li.promoted-bronze {
-        background-color: transparent !important;
-        border: none !important;
-        padding-left: 10px !important; /* Revert to default padding */
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        border-bottom: 1px solid #ccc !important; /* Restore default border */
-        box-shadow: none !important; /* Remove shadow */
-    }
-     #results li.directory-entry:last-child, /* Include last entry */
+    #results li.promoted-bronze { background-color: transparent !important; border: none !important; padding-left: 10px !important; margin-left: 0 !important; margin-right: 0 !important; border-bottom: 1px solid #ccc !important; box-shadow: none !important; }
+     #results li.directory-entry:last-child,
      #results li.promoted-gold:last-child,
      #results li.promoted-silver:last-child,
      #results li.promoted-bronze:last-child { border-bottom: none !important; }
-    /* ... rest of print styles remain the same ... */
     .region-container { display: block !important; }
     .region-column { display: block !important; border: none !important; padding: 0 !important; margin-bottom: 20px; text-align: left !important; min-height: unset !important; }
     .region-column h2 { text-align: left !important; background-color: transparent !important; border-bottom: 1px solid #000 !important; padding: 0 0 2px 0 !important; margin: 0 0 5px 0 !important; font-size: 12pt;}
@@ -256,7 +235,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     #results { border-top: none; margin-top: 0; padding-top: 0; }
     #results .category-heading { background-color: #eee !important; color: #000 !important; border-bottom: 1px solid #ccc !important; padding: 5px; margin-top: 15px; font-size: 12pt; border-radius: 0; }
     #results li.category-heading:first-child { margin-top: 0; }
-    #results li.directory-entry { display: flex !important; justify-content: space-between !important; align-items: flex-start !important; padding: 4px 0; page-break-inside: avoid;} /* Keep bottom border logic */
+    #results li.directory-entry { display: flex !important; justify-content: space-between !important; align-items: flex-start !important; padding: 4px 0; page-break-inside: avoid;}
     .entry-details { margin-right: 10px !important; flex-grow: 1 !important; }
     .name, .phone, .category, .notes, .address, .entry-details { color: #000 !important; font-size: 10pt; }
     .name { font-weight: bold;}
@@ -270,31 +249,48 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     .community-list-item a { color: #000 !important; text-decoration: none !important; }
 }
 
-/* Responsive Styles (Adjusted for Tiered Labels) */
+/* Responsive Styles (Adjusted for Tiered Labels & Mobile Label Alignment) */
 @media (max-width: 1200px) { .region-column { flex-basis: calc(33.33% - 14px); } }
 @media (max-width: 768px) { .region-column { flex-basis: calc(50% - 10px); } .region-column h2 { font-size: 1.2em; } .community-list-grouped { max-width: 95%; } }
 @media (max-width: 600px) {
     body { padding-top: 65px; padding-left: 15px; padding-right: 15px; padding-bottom: 15px; }
-    /* ... home page mobile ... */
     .region-container { gap: 15px; }
     .region-column { flex-basis: 100%; padding: 10px; padding-bottom: 15px; min-height: unset; }
     .region-column h2 { margin: -10px -10px 10px -10px; padding: 8px 10px; }
-    /* ... community page mobile ... */
     .community-header { margin-bottom: 20px; padding-top: 0; }
     #logo { max-width: 100px; margin-bottom: 8px; }
     #community-name { font-size: 1.5em; line-height: 1.3; }
     .directory-subtitle { font-size: 0.8em; }
     #results li.directory-entry { flex-direction: column; align-items: stretch; gap: 8px 0; padding-top: 10px; padding-bottom: 10px; }
-    /* Promoted items on mobile */
     #results li.promoted-gold,
     #results li.promoted-silver,
-    #results li.promoted-bronze { border-left-width: 4px; padding-left: 8px; box-shadow: 1px 1px 2px rgba(0,0,0,0.08); } /* Keep border, adjust shadow */
+    #results li.promoted-bronze { border-left-width: 4px; padding-left: 8px; box-shadow: 1px 1px 2px rgba(0,0,0,0.08); }
     .entry-details { margin-right: 0; margin-bottom: 8px; order: 1; text-align: left; }
     .address { font-size: 0.85em; }
+
+    /* --- START: Mobile Label Alignment Fix --- */
+    .name {
+        display: flex; /* Make name span a flex container on mobile */
+        justify-content: space-between; /* Push items to ends */
+        align-items: baseline; /* Align text and label baseline */
+        flex-wrap: wrap; /* Allow wrap just in case */
+        line-height: normal; /* Override any inherited line-height that might interfere */
+    }
+    .name span { /* This targets the inline span holding the actual name text IF needed, often not */
+        flex-grow: 1; /* Allow name to take up space */
+        margin-right: 5px; /* Add small space before label */
+        /* No specific styling needed usually */
+    }
+    .name .sponsored-label {
+       flex-shrink: 0; /* Prevent label from shrinking */
+       /* font-size: 0.7em; /* Adjusted size */
+       /* margin-left: auto; /* This might not be needed with justify-content: space-between */
+    }
+     /* --- END: Mobile Label Alignment Fix --- */
+
     .phone-container { text-align: right; width: 100%; margin-top: 0; order: 2; white-space: normal; }
-    .promote-button-container { margin-top: 8px; text-align: left; }
-    .sponsored-label { font-size: 0.7em; margin-left: 6px; padding: 2px 5px; } /* Slightly larger on mobile */
-    /* ... rest of mobile styles ... */
+    .promote-button-container { margin-top: 8px; text-align: left; order: 3; }
+    .sponsored-label { font-size: 0.7em; margin-left: 6px; padding: 2px 5px; }
     .action-buttons { gap: 10px; }
      #suggestion-form { padding: 20px 15px; }
      #suggestion-form button[type="submit"] { width: 100%; }
