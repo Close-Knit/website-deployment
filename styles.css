@@ -93,22 +93,22 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     border-bottom: 1px solid #eee;
     display: flex;
     justify-content: space-between;
-    align-items: center; /* Use center alignment */
+    align-items: center; /* Keep center alignment */
     flex-wrap: wrap;
     gap: 5px 15px;
-    position: relative; /* Keep relative positioning */
+    position: relative;
 }
 #results li.directory-entry:last-child { border-bottom: none; }
 
-/* --- START: Tiered Promotion Styles --- */
+
+/* --- START: Re-added Tiered Promotion Styles --- */
 /* GOLD Tier (12 Months) */
 #results li.promoted-gold {
     background-color: #fff8e1; /* Lighter Gold/Cream */
     border-left: 4px solid #ffc107; /* Gold */
     padding-left: 8px; /* Adjust left padding for border */
-    /* Let default bottom border apply unless last child */
 }
-#results li.promoted-gold:last-child { border-bottom: none; } /* Ensure last has no bottom border */
+#results li.promoted-gold:last-child { border-bottom: none; }
 .sponsored-label.gold { background-color: #ffc107; color: #333; }
 
 /* SILVER Tier (6 Months) */
@@ -142,7 +142,8 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     letter-spacing: 0.5px;
     line-height: 1.2;
 }
-/* --- END: Tiered Promotion Styles --- */
+/* --- END: Re-added Tiered Promotion Styles --- */
+
 
 /* Details container */
 .entry-details { flex-grow: 1; margin-right: 15px; text-align: left; }
