@@ -1,4 +1,4 @@
-// --- START OF directory.js (Detailed Debugging for Popup) ---
+// --- START OF directory.js (Generic "Sponsored" Label - CAREFUL EDIT v2) ---
 
 // Assumes supabaseClient is globally available from common.js
 
@@ -76,7 +76,7 @@ async function fetchAndDisplayListings() {
         const suggestChangeLink = document.getElementById('suggestChangeLink');
         if (suggestChangeLink) { suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`; }
 
-        // Fetch Listings
+        // --- Fetch Listings ---
         console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
         const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
@@ -99,12 +99,12 @@ async function fetchAndDisplayListings() {
         if (communityNameElement) { communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">${subTitleText}</span>`; }
         if (listingCount === 0) { resultsList.innerHTML = `<li>No listings found for ${decodedCommunityName}.</li>`; return; }
 
-        // Group and Sort Listings by Category and Tier
+        // --- Group and Sort Listings by Category and Tier ---
         const groupedListings = listings.reduce((acc, listing) => { const category = listing.category || 'Uncategorized'; if (!acc[category]) { acc[category] = []; } acc[category].push(listing); return acc; }, {});
         const sortedCategories = Object.keys(groupedListings).sort((a, b) => { if (a === 'Uncategorized') return 1; if (b === 'Uncategorized') return -1; return a.localeCompare(b); });
         const now = new Date();
 
-        // Render Listings
+        // --- Render Listings ---
         sortedCategories.forEach(category => {
              const categoryHeadingItem = document.createElement('li');
              categoryHeadingItem.className = 'category-heading';
@@ -114,8 +114,10 @@ async function fetchAndDisplayListings() {
              const listingsInCategory = groupedListings[category];
              const goldListings = [], silverListings = [], bronzeListings = [], regularListings = [];
 
+             // Categorize listings by tier
              listingsInCategory.forEach(listing => {
-                 const isPromoted = listing.is_promoted === true; const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
+                 const isPromoted = listing.is_promoted === true;
+                 const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
                  const isActivePromotion = isPromoted && expiresAt instanceof Date && !isNaN(expiresAt) && expiresAt > now;
                  const duration = listing.promotion_duration_months;
                  if (isActivePromotion) { if (duration === 12) goldListings.push(listing); else if (duration === 6) silverListings.push(listing); else bronzeListings.push(listing); }
@@ -123,25 +125,38 @@ async function fetchAndDisplayListings() {
              });
              const categorySortedListings = goldListings.concat(silverListings).concat(bronzeListings).concat(regularListings);
 
+             // Render sorted listings for the category
              categorySortedListings.forEach(listing => {
                  const listItem = document.createElement('li');
                  listItem.className = 'directory-entry';
 
+                 // Apply Tier Styling & *** Generic Label ***
                  const isActivePromotion = listing.is_promoted === true && listing.promotion_expires_at && new Date(listing.promotion_expires_at) > now;
                  const duration = listing.promotion_duration_months;
-                 let tierClass = ''; let sponsoredLabelHtml = '';
+                 let tierClass = '';
+                 let sponsoredLabelHtml = '';
+                 let labelTierClass = ''; // Class for the label span styling
+
                  if (isActivePromotion) {
-                     if (duration === 12) { tierClass = 'promoted-gold'; sponsoredLabelHtml = `<span class="sponsored-label gold">Gold</span>`; }
-                     else if (duration === 6) { tierClass = 'promoted-silver'; sponsoredLabelHtml = `<span class="sponsored-label silver">Silver</span>`; }
-                     else { tierClass = 'promoted-bronze'; sponsoredLabelHtml = `<span class="sponsored-label bronze">Bronze</span>`; }
+                     // Determine tier class for the LI background/border
+                     if (duration === 12) { tierClass = 'promoted-gold'; labelTierClass = 'gold'; }
+                     else if (duration === 6) { tierClass = 'promoted-silver'; labelTierClass = 'silver'; }
+                     else { tierClass = 'promoted-bronze'; labelTierClass = 'bronze'; } // Default to bronze class
                      listItem.classList.add(tierClass);
+
+                     // *** Generate Generic "Sponsored" Label BUT with tier class for styling ***
+                     sponsoredLabelHtml = `<span class="sponsored-label ${labelTierClass}">Sponsored</span>`;
                  }
+                 // --- End Tier Styling/Label ---
+
 
                  const listingId = listing.id;
+                 // Phone Button HTML
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
                  if (phoneNumber) { phoneHtml = `<button class="revealPhoneBtn" data-phone="${phoneNumber}" title="Show phone number for ${listing.name || 'this listing'}"><i class="fa-solid fa-phone"></i> Show Phone</button>`; }
 
+                 // Promote Button HTML
                  let promoteButtonHtml = '';
                  if (listingId && !isActivePromotion) {
                      const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(listing.address || '')}&phone=${encodeURIComponent(listing.phone_number || '')}`;
@@ -161,8 +176,8 @@ async function fetchAndDisplayListings() {
                      </div>
                  `;
                  resultsList.appendChild(listItem);
-             });
-        });
+             }); // End rendering loop
+        }); // End category loop
 
     } catch (fetchError) {
         displayError(fetchError.message || "An unknown error occurred while fetching listings.");
@@ -175,102 +190,17 @@ function initializeSearch() {
     searchBox.addEventListener('input', function() { const searchTerm = this.value.toLowerCase().trim(); const listItems = resultsList.getElementsByClassName('directory-entry'); const categoryHeadings = resultsList.getElementsByClassName('category-heading'); let visibleCategories = new Set(); Array.from(listItems).forEach(item => { const nameElement = item.querySelector('.name'); const nameText = nameElement?.textContent.toLowerCase() || ''; const addressText = item.querySelector('.address')?.textContent.toLowerCase() || ''; const notesText = item.querySelector('.notes')?.textContent.toLowerCase() || ''; let categoryText = ''; let currentElement = item.previousElementSibling; while (currentElement) { if (currentElement.classList.contains('category-heading')) { categoryText = currentElement.textContent.toLowerCase(); break; } currentElement = currentElement.previousElementSibling; } const matchesSearch = nameText.includes(searchTerm) || addressText.includes(searchTerm) || notesText.includes(searchTerm) || categoryText.includes(searchTerm); if (matchesSearch) { item.style.display = ''; if (categoryText) visibleCategories.add(categoryText); } else { item.style.display = 'none'; } }); Array.from(categoryHeadings).forEach(heading => { const categoryText = heading.textContent.toLowerCase(); if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) { heading.style.display = ''; } else { heading.style.display = 'none'; } }); });
  }
 
-// ======================================================================
-// Initialize Popup Interactivity (with Debugging Logs)
-// ======================================================================
+// Initialize Popup Interactivity (Unchanged)
 function initializePopupInteraction() {
-    console.log("DEBUG: Initializing Popup Interaction..."); // Log init start
+    const resultsList = document.getElementById('results'); const phonePopup = document.getElementById('phonePopup'); const closePopupButton = document.getElementById('closePopup'); const phoneNumberDisplay = document.getElementById('phoneNumber'); const copyPhoneButton = document.getElementById('copyPhoneBtn'); const copyTextElement = copyPhoneButton?.querySelector('.copy-text'); const copyIconElement = copyPhoneButton?.querySelector('i'); const originalCopyText = copyTextElement ? copyTextElement.textContent : 'Copy'; const originalCopyIconClass = copyIconElement ? copyIconElement.className : 'fa-regular fa-copy'; let copyTimeout = null; const resetCopyButton = () => { if (copyTextElement) copyTextElement.textContent = originalCopyText; if (copyIconElement) copyIconElement.className = originalCopyIconClass; if (copyPhoneButton) copyPhoneButton.disabled = false; if (copyTimeout) { clearTimeout(copyTimeout); copyTimeout = null; } }; if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay) { console.error("Core popup elements missing."); return; } if (!copyPhoneButton || !copyTextElement || !copyIconElement) { console.warn("Copy button elements missing."); } if (copyPhoneButton) { const handleCopyClick = async () => { const linkElement = phoneNumberDisplay.querySelector('a'); const numberToCopy = linkElement ? linkElement.textContent : null; if (numberToCopy && navigator.clipboard) { try { await navigator.clipboard.writeText(numberToCopy); if (copyTextElement) copyTextElement.textContent = 'Copied!'; if (copyIconElement) copyIconElement.className = 'fa-solid fa-check'; copyPhoneButton.disabled = true; if (copyTimeout) clearTimeout(copyTimeout); copyTimeout = setTimeout(resetCopyButton, 2000); } catch (err) { console.error('Failed to copy phone number:', err); alert("Could not copy number."); resetCopyButton(); } } else { if (!navigator.clipboard) alert("Copying not supported by browser."); resetCopyButton(); } }; copyPhoneButton.addEventListener('click', handleCopyClick); } resultsList.addEventListener('click', function(event) { const revealButton = event.target.closest('.revealPhoneBtn'); const promoteButton = event.target.closest('.promote-button'); if (revealButton) { event.preventDefault(); const numberToDisplay = revealButton.dataset.phone; if (numberToDisplay) { phoneNumberDisplay.innerHTML = `<a href="tel:${numberToDisplay}">${numberToDisplay}</a>`; resetCopyButton(); phonePopup.classList.remove('hidden'); console.log("Popup should be visible now."); setTimeout(() => { if(phonePopup) { console.log("DEBUG: phonePopup display style (after timeout):", window.getComputedStyle(phonePopup).display); console.log("DEBUG: phonePopup visibility style (after timeout):", window.getComputedStyle(phonePopup).visibility); } }, 0); } else { console.warn("Reveal button missing phone data."); } } else if (promoteButton) { console.log('Promote button clicked'); } else { console.log("DEBUG: Click was not on a revealPhoneBtn or promote-button."); } }); closePopupButton.addEventListener('click', function() { phonePopup.classList.add('hidden'); resetCopyButton(); }); phonePopup.addEventListener('click', function(event) { if (event.target === phonePopup) { phonePopup.classList.add('hidden'); resetCopyButton(); } });
+}
 
-    const resultsList = document.getElementById('results');
-    const phonePopup = document.getElementById('phonePopup');
-    const closePopupButton = document.getElementById('closePopup');
-    const phoneNumberDisplay = document.getElementById('phoneNumber');
-    const copyPhoneButton = document.getElementById('copyPhoneBtn');
-    const copyTextElement = copyPhoneButton?.querySelector('.copy-text');
-    const copyIconElement = copyPhoneButton?.querySelector('i');
-    const originalCopyText = copyTextElement ? copyTextElement.textContent : 'Copy';
-    const originalCopyIconClass = copyIconElement ? copyIconElement.className : 'fa-regular fa-copy';
-    let copyTimeout = null;
-    const resetCopyButton = () => { if (copyTextElement) copyTextElement.textContent = originalCopyText; if (copyIconElement) copyIconElement.className = originalCopyIconClass; if (copyPhoneButton) copyPhoneButton.disabled = false; if (copyTimeout) { clearTimeout(copyTimeout); copyTimeout = null; } };
-
-    // Verify elements exist
-    if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay) {
-        console.error("Core popup elements missing.");
-        return; // Stop if critical elements missing
-    }
-    console.log("DEBUG: Core popup elements found:", { phonePopup, closePopupButton, phoneNumberDisplay }); // Log found elements
-    if (!copyPhoneButton || !copyTextElement || !copyIconElement) { console.warn("Copy button elements missing."); }
-
-    // Copy Button Logic (Should be fine)
-    if (copyPhoneButton) {
-        const handleCopyClick = async () => { /* ... */ }; copyPhoneButton.addEventListener('click', handleCopyClick);
-    }
-
-    // *** START: Add Event Listener with Logging ***
-    console.log("DEBUG: Adding main click listener to #results"); // Log listener attachment
-    resultsList.addEventListener('click', function(event) {
-        console.log("DEBUG: Click detected inside #results"); // Log any click
-
-        const revealButton = event.target.closest('.revealPhoneBtn');
-        const promoteButton = event.target.closest('.promote-button');
-
-        console.log("DEBUG: Click target:", event.target); // Log what was clicked
-        console.log("DEBUG: Closest .revealPhoneBtn:", revealButton); // Log if button was found
-
-        if (revealButton) { // If a phone button (or its icon) was clicked
-            event.preventDefault();
-            const numberToDisplay = revealButton.dataset.phone;
-            console.log("DEBUG: Reveal phone button click confirmed. Number:", numberToDisplay); // Log button confirmation
-
-            if (numberToDisplay) {
-                console.log("DEBUG: Attempting to display number in popup."); // Log before display
-                phoneNumberDisplay.innerHTML = `<a href="tel:${numberToDisplay}">${numberToDisplay}</a>`;
-                resetCopyButton(); // Re-enable this - shouldn't cause popup issue
-                phonePopup.classList.remove('hidden'); // <<< Key line
-                console.log("DEBUG: 'hidden' class removed from phonePopup. Popup should be visible."); // Log after removing class
-                // Check computed style *after* potential rendering delay
-                setTimeout(() => {
-                    if(phonePopup) { // Check again if popup element still exists
-                         console.log("DEBUG: phonePopup display style (after timeout):", window.getComputedStyle(phonePopup).display);
-                         console.log("DEBUG: phonePopup visibility style (after timeout):", window.getComputedStyle(phonePopup).visibility);
-                    }
-                }, 0); // Timeout 0 pushes check to end of event queue
-
-            } else {
-                console.warn("DEBUG: Clicked reveal button is missing phone data.");
-            }
-        } else if (promoteButton) {
-            console.log('DEBUG: Promote button click detected, ignoring for popup.');
-        } else {
-            console.log("DEBUG: Click was not on a revealPhoneBtn or promote-button.");
-        }
-    });
-    // *** END: Add Event Listener with Logging ***
-
-    // Close button logic
-    closePopupButton.addEventListener('click', function() {
-        console.log("DEBUG: Close button clicked."); // Log close click
-        phonePopup.classList.add('hidden');
-        resetCopyButton();
-    });
-    // Click outside logic
-    phonePopup.addEventListener('click', function(event) {
-        if (event.target === phonePopup) {
-            console.log("DEBUG: Click outside popup content detected."); // Log outside click
-            phonePopup.classList.add('hidden');
-            resetCopyButton();
-        }
-    });
-} // End initializePopupInteraction
-
-// ======================================================================
 // Main Execution
-// ======================================================================
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired for directory page.");
     fetchAndDisplayListings();
     initializeSearch();
-    initializePopupInteraction(); // Ensure this is called
+    initializePopupInteraction();
 });
 
 // --- END OF directory.js ---
