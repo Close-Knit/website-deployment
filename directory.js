@@ -1,4 +1,4 @@
-// --- START OF directory.js (Syntax Error Fix Near Fetch) ---
+// --- START OF directory.js (Reverted to Working Tiered Display with Specific Labels) ---
 
 // Assumes supabaseClient is globally available from common.js
 
@@ -78,23 +78,18 @@ async function fetchAndDisplayListings() {
 
         // --- Fetch Listings ---
         console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
-        // *** CORRECTED SYNTAX: Error check combined, semicolon removed after final .order() ***
         const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
             .select('*')
             .eq('community_id', communityId)
             .order('category', { ascending: true, nullsFirst: false })
-            .order('name', { ascending: true }); // NO semicolon here
+            .order('name', { ascending: true }); // Base sort by name
 
-        // Check for error *after* the await completes
         if (listingsError) {
-             // Handle specific known errors first
              if (listingsError.code === '42P01') { throw new Error(`DB table "${tableName}" not found for province "${decodedProvinceName}".`); }
              if (listingsError.code === '42703') { throw new Error(`Column 'community_id' missing or misspelled in table "${tableName}". Check Supabase schema.`); }
-             // Throw generic error for others
              throw new Error(`Failed to fetch listings: ${listingsError.message}`);
         }
-        // *** END CORRECTION ***
 
         resultsList.innerHTML = ''; // Clear loading
 
@@ -105,35 +100,63 @@ async function fetchAndDisplayListings() {
         if (listingCount === 0) { resultsList.innerHTML = `<li>No listings found for ${decodedCommunityName}.</li>`; return; }
 
         // --- Group and Sort Listings by Category and Tier ---
-        // NOTE: Condensed unchanging logic blocks for brevity in this view
         const groupedListings = listings.reduce((acc, listing) => { const category = listing.category || 'Uncategorized'; if (!acc[category]) { acc[category] = []; } acc[category].push(listing); return acc; }, {});
         const sortedCategories = Object.keys(groupedListings).sort((a, b) => { if (a === 'Uncategorized') return 1; if (b === 'Uncategorized') return -1; return a.localeCompare(b); });
         const now = new Date();
 
         // --- Render Listings ---
         sortedCategories.forEach(category => {
-             const categoryHeadingItem = document.createElement('li'); /* ... */ resultsList.appendChild(categoryHeadingItem);
+             const categoryHeadingItem = document.createElement('li');
+             categoryHeadingItem.className = 'category-heading';
+             categoryHeadingItem.textContent = category;
+             resultsList.appendChild(categoryHeadingItem);
+
              const listingsInCategory = groupedListings[category];
              const goldListings = [], silverListings = [], bronzeListings = [], regularListings = [];
+
              // Categorize listings by tier
-             listingsInCategory.forEach(listing => { /* ... */ });
+             listingsInCategory.forEach(listing => {
+                 const isPromoted = listing.is_promoted === true;
+                 const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
+                 const isActivePromotion = isPromoted && expiresAt instanceof Date && !isNaN(expiresAt) && expiresAt > now;
+                 const duration = listing.promotion_duration_months;
+                 if (isActivePromotion) { if (duration === 12) goldListings.push(listing); else if (duration === 6) silverListings.push(listing); else bronzeListings.push(listing); }
+                 else { regularListings.push(listing); }
+             });
              const categorySortedListings = goldListings.concat(silverListings).concat(bronzeListings).concat(regularListings);
 
              // Render sorted listings for the category
              categorySortedListings.forEach(listing => {
                  const listItem = document.createElement('li');
                  listItem.className = 'directory-entry';
-                 // Apply Tier Styling & Generic Label
-                 const isActivePromotion = /* ... */; const duration = listing.promotion_duration_months;
-                 let tierClass = ''; let sponsoredLabelHtml = '';
-                 if (isActivePromotion) { /* ... */ listItem.classList.add(tierClass); sponsoredLabelHtml = `<span class="sponsored-label ${tierClass.replace('promoted-','')}">Sponsored Ad</span>`; }
+
+                 // Apply Tier Styling & Specific Label
+                 const isActivePromotion = listing.is_promoted === true && listing.promotion_expires_at && new Date(listing.promotion_expires_at) > now; // Simplified check slightly
+                 const duration = listing.promotion_duration_months;
+                 let tierClass = '';
+                 let sponsoredLabelHtml = ''; // Initialize as empty
+                 if (isActivePromotion) {
+                     if (duration === 12) { tierClass = 'promoted-gold'; sponsoredLabelHtml = `<span class="sponsored-label gold">Gold</span>`; }
+                     else if (duration === 6) { tierClass = 'promoted-silver'; sponsoredLabelHtml = `<span class="sponsored-label silver">Silver</span>`; }
+                     else { tierClass = 'promoted-bronze'; sponsoredLabelHtml = `<span class="sponsored-label bronze">Bronze</span>`; }
+                     listItem.classList.add(tierClass);
+                     // console.log(`Applying ${tierClass} style to: ${listing.name}`); // Keep if needed
+                 }
+
                  const listingId = listing.id;
                  // Phone Button HTML
-                 const phoneNumber = listing.phone_number || ''; let phoneHtml = ''; if (phoneNumber) { phoneHtml = `<button ...>`; }
-                 // Promote Button HTML
-                 let promoteButtonHtml = ''; if (listingId && !isActivePromotion) { /* ... */ }
+                 const phoneNumber = listing.phone_number || '';
+                 let phoneHtml = '';
+                 if (phoneNumber) { phoneHtml = `<button class="revealPhoneBtn" data-phone="${phoneNumber}" title="Show phone number for ${listing.name || 'this listing'}"><i class="fa-solid fa-phone"></i> Show Phone</button>`; }
 
-                 // Construct final HTML (Cleaned)
+                 // Promote Button HTML
+                 let promoteButtonHtml = '';
+                 if (listingId && !isActivePromotion) {
+                     const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(listing.address || '')}&phone=${encodeURIComponent(listing.phone_number || '')}`;
+                     promoteButtonHtml = `<div class="promote-button-container" style="margin-top: 8px;"><a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}"><i class="fa-solid fa-rocket"></i> Promote</a></div>`;
+                 }
+
+                 // Construct final HTML (with specific labels)
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${listing.name || 'N/A'} ${sponsoredLabelHtml}</span>
@@ -146,8 +169,8 @@ async function fetchAndDisplayListings() {
                      </div>
                  `;
                  resultsList.appendChild(listItem);
-             });
-        });
+             }); // End rendering loop
+        }); // End category loop
 
     } catch (fetchError) {
         displayError(fetchError.message || "An unknown error occurred while fetching listings.");
@@ -155,10 +178,10 @@ async function fetchAndDisplayListings() {
 } // End fetchAndDisplayListings
 
 // Initialize Search Functionality (Unchanged)
-function initializeSearch() { /* ... condensed ... */ }
+function initializeSearch() { /* ... search logic ... */ }
 
-// Initialize Popup Interactivity (Unchanged)
-function initializePopupInteraction() { /* ... condensed ... */ }
+// Initialize Popup Interactivity (Unchanged - should be working version)
+function initializePopupInteraction() { /* ... popup logic ... */ }
 
 // Main Execution
 document.addEventListener('DOMContentLoaded', () => {
