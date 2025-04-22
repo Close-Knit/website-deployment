@@ -49,51 +49,69 @@
 
     <div class="promote-container">
 
-        <!-- == START: Listing Preview (COMMENTS REMOVED, IDs VERIFIED) == -->
+        <!-- == START: Listing Preview (CLEANED) == -->
         <div class="listing-preview-container">
              <h3>How Your Listing Will Look When Promoted:</h3>
-             <ul id="results"> {/* Keep #results ID */}
-                 {/* Ensure ID listing-preview-item is present */}
+             <ul id="results">
                  <li id="listing-preview-item" class="directory-entry">
                      <div class="entry-details">
                          <span class="name">
-                             {/* Ensure ID listing-name-preview is present */}
                              <span id="listing-name-preview">Loading Name...</span>
-                             {/* Ensure ID sponsored-label-preview is present */}
                              <span id="sponsored-label-preview" class="sponsored-label" style="visibility: hidden;">PREVIEW</span>
                          </span>
-                         {/* Ensure ID listing-address-preview is present */}
                          <span class="address" id="listing-address-preview" style="display: none;"></span>
-                          {/* Ensure ID listing-phone-preview is present */}
                          <span class="notes" id="listing-phone-preview" style="display: none;"></span>
                      </div>
                      <div class="phone-container">
-                         {/* No phone button here */}
+                         <!-- No phone button needed in preview -->
                      </div>
                  </li>
              </ul>
         </div>
         <!-- == END: Listing Preview == -->
 
-        <!-- Promotion Info Text (unchanged) -->
-        <div class="promotion-info"> /* ... */ </div>
+        <!-- Promotion Info Text -->
+        <div class="promotion-info">
+            <p>Make your listing stand out! Promoted listings appear at the top of their category with special highlighting.</p>
+            <p>Your promotion will be active for the selected duration after successful payment.</p>
+            <p><small>(Payment is processed securely via Stripe. This is currently a one-time payment.)</small></p>
+        </div>
 
         <hr style="margin: 25px 0;">
 
         <!-- Duration Selection (Ensure Price IDs are correct LIVE ones) -->
-        <div class="duration-options"> /* ... unchanged ... */ </div>
+        <div class="duration-options">
+            <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 1.1em;">Select Promotion Duration:</h3>
+            <label>
+                <input type="radio" name="promotion_duration" value="1" data-priceid="price_1RGgshKLB1TbvWgCz26985rA" data-tier="bronze" checked>
+                1 Month <span class="duration-price">($4.99 CAD - Try 1 Month)</span>
+            </label>
+            <label>
+                <input type="radio" name="promotion_duration" value="6" data-priceid="price_1RGgvEKLB1TbvWgCJfM5rXcV" data-tier="silver">
+                 6 Months <span class="duration-price">($24.99 CAD - Save 16%)</span>
+            </label>
+            <label>
+                <input type="radio" name="promotion_duration" value="12" data-priceid="price_1RGgyAKLB1TbvWgCTBkRcK7k" data-tier="gold">
+                12 Months <span class="duration-price">($35.99 CAD - Save 40%)</span>
+            </label>
+        </div>
 
-        <!-- Email Input (unchanged) -->
-        <div class="email-input-group"> /* ... unchanged ... */ </div>
+        <!-- Email Input -->
+        <div class="email-input-group">
+            <label for="promoter-email">Your Email Address (for receipt):</label>
+            <input type="email" id="promoter-email" name="promoter-email" required placeholder="you@example.com">
+        </div>
 
         <div id="message-area"></div>
 
-        <button id="payment-button" class="button-style"> /* ... unchanged ... */ </button>
+        <button id="payment-button" class="button-style">
+            <i class="fa-brands fa-stripe-s"></i> Proceed to Payment
+        </button>
 
         <p class="back-link"><a href="#" id="go-back-link">Cancel and Go Back</a></p>
     </div>
 
-    <!-- SCRIPT LOADING ORDER (Unchanged) -->
+    <!-- SCRIPT LOADING ORDER -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="common.js"></script>
     <script src="promote.js" defer></script>
