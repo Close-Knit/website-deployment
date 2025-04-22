@@ -1,4 +1,4 @@
-// --- promote.js (Handle Duration Selection) ---
+// --- promote.js (Removed Hardcoded Test Price ID) ---
 
 // Assumes supabaseClient is initialized and available globally via common.js
 
@@ -7,8 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Get elements
     const listingDetailsDisplay = document.getElementById('listing-details');
-    // const promotionPriceDisplay = document.getElementById('promotion-price'); // No longer used directly
-    const durationOptionsContainer = document.querySelector('.duration-options'); // Get the container for radio buttons
+    const durationOptionsContainer = document.querySelector('.duration-options');
     const emailInput = document.getElementById('promoter-email');
     const paymentButton = document.getElementById('payment-button');
     const messageArea = document.getElementById('message-area');
@@ -28,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log("Promote.js using supabaseClient initialized in common.js");
 
     // Check if other essential elements exist
-    // ** Added check for durationOptionsContainer **
     if (!listingDetailsDisplay || !durationOptionsContainer || !emailInput || !paymentButton || !messageArea || !goBackLink) {
         console.error("Essential page elements missing on promote.html (incl. duration options)");
         if(listingDetailsDisplay) listingDetailsDisplay.textContent = "Page Error: Elements missing.";
@@ -48,9 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tableName = urlParams.get('table');
 
     console.log("--- URL Parameters Read ---");
-    // console.log("listingId:", listingId); // Optional logs
     console.log("listingName (raw):", listingName);
-    // console.log("--------------------------");
 
 
     // --- 2. Validate and Display Listing Info (unchanged) ---
@@ -79,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         history.back();
     });
 
-    // --- 4. Payment Button Click Handler (MODIFIED) ---
+    // --- 4. Payment Button Click Handler ---
     paymentButton.addEventListener('click', async () => {
         console.log('Payment button clicked');
         showMessage('');
@@ -92,23 +88,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!selectedDurationInput) {
             showMessage('Please select a promotion duration.', 'error');
-            return; // Stop if no duration is selected
+            return;
         }
 
-        selectedDurationMonths = selectedDurationInput.value; // e.g., "1", "6", "12"
+        selectedDurationMonths = selectedDurationInput.value;
         selectedPriceId = selectedDurationInput.dataset.priceid; // Get from data-priceid attribute
 
         console.log(`Selected Duration: ${selectedDurationMonths} months`);
         console.log(`Selected Price ID: ${selectedPriceId}`);
 
         // Validate that we got a Price ID
-        if (!selectedPriceId || selectedPriceId.startsWith('YOUR_')) { // Basic check if placeholder wasn't replaced
+        if (!selectedPriceId || selectedPriceId.startsWith('YOUR_') || selectedPriceId.length < 10) { // Added length check as basic sanity check
             console.error("Stripe Price ID is missing or invalid for the selected duration!");
             showMessage('Payment configuration error for selected duration. Please contact support.', 'error');
             return;
         }
         // --- END: Get Selected Duration and Price ID ---
 
+
+        // --- DELETE or COMMENT OUT the old hardcoded variable ---
+        // const stripePriceId = 'price_1REiFhQSnCFma2DMiheznLJE'; // REMOVED / COMMENTED OUT
+        // ---
 
         // Validate email
         if (!promoterEmail || !/\S+@\S+\.\S+/.test(promoterEmail)) {
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showMessage('Contacting payment processor...', 'info');
 
         try {
-            // Prepare data for the Edge Function - now includes duration and uses selected price ID
+            // Prepare data for the Edge Function
             const functionPayload = {
                 listingId: listingId,
                 tableName: tableName,
@@ -132,19 +132,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 communityName: decodeURIComponent(communityName),
                 listingName: decodeURIComponent(listingName),
                 promoterEmail: promoterEmail,
-                priceId: selectedPriceId, // Use the selected Price ID
-                durationMonths: selectedDurationMonths // Send the selected duration
+                priceId: selectedPriceId, // Use the selected Price ID from the radio button
+                durationMonths: selectedDurationMonths
             };
 
             console.log('Invoking create-checkout-session with payload:', functionPayload);
 
-            // Invoke the Supabase Edge Function (uses global supabaseClient)
+            // Invoke the Supabase Edge Function
             const { data, error } = await supabaseClient.functions.invoke(
                 'create-checkout-session',
                 { body: functionPayload }
             );
 
-            // Handle response (same as before)
+            // Handle response
             if (error) {
                 console.error('Function invocation error:', error);
                 throw new Error(`Error calling payment function: ${error.message}`);
@@ -165,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Payment initiation failed:', err);
             showMessage(`Error: ${err.message}`, 'error');
-            // Re-enable the button on failure
             paymentButton.disabled = false;
             paymentButton.innerHTML = '<i class="fa-brands fa-stripe-s"></i> Proceed to Payment';
         }
