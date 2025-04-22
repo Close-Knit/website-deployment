@@ -1,12 +1,14 @@
-// --- promote.js (Removed Hardcoded Test Price ID) ---
+// --- promote.js (Display Address/Phone) ---
 
 // Assumes supabaseClient is initialized and available globally via common.js
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Promote page DOMContentLoaded.');
 
-    // Get elements
+    // Get elements (Add new elements for address/phone)
     const listingDetailsDisplay = document.getElementById('listing-details');
+    const listingAddressDisplay = document.getElementById('listing-address'); // New
+    const listingPhoneDisplay = document.getElementById('listing-phone');   // New
     const durationOptionsContainer = document.querySelector('.duration-options');
     const emailInput = document.getElementById('promoter-email');
     const paymentButton = document.getElementById('payment-button');
@@ -17,18 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof supabaseClient === 'undefined' || !supabaseClient) {
         console.error("Supabase client not initialized (from common.js). Cannot proceed.");
         if(listingDetailsDisplay) listingDetailsDisplay.textContent = "Page Error: Service unavailable.";
-        if(paymentButton) {
-            paymentButton.disabled = true;
-            paymentButton.textContent = 'Service Unavailable';
-        }
+        if(paymentButton) { paymentButton.disabled = true; paymentButton.textContent = 'Service Unavailable'; }
         if(messageArea) showMessage('Error: Cannot connect to backend service.', 'error');
         return;
     }
     console.log("Promote.js using supabaseClient initialized in common.js");
 
-    // Check if other essential elements exist
-    if (!listingDetailsDisplay || !durationOptionsContainer || !emailInput || !paymentButton || !messageArea || !goBackLink) {
-        console.error("Essential page elements missing on promote.html (incl. duration options)");
+    // Check if other essential elements exist (including new ones)
+    if (!listingDetailsDisplay || !listingAddressDisplay || !listingPhoneDisplay || !durationOptionsContainer || !emailInput || !paymentButton || !messageArea || !goBackLink) {
+        console.error("Essential page elements missing on promote.html");
         if(listingDetailsDisplay) listingDetailsDisplay.textContent = "Page Error: Elements missing.";
         if(paymentButton) paymentButton.disabled = true;
         return;
@@ -36,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log("All essential elements and Supabase client seem available.");
 
-    // --- 1. Read URL Parameters (unchanged) ---
+    // --- 1. Read URL Parameters (Add address and phone) ---
     const urlParams = new URLSearchParams(window.location.search);
     const listingId = urlParams.get('lid');
     const communityId = urlParams.get('cid');
@@ -44,143 +43,84 @@ document.addEventListener('DOMContentLoaded', () => {
     const communityName = urlParams.get('comm');
     const listingName = urlParams.get('name');
     const tableName = urlParams.get('table');
+    const address = urlParams.get('address'); // New
+    const phone = urlParams.get('phone');     // New
 
     console.log("--- URL Parameters Read ---");
     console.log("listingName (raw):", listingName);
+    console.log("address (raw):", address);
+    console.log("phone (raw):", phone);
+    console.log("--------------------------");
 
 
-    // --- 2. Validate and Display Listing Info (unchanged) ---
+    // --- 2. Validate and Display Listing Info ---
     if (!listingId || !communityId || !provinceName || !communityName || !listingName || !tableName) {
-        console.error("Validation Failed: One or more required URL parameters are missing!");
+        // Only basic validation needed here, address/phone are optional for display
+        console.error("Validation Failed: Core URL parameters are missing!");
         listingDetailsDisplay.textContent = "Error: Listing information missing.";
         listingDetailsDisplay.style.color = 'red';
         paymentButton.disabled = true;
         paymentButton.textContent = "Cannot Proceed";
     } else {
+        // Display Name
         const decodedListingName = decodeURIComponent(listingName);
-        console.log("Decoded listingName:", decodedListingName);
-
-        console.log("Attempting to update listingDetailsDisplay element:", listingDetailsDisplay);
         listingDetailsDisplay.textContent = `Promoting: ${decodedListingName}`;
-        console.log("Successfully updated listing details display.");
-
         document.title = `Promote: ${decodedListingName}`;
         console.log('Promotion Context seems valid.');
+
+        // Display Address (if provided)
+        if (address) {
+            const decodedAddress = decodeURIComponent(address);
+            if (decodedAddress.trim() !== '') { // Check if not empty after decoding
+                 listingAddressDisplay.textContent = `${decodedAddress}`;
+                 listingAddressDisplay.style.display = 'block'; // Show the element
+                 console.log("Displaying Address:", decodedAddress);
+            }
+        }
+
+        // Display Phone (if provided)
+        if (phone) {
+            const decodedPhone = decodeURIComponent(phone);
+             if (decodedPhone.trim() !== '') { // Check if not empty after decoding
+                 listingPhoneDisplay.textContent = `Phone: ${decodedPhone}`;
+                 listingPhoneDisplay.style.display = 'block'; // Show the element
+                 console.log("Displaying Phone:", decodedPhone);
+            }
+        }
     }
 
     // --- 3. Make "Cancel and Go Back" Link Work (unchanged) ---
-    goBackLink.addEventListener('click', (event) => {
-        event.preventDefault();
-        console.log('Go back clicked');
-        history.back();
+    goBackLink.addEventListener('click', (event) => { /* ... unchanged ... */
+         event.preventDefault(); console.log('Go back clicked'); history.back();
     });
 
-    // --- 4. Payment Button Click Handler ---
-    paymentButton.addEventListener('click', async () => {
-        console.log('Payment button clicked');
-        showMessage('');
-        const promoterEmail = emailInput.value.trim();
-
-        // --- START: Get Selected Duration and Price ID ---
+    // --- 4. Payment Button Click Handler (unchanged from last version) ---
+    paymentButton.addEventListener('click', async () => { /* ... unchanged ... */
+        console.log('Payment button clicked'); showMessage(''); const promoterEmail = emailInput.value.trim();
         const selectedDurationInput = durationOptionsContainer.querySelector('input[name="promotion_duration"]:checked');
-        let selectedDurationMonths = null;
-        let selectedPriceId = null;
-
-        if (!selectedDurationInput) {
-            showMessage('Please select a promotion duration.', 'error');
-            return;
-        }
-
-        selectedDurationMonths = selectedDurationInput.value;
-        selectedPriceId = selectedDurationInput.dataset.priceid; // Get from data-priceid attribute
-
-        console.log(`Selected Duration: ${selectedDurationMonths} months`);
-        console.log(`Selected Price ID: ${selectedPriceId}`);
-
-        // Validate that we got a Price ID
-        if (!selectedPriceId || selectedPriceId.startsWith('YOUR_') || selectedPriceId.length < 10) { // Added length check as basic sanity check
-            console.error("Stripe Price ID is missing or invalid for the selected duration!");
-            showMessage('Payment configuration error for selected duration. Please contact support.', 'error');
-            return;
-        }
-        // --- END: Get Selected Duration and Price ID ---
-
-
-        // --- DELETE or COMMENT OUT the old hardcoded variable ---
-        // const stripePriceId = 'price_1REiFhQSnCFma2DMiheznLJE'; // REMOVED / COMMENTED OUT
-        // ---
-
-        // Validate email
-        if (!promoterEmail || !/\S+@\S+\.\S+/.test(promoterEmail)) {
-            showMessage('Please enter a valid email address.', 'error');
-            emailInput.focus();
-            return;
-        }
-
-        // Disable button and show processing message
-        paymentButton.disabled = true;
-        paymentButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-        showMessage('Contacting payment processor...', 'info');
-
+        let selectedDurationMonths = null; let selectedPriceId = null;
+        if (!selectedDurationInput) { showMessage('Please select a promotion duration.', 'error'); return; }
+        selectedDurationMonths = selectedDurationInput.value; selectedPriceId = selectedDurationInput.dataset.priceid;
+        console.log(`Selected Duration: ${selectedDurationMonths} months`); console.log(`Selected Price ID: ${selectedPriceId}`);
+        if (!selectedPriceId || selectedPriceId.startsWith('YOUR_') || selectedPriceId.length < 10) { console.error("Stripe Price ID missing/invalid!"); showMessage('Payment config error.', 'error'); return; }
+        if (!promoterEmail || !/\S+@\S+\.\S+/.test(promoterEmail)) { showMessage('Please enter a valid email address.', 'error'); emailInput.focus(); return; }
+        paymentButton.disabled = true; paymentButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...'; showMessage('Contacting payment processor...', 'info');
         try {
-            // Prepare data for the Edge Function
-            const functionPayload = {
-                listingId: listingId,
-                tableName: tableName,
-                communityId: communityId,
-                provinceName: decodeURIComponent(provinceName),
-                communityName: decodeURIComponent(communityName),
-                listingName: decodeURIComponent(listingName),
-                promoterEmail: promoterEmail,
-                priceId: selectedPriceId, // Use the selected Price ID from the radio button
-                durationMonths: selectedDurationMonths
-            };
-
+            const functionPayload = { listingId, tableName, communityId, provinceName: decodeURIComponent(provinceName), communityName: decodeURIComponent(communityName), listingName: decodeURIComponent(listingName), promoterEmail, priceId: selectedPriceId, durationMonths: selectedDurationMonths };
             console.log('Invoking create-checkout-session with payload:', functionPayload);
-
-            // Invoke the Supabase Edge Function
-            const { data, error } = await supabaseClient.functions.invoke(
-                'create-checkout-session',
-                { body: functionPayload }
-            );
-
-            // Handle response
-            if (error) {
-                console.error('Function invocation error:', error);
-                throw new Error(`Error calling payment function: ${error.message}`);
-            }
-            if (data.error) {
-                 console.error('Error returned from function:', data.error);
-                 throw new Error(`Payment processing error: ${data.error}`);
-            }
-            if (data.checkoutUrl) {
-                console.log('Received checkout URL:', data.checkoutUrl);
-                showMessage('Redirecting to secure payment page...', 'info');
-                window.location.href = data.checkoutUrl;
-            } else {
-                 console.error('Unexpected response from function:', data);
-                 throw new Error('Received an invalid response from the payment processor.');
-            }
-
-        } catch (err) {
-            console.error('Payment initiation failed:', err);
-            showMessage(`Error: ${err.message}`, 'error');
-            paymentButton.disabled = false;
-            paymentButton.innerHTML = '<i class="fa-brands fa-stripe-s"></i> Proceed to Payment';
-        }
-
-    }); // End paymentButton click listener
+            const { data, error } = await supabaseClient.functions.invoke('create-checkout-session', { body: functionPayload });
+            if (error) { throw new Error(`Function invocation error: ${error.message}`); }
+            if (data.error) { throw new Error(`Payment processing error: ${data.error}`); }
+            if (data.checkoutUrl) { console.log('Received checkout URL:', data.checkoutUrl); showMessage('Redirecting...', 'info'); window.location.href = data.checkoutUrl; }
+            else { throw new Error('Invalid response from payment processor.'); }
+        } catch (err) { console.error('Payment initiation failed:', err); showMessage(`Error: ${err.message}`, 'error'); paymentButton.disabled = false; paymentButton.innerHTML = '<i class="fa-brands fa-stripe-s"></i> Proceed to Payment'; }
+    });
 
     // Helper function to show messages using CSS classes (unchanged)
-    function showMessage(msg, type = 'info') {
-        messageArea.textContent = msg;
-        messageArea.className = '';
-        if (msg) {
-            messageArea.classList.add(type === 'error' ? 'error-message' : 'info-message');
-            messageArea.style.display = 'block';
-        } else {
-            messageArea.style.display = 'none';
-        }
+    function showMessage(msg, type = 'info') { /* ... unchanged ... */
+        messageArea.textContent = msg; messageArea.className = '';
+        if (msg) { messageArea.classList.add(type === 'error' ? 'error-message' : 'info-message'); messageArea.style.display = 'block'; }
+        else { messageArea.style.display = 'none'; }
     }
 
 }); // End DOMContentLoaded

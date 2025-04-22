@@ -3,142 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Promote Listing</title> <!-- Title will be updated by JS -->
+    <title>Promote Listing</title>
 
-    <!-- Google tag (gtag.js) - Copied from other pages -->
+    <!-- Meta tags, CSS links, AdSense etc. -->
+    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QV1M0QM38B"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-QV1M0QM38B');
-    </script>
-    <!-- End Google tag -->
-
-    <!-- Link CSS and Font Awesome -->
+    <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-QV1M0QM38B'); </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="styles.css"> <!-- Link the main stylesheet -->
-
-    <!-- AdSense Script (Consistency) -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174"
-         crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174" crossorigin="anonymous"></script>
 
     <style>
-        /* Basic styling for this specific page */
         .promote-container {
-            max-width: 700px;
-            margin: 30px auto;
-            padding: 25px 30px;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            background-color: #fdfdfd;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            text-align: center; /* Center align content */
+            max-width: 700px; margin: 30px auto; padding: 25px 30px;
+            border: 1px solid #dee2e6; border-radius: 8px;
+            background-color: #f5f1e6; /* <<< ADDED BACKGROUND COLOR */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center;
         }
-        .listing-details {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        .promotion-info p {
-            margin: 10px 0;
-            line-height: 1.5;
+        .listing-details { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; color: #333; } /* Reduced bottom margin */
+        .listing-sub-details { /* Style for Address/Phone */
+            font-size: 0.95em;
             color: #555;
+            margin-bottom: 15px; /* Space below address/phone block */
+            line-height: 1.4;
         }
-        .price {
-            font-size: 1.4em;
-            font-weight: bold;
-            color: #007bff; /* Blue color for price */
-            margin: 15px 0;
-        }
-        /* Styles for Duration Selection */
-         .duration-options {
-             margin: 20px 0;
-             padding: 15px;
-             border: 1px solid #eee;
-             border-radius: 5px;
-             background-color: #f9f9f9;
-         }
-         .duration-options label {
-             display: block; /* Stack options vertically */
-             margin-bottom: 10px;
-             cursor: pointer;
-             font-size: 1.05em;
-         }
-          .duration-options label:last-child {
-             margin-bottom: 0;
-         }
-         .duration-options input[type="radio"] {
-             margin-right: 10px;
-             vertical-align: middle;
-         }
-         .duration-options .duration-price {
-             font-weight: bold;
-             color: #28a745; /* Green for price */
-             margin-left: 5px;
-         }
-        /* End Duration Styles */
-        .email-input-group {
-            margin-top: 20px;
-            margin-bottom: 25px;
-        }
-        .email-input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #495057;
-        }
-        .email-input-group input[type="email"] {
-            width: 80%;
-            max-width: 350px;
-            padding: 10px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 1em;
-            line-height: 1.5;
-            text-align: center;
-        }
-        #payment-button {
-             background-color: #28a745;
-             border-color: #28a745;
-             color: white;
-             padding: 12px 25px;
-             font-size: 1.1em;
-        }
-        #payment-button:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
-        }
-        #payment-button:disabled {
-            background-color: #6c757d;
-            border-color: #6c757d;
-            cursor: not-allowed;
-        }
-        #message-area {
-            padding: 10px;
-            margin-top: 15px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            display: none;
-            text-align: center;
-            font-weight: bold;
-        }
-        #message-area.error-message {
-            color: #721c24;
-            background-color: #f8d7da;
-            border-color: #f5c6cb;
-        }
-        #message-area.info-message {
-             color: #383d41;
-             background-color: #e2e3e5;
-             border-color: #d6d8db;
-        }
-        .back-link {
-            margin-top: 30px;
-            font-size: 0.9em;
-        }
+        .promotion-info p { margin: 10px 0; line-height: 1.5; color: #555; }
+        /* Duration options styles (unchanged) */
+        .duration-options { margin: 20px 0; padding: 15px; border: 1px solid #eee; border-radius: 5px; background-color: #f9f9f9; }
+        .duration-options label { display: block; margin-bottom: 10px; cursor: pointer; font-size: 1.05em; }
+        .duration-options label:last-child { margin-bottom: 0; }
+        .duration-options input[type="radio"] { margin-right: 10px; vertical-align: middle; }
+        .duration-options .duration-price { font-weight: bold; color: #28a745; margin-left: 5px; }
+        /* Email input styles (unchanged) */
+        .email-input-group { margin-top: 20px; margin-bottom: 25px; }
+        .email-input-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #495057; }
+        .email-input-group input[type="email"] { width: 80%; max-width: 350px; padding: 10px 12px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-size: 1em; line-height: 1.5; text-align: center; }
+        /* Button styles (unchanged) */
+        #payment-button { background-color: #28a745; border-color: #28a745; color: white; padding: 12px 25px; font-size: 1.1em; }
+        #payment-button:hover { background-color: #218838; border-color: #1e7e34; }
+        #payment-button:disabled { background-color: #6c757d; border-color: #6c757d; cursor: not-allowed; }
+        /* Message area styles (unchanged) */
+        #message-area { padding: 10px; margin-top: 15px; border: 1px solid #ccc; border-radius: 4px; display: none; text-align: center; font-weight: bold; }
+        #message-area.error-message { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        #message-area.info-message { color: #383d41; background-color: #e2e3e5; border-color: #d6d8db; }
+        .back-link { margin-top: 30px; font-size: 0.9em; }
     </style>
 
 </head>
@@ -151,45 +59,48 @@
     <h1>Promote Your Listing</h1>
 
     <div class="promote-container">
+        <!-- Listing Name -->
         <div id="listing-details" class="listing-details">
             Promoting: Loading...
         </div>
+        <!-- Address (initially hidden) -->
+        <div id="listing-address" class="listing-sub-details" style="display: none;"></div>
+        <!-- Phone (initially hidden) -->
+        <div id="listing-phone" class="listing-sub-details" style="display: none;"></div>
 
+        <!-- Promotion Info Text (unchanged) -->
         <div class="promotion-info">
             <p>Make your listing stand out! Promoted listings appear at the top of their category with special highlighting.</p>
-             <!-- Price display removed from here, will be shown with options -->
-            <!-- <p class="price" id="promotion-price">Price: $5.00 CAD / month</p> -->
             <p>Your promotion will be active for the selected duration after successful payment.</p>
             <p><small>(Payment is processed securely via Stripe. This is currently a one-time payment.)</small></p>
         </div>
 
         <hr style="margin: 25px 0;">
 
-        <!-- == START: Duration Selection == -->
+        <!-- Duration Selection (ensure Price IDs are correct LIVE ones) -->
         <div class="duration-options">
             <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 1.1em;">Select Promotion Duration:</h3>
             <label>
-                <input type="radio" name="promotion_duration" value="1" data-priceid="price_1RGgshKLB1TbvWgCz26985rA" data-price="5.00" checked>
-                1 Month <span class="duration-price">($4.99 CAD)</span>
+                <input type="radio" name="promotion_duration" value="1" data-priceid="PASTE_LIVE_1_MONTH_PRICE_ID_HERE" data-price="5.00" checked>
+                1 Month <span class="duration-price">($5.00 CAD)</span>
             </label>
             <label>
-                <input type="radio" name="promotion_duration" value="6" data-priceid="price_1RGgvEKLB1TbvWgCJfM5rXcV" data-price="25.00">
-                 6 Months <span class="duration-price">($24.99 CAD - Save 33%!)</span> <!-- Example Pricing -->
+                <input type="radio" name="promotion_duration" value="6" data-priceid="PASTE_LIVE_6_MONTH_PRICE_ID_HERE" data-price="25.00">
+                 6 Months <span class="duration-price">($25.00 CAD - Save $5)</span>
             </label>
             <label>
-                <input type="radio" name="promotion_duration" value="12" data-priceid="price_1RGgyAKLB1TbvWgCTBkRcK7k" data-price="45.00">
-                12 Months <span class="duration-price">($35.99 CAD - Save 40%!)</span> <!-- Example Pricing -->
+                <input type="radio" name="promotion_duration" value="12" data-priceid="PASTE_LIVE_12_MONTH_PRICE_ID_HERE" data-price="45.00">
+                12 Months <span class="duration-price">($45.00 CAD - Save $15)</span>
             </label>
         </div>
-        <!-- == END: Duration Selection == -->
 
-
+        <!-- Email Input (unchanged) -->
         <div class="email-input-group">
             <label for="promoter-email">Your Email Address (for receipt):</label>
             <input type="email" id="promoter-email" name="promoter-email" required placeholder="you@example.com">
         </div>
 
-        <div id="message-area"></div> <!-- For messages like 'Processing...' or errors -->
+        <div id="message-area"></div>
 
         <button id="payment-button" class="button-style">
             <i class="fa-brands fa-stripe-s"></i> Proceed to Payment
@@ -198,24 +109,10 @@
         <p class="back-link"><a href="#" id="go-back-link">Cancel and Go Back</a></p>
     </div>
 
-    <!-- ====================================================== -->
-    <!-- SCRIPT LOADING ORDER - CRITICAL FOR CENTRALIZED CLIENT -->
-    <!-- ====================================================== -->
-
-    <!-- Load Supabase library FIRST -->
+    <!-- SCRIPT LOADING ORDER -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- Load Common JS SECOND (initializes supabaseClient) -->
-    <!-- Removed 'defer' to ensure it executes before promote.js -->
-    <script src="common.js"></script>
-
-    <!-- Load Promote page script THIRD (uses supabaseClient from common.js) -->
-    <!-- Keep 'defer' here -->
+    <script src="common.js"></script> <!-- Ensure this initializes supabaseClient -->
     <script src="promote.js" defer></script>
-
-     <!-- Optional Common JS (if BackToTop etc. used on this page) -->
-     <!-- <script src="common.js" defer></script> -->
-
 
 </body>
 </html>
