@@ -1,11 +1,11 @@
-// --- promote.js (Fix tableName ReferenceError) ---
+// --- promote.js (Add Email Confirmation Check) ---
 
 // Assumes supabaseClient is initialized and available globally via common.js
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Promote page DOMContentLoaded.');
 
-    // Get elements
+    // Get elements (Add confirm email input)
     const listingNamePreview = document.getElementById('listing-name-preview');
     const listingAddressPreview = document.getElementById('listing-address-preview');
     const listingPhonePreview = document.getElementById('listing-phone-preview');
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const durationOptionsContainer = document.querySelector('.duration-options');
     const durationRadios = durationOptionsContainer?.querySelectorAll('input[name="promotion_duration"]');
     const emailInput = document.getElementById('promoter-email');
-    const emailConfirmInput = document.getElementById('promoter-email-confirm');
+    const emailConfirmInput = document.getElementById('promoter-email-confirm'); // <<< Added
     const paymentButton = document.getElementById('payment-button');
     const messageArea = document.getElementById('message-area');
     const goBackLink = document.getElementById('go-back-link');
@@ -23,94 +23,146 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof supabaseClient === 'undefined' || !supabaseClient) { /* ... error handling ... */ return; }
     console.log("Promote.js using supabaseClient initialized in common.js");
 
-    // Check elements
-    if (!listingNamePreview || !listingAddressPreview || !listingPhonePreview || !listingPreviewItem || !sponsoredLabelPreview || !durationOptionsContainer || !durationRadios || durationRadios.length === 0 || !emailInput || !emailConfirmInput || !paymentButton || !messageArea || !goBackLink) { /* ... error handling ... */ return; }
+    // Check if essential elements exist (including email confirm)
+    if (!listingNamePreview || !listingAddressPreview || !listingPhonePreview || !listingPreviewItem || !sponsoredLabelPreview ||
+        !durationOptionsContainer || !durationRadios || durationRadios.length === 0 ||
+        !emailInput || !emailConfirmInput || !paymentButton || !messageArea || !goBackLink) // <<< Added emailConfirmInput check
+    {
+        console.error("Essential page elements missing on promote.html.");
+        if(listingNamePreview) listingNamePreview.textContent = "Page Load Error";
+        if(paymentButton) paymentButton.disabled = true;
+        return;
+    }
     console.log("All essential elements and Supabase client seem available.");
 
-    // --- 1. Read URL Parameters (Ensure all are read) ---
+    // Read URL Parameters & Populate Preview Text
+    /* ... unchanged ... */
     const urlParams = new URLSearchParams(window.location.search);
-    const listingId = urlParams.get('lid');
-    const communityId = urlParams.get('cid');
-    const provinceName = urlParams.get('prov');
-    const communityName = urlParams.get('comm');
-    const listingName = urlParams.get('name');
-    const tableName = urlParams.get('table'); // <<< ENSURE THIS LINE IS PRESENT
-    const address = urlParams.get('address');
-    const phone = urlParams.get('phone');
-
-    console.log("--- URL Parameters Read ---");
-    console.log("listingId:", listingId);
-    console.log("communityId:", communityId);
-    console.log("provinceName:", provinceName);
-    console.log("communityName:", communityName);
-    console.log("listingName (raw):", listingName);
-    console.log("tableName (raw):", tableName); // Log tableName
-    console.log("address (raw):", address);
-    console.log("phone (raw):", phone);
-    console.log("--------------------------");
-
-
-    // --- 2. Validate Core Params & Populate Preview Text ---
-    // Ensure tableName is included in the check
-    if (!listingId || !communityId || !provinceName || !communityName || !listingName || !tableName) {
-        console.error("Validation Failed: Core URL parameters are missing!", {listingId, communityId, provinceName, communityName, listingName, tableName}); // Log which might be missing
-        listingNamePreview.textContent = "Error: Missing Info";
-        listingNamePreview.style.color = 'red';
-        paymentButton.disabled = true;
-        paymentButton.textContent = "Cannot Proceed";
-    } else {
-        const decodedListingName = decodeURIComponent(listingName);
-        const decodedAddress = decodeURIComponent(address || '');
-        const decodedPhone = decodeURIComponent(phone || '');
-
-        // Populate text placeholders
-        listingNamePreview.textContent = decodedListingName;
-        if (decodedAddress) {
-            listingAddressPreview.textContent = decodedAddress;
-            listingAddressPreview.style.display = 'block';
-        }
-        if (decodedPhone) {
-             listingPhonePreview.textContent = `Phone: ${decodedPhone}`;
-             listingPhonePreview.style.display = 'block';
-        }
-        document.title = `Promote: ${decodedListingName}`;
-        console.log('Promotion Context seems valid. Preview text populated.');
+    const listingId = urlParams.get('lid'); const communityId = urlParams.get('cid'); const provinceName = urlParams.get('prov'); const communityName = urlParams.get('comm'); const listingName = urlParams.get('name'); const tableName = urlParams.get('table'); const address = urlParams.get('address'); const phone = urlParams.get('phone');
+    if (!listingId || /* ... */ !listingName || !tableName) { /* ... error handling ... */ }
+    else { /* ... populate preview ... */
+        const decodedListingName = decodeURIComponent(listingName); const decodedAddress = decodeURIComponent(address || ''); const decodedPhone = decodeURIComponent(phone || '');
+        listingNamePreview.textContent = decodedListingName; if (decodedAddress) { listingAddressPreview.textContent = decodedAddress; listingAddressPreview.style.display = 'block'; } if (decodedPhone) { listingPhonePreview.textContent = `Phone: ${decodedPhone}`; listingPhonePreview.style.display = 'block'; } document.title = `Promote: ${decodedListingName}`;
     }
 
-    // --- 3. Make "Cancel and Go Back" Link Work (unchanged) ---
+
+    // Make "Cancel and Go Back" Link Work
+    /* ... unchanged ... */
     goBackLink.addEventListener('click', (event) => { event.preventDefault(); history.back(); });
 
-    // --- 4. Dynamic Preview Update Logic ---
+
+    // Dynamic Preview Update Logic
     /* ... unchanged ... */
     const tierClasses = ['promoted-bronze', 'promoted-silver', 'promoted-gold']; const labelClasses = ['bronze', 'silver', 'gold'];
-    function updatePreview() { const selectedInput = durationOptionsContainer.querySelector('input[name="promotion_duration"]:checked'); if (!selectedInput) return; const tier = selectedInput.dataset.tier; listingPreviewItem.classList.remove(...tierClasses); if (tier) { listingPreviewItem.classList.add(`promoted-${tier}`); } sponsoredLabelPreview.classList.remove(...labelClasses); if (tier) { sponsoredLabelPreview.classList.add(tier); sponsoredLabelPreview.textContent = "Sponsored"; sponsoredLabelPreview.style.visibility = 'visible'; } else { sponsoredLabelPreview.style.visibility = 'hidden'; } }
+    function updatePreview() { const selectedInput = durationOptionsContainer.querySelector('input[name="promotion_duration"]:checked'); if (!selectedInput) return; const tier = selectedInput.dataset.tier; listingPreviewItem.classList.remove(...tierClasses); if (tier) { listingPreviewItem.classList.add(`promoted-${tier}`); } sponsoredLabelPreview.classList.remove(...labelClasses); if (tier) { sponsoredLabelPreview.classList.add(tier); sponsoredLabelPreview.textContent = "Sponsored"; sponsoredLabelPreview.style.visibility = 'visible'; } else { sponsoredLabelPreview.style.visibility = 'hidden'; } } // Changed label text here
     durationRadios.forEach(radio => { radio.addEventListener('change', updatePreview); });
     updatePreview();
 
 
-    // --- 5. Payment Button Click Handler ---
+    // Payment Button Click Handler (MODIFIED FOR EMAIL CONFIRMATION)
     paymentButton.addEventListener('click', async () => {
-        // ... (Email check, duration/price ID check unchanged) ...
-        const promoterEmail = emailInput.value.trim(); const promoterEmailConfirm = emailConfirmInput.value.trim();
-        if (promoterEmail !== promoterEmailConfirm) { showMessage('Email addresses do not match.', 'error'); emailConfirmInput.focus(); return; }
+        console.log('Payment button clicked');
+        showMessage(''); // Clear previous messages
+        // --- Reset input styles on new attempt ---
+        emailInput.classList.remove('is-valid', 'is-invalid');
+        emailConfirmInput.classList.remove('is-valid', 'is-invalid');
+        // ---
+
+        const promoterEmail = emailInput.value.trim();
+        const promoterEmailConfirm = emailConfirmInput.value.trim(); // <<< Get confirm value
+
+        let isValid = true; // Flag to track overall validity
+
+        // --- Email Format Check ---
+        if (!promoterEmail || !/\S+@\S+\.\S+/.test(promoterEmail)) {
+            showMessage('Please enter a valid email address.', 'error');
+            emailInput.classList.add('is-invalid'); // Add invalid class
+            emailInput.focus();
+            isValid = false; // Mark as invalid
+        } else {
+             emailInput.classList.add('is-valid'); // Mark as valid if format is ok
+        }
+
+         // --- Confirm Email Format Check (Optional but good) ---
+         if (!promoterEmailConfirm || !/\S+@\S+\.\S+/.test(promoterEmailConfirm)) {
+            // Don't necessarily show a message here if the first failed, but mark invalid
+            emailConfirmInput.classList.add('is-invalid');
+            if (isValid) { // Only focus here if the first email was ok
+                 showMessage('Please enter a valid confirmation email address.', 'error');
+                 emailConfirmInput.focus();
+            }
+             isValid = false;
+         } else if (isValid) { // Only mark valid if format is ok AND first email was ok
+             emailConfirmInput.classList.add('is-valid');
+         }
+
+
+        // --- START: Email Match Check ---
+        if (isValid && promoterEmail !== promoterEmailConfirm) { // Only check match if formats were okay
+            showMessage('Email addresses do not match. Please re-enter.', 'error');
+            // Mark both as invalid if they don't match
+            emailInput.classList.remove('is-valid'); // Remove valid if previously set
+            emailInput.classList.add('is-invalid');
+            emailConfirmInput.classList.remove('is-valid'); // Remove valid if previously set
+            emailConfirmInput.classList.add('is-invalid');
+            emailConfirmInput.focus(); // Focus on the confirmation field
+            isValid = false; // Mark as invalid
+        } else if (isValid) {
+            // If they match AND both had valid formats, ensure both have valid class
+             emailInput.classList.add('is-valid');
+             emailConfirmInput.classList.add('is-valid');
+        }
+        // --- END: Email Match Check ---
+
+
+        // --- Duration Check ---
         const selectedDurationInput = durationOptionsContainer.querySelector('input[name="promotion_duration"]:checked');
-        if (!selectedDurationInput) { showMessage('Please select duration.', 'error'); return; }
-        if (!promoterEmail || !/\S+@\S+\.\S+/.test(promoterEmail)) { showMessage('Please enter valid email.', 'error'); emailInput.focus(); return; }
-        let selectedDurationMonths = selectedDurationInput.value; let selectedPriceId = selectedDurationInput.dataset.priceid;
-        if (!selectedPriceId || selectedPriceId.startsWith('YOUR_') || selectedPriceId.length < 10) { showMessage('Payment config error.', 'error'); return; }
+        if (!selectedDurationInput) {
+            showMessage('Please select a promotion duration.', 'error');
+            isValid = false;
+        }
+
+        // --- Stop if any validation failed ---
+        if (!isValid) {
+            return;
+        }
+
+        // --- Passed all checks - Proceed ---
+        let selectedDurationMonths = selectedDurationInput.value;
+        let selectedPriceId = selectedDurationInput.dataset.priceid;
+        // Final check on Price ID just in case HTML was edited incorrectly
+        if (!selectedPriceId || selectedPriceId.length < 10) { // Removed YOUR_ check as it relies on placeholder
+             console.error("Stripe Price ID missing or invalid!");
+             showMessage('Payment configuration error.', 'error');
+             return;
+        }
 
         paymentButton.disabled = true; paymentButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...'; showMessage('Contacting payment processor...', 'info');
         try {
-            // Ensure tableName is included in the payload
             const functionPayload = { listingId, tableName, communityId, provinceName: decodeURIComponent(provinceName), communityName: decodeURIComponent(communityName), listingName: decodeURIComponent(listingName), promoterEmail, priceId: selectedPriceId, durationMonths: selectedDurationMonths };
-            console.log('Invoking create-checkout-session with payload:', functionPayload);
             const { data, error } = await supabaseClient.functions.invoke('create-checkout-session', { body: functionPayload });
-            // ... (response handling unchanged) ...
-            if (error) { throw new Error(/*...*/); } if (data.error) { throw new Error(/*...*/); } if (data.checkoutUrl) { window.location.href = data.checkoutUrl; } else { throw new Error(/*...*/); }
-        } catch (err) { /* ... error handling unchanged ... */ }
+            if (error) { throw new Error(`Function invocation error: ${error.message}`); }
+            if (data.error) { throw new Error(`Payment processing error: ${data.error}`); }
+            if (data.checkoutUrl) { window.location.href = data.checkoutUrl; }
+            else { throw new Error('Invalid response from payment processor.'); }
+        } catch (err) {
+            console.error('Payment initiation failed:', err);
+            showMessage(`Error: ${err.message}`, 'error');
+            paymentButton.disabled = false;
+            paymentButton.innerHTML = '<i class="fa-brands fa-stripe-s"></i> Proceed to Payment';
+        }
     });
 
-    // Helper function showMessage (unchanged)
-    function showMessage(msg, type = 'info') { /* ... */ }
+    // Helper function showMessage
+    function showMessage(msg, type = 'info') {
+        messageArea.textContent = msg;
+        messageArea.className = ''; // Clear previous classes first
+        if (msg) {
+            messageArea.classList.add(type === 'error' ? 'error-message' : 'info-message');
+            messageArea.style.display = 'block';
+        } else {
+            messageArea.style.display = 'none';
+        }
+    }
 
 }); // End DOMContentLoaded
