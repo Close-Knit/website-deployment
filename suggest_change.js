@@ -1,133 +1,115 @@
-// --- suggest_change.js (Fix Function Call Typo) ---
+// --- suggest_change.js (Refined Category Dropdown Update) ---
 
 // Uses global supabaseClient from common.js
 
-// Global variables for DOM elements
 let form, messageDiv, submitButton, changeTypeRadios, targetListingGroup, contextHeader,
     communityIdInput, provinceNameInput, communityNameInput,
     targetListingSelect, nameInput, categorySelect, otherCategoryGroup, otherCategoryInput,
     addressInput, emailInput;
 
-// Global variables for context
+// Function to initialize DOM elements and perform checks
+function initializeAndCheckDOMElements() { /* ... unchanged ... */ }
+
 const urlParams = new URLSearchParams(window.location.search);
 const communityIdFromUrl = urlParams.get('cid');
 const provinceNameFromUrl = urlParams.get('prov');
 const communityNameFromUrl = urlParams.get('comm');
 let currentTableName = '';
 
-// Helper function to display messages
-function showMessage(msg, type = 'info') {
-    if (!messageDiv) { messageDiv = document.getElementById('form-message'); if (!messageDiv) { console.error("Cannot show message, messageDiv element not found.", {msg, type}); return; } }
-     messageDiv.textContent = msg; messageDiv.className = `form-message ${type}`; messageDiv.style.display = msg ? 'block' : 'none';
-}
-
-// *** Function to initialize DOM elements and perform checks ***
-// Renamed and includes checks
-function initializeAndCheckDOMElements() {
-    console.log("[DEBUG] Entering initializeAndCheckDOMElements");
-    form = document.getElementById('suggestion-form');
-    messageDiv = document.getElementById('form-message');
-    submitButton = document.getElementById('submit-button');
-    changeTypeRadios = document.querySelectorAll('input[name="change_type"]');
-    targetListingGroup = document.getElementById('target-listing-group');
-    contextHeader = document.getElementById('form-context'); // <<< Check this ID
-    communityIdInput = document.getElementById('community_id');
-    provinceNameInput = document.getElementById('province_name');
-    communityNameInput = document.getElementById('community_name');
-    targetListingSelect = document.getElementById('target_listing_select');
-    nameInput = document.getElementById('suggested_name');
-    categorySelect = document.getElementById('suggested_category_select');
-    otherCategoryGroup = document.getElementById('other-category-group');
-    otherCategoryInput = document.getElementById('suggested_category_other');
-    addressInput = document.getElementById('suggested_address');
-    emailInput = document.getElementById('suggested_email');
-
-    // Perform the check INSIDE this function
-    if (!form || !messageDiv || !submitButton || !categorySelect || !targetListingSelect) {
-        console.error("Essential form elements missing!", { /* ... */ });
-        showMessage('Page Error: Critical form elements could not be loaded.', 'error');
-        return false; // Indicate failure
-    }
-    // Check for context header separately as it's needed before dropdowns
-    if (!contextHeader) {
-         console.warn("Context header element (form-context) not found during init.");
-         // Don't necessarily fail, but log it
-    }
-
-    console.log("[DEBUG] All essential form elements successfully found and assigned.");
-    return true; // Indicate success
-}
-
+function showMessage(msg, type = 'info') { /* ... unchanged ... */ }
 
 // Initial Page Setup (on DOMContentLoaded)
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("[DEBUG] Suggest Change DOMContentLoaded fired.");
-
-    // 1. Initialize and Check DOM Elements FIRST
-    // *** CORRECTED FUNCTION NAME HERE ***
-    if (!initializeAndCheckDOMElements()) {
-        console.error("[CRITICAL] Failed to initialize/find essential DOM elements. Stopping setup.");
-        return; // Stop if elements are missing
-    }
-
-    // 2. Check Supabase Client
+    if (!initializeAndCheckDOMElements()) { return; }
     if (typeof supabaseClient === 'undefined' || !supabaseClient) { /* ... */ return; }
-    console.log("[DEBUG] Supabase client confirmed available.");
-
-    // 3. Check URL Params
     if (!communityIdFromUrl || !provinceNameFromUrl || !communityNameFromUrl) { /* ... */ return; }
     console.log("[DEBUG] URL parameters found.");
-
-    // 4. Setup UI - Context Header and hidden inputs
-    try {
-        const decodedComm = decodeURIComponent(communityNameFromUrl);
-        const decodedProv = decodeURIComponent(provinceNameFromUrl);
-        if (contextHeader) { // Check if contextHeader was actually found
-             console.log("[DEBUG] contextHeader element FOUND. Attempting to set text...");
-             contextHeader.textContent = `Suggest Change For: ${decodedComm}, ${decodedProv}`;
-             console.log(`[DEBUG] Context header set to: ${contextHeader.textContent}`);
-        } else {
-             console.error("[DEBUG] contextHeader element was NULL/not found earlier. Cannot set text.");
-        }
-        if (communityIdInput) communityIdInput.value = communityIdFromUrl;
-        if (provinceNameInput) provinceNameInput.value = provinceNameFromUrl;
-        if (communityNameInput) communityNameInput.value = communityNameFromUrl;
-        currentTableName = decodedProv.replace(/ /g, '_');
-        console.log("[DEBUG] UI context setup complete.");
-    } catch (e) { /* ... error handling ... */ return; }
-
-    // 5. Populate Dropdowns
+    try { /* ... Set UI context ... */ } catch (e) { /* ... */ return; }
     console.log("[DEBUG] Calling populateCategoryDropdown...");
     await populateCategoryDropdown();
     console.log("[DEBUG] Calling populateListingsDropdown...");
     await populateListingsDropdown();
     console.log("[DEBUG] Dropdown population finished.");
-
-
-    // 6. Setup Listeners
     changeTypeRadios = document.querySelectorAll('input[name="change_type"]');
-    if (changeTypeRadios && changeTypeRadios.length > 0) { /* ... */ } else { console.warn("Change type radios not found after dropdowns."); } // Changed to warn
-    if (categorySelect) { /* ... */ } else { console.warn("Category select dropdown not found for listener setup."); }
-    console.log("[DEBUG] Event listeners set up attempt complete.");
+    if (changeTypeRadios && changeTypeRadios.length > 0) { /* ... setup listeners ... */ } else { console.warn("Change type radios not found."); }
+    if (categorySelect) { /* ... setup listener ... */ } else { console.warn("Category select not found."); }
+    if(form) { form.addEventListener('submit', async (event) => { /* ... */ }); } else { console.error("Form not found!");}
+});
 
-    // 7. Form Submission Handler
-    if(form) { form.addEventListener('submit', async (event) => { /* ... form submission logic unchanged ... */ }); }
-    else { console.error("Cannot attach submit listener, form not found earlier!");}
+// ======================================================================
+// Populate Category Dropdown (Refined Update Method)
+// ======================================================================
+async function populateCategoryDropdown() {
+    console.log("[DEBUG] Inside populateCategoryDropdown function.");
+    if (!categorySelect || !supabaseClient) {
+        console.warn("Cannot populate categories: Missing element or client.");
+        if(categorySelect) categorySelect.innerHTML = '<option value="">Error</option>';
+        return;
+    }
+
+    // Preserve the "Other..." option if it exists in the HTML initially
+    const otherOptionRef = categorySelect.querySelector('option[value="_OTHER_"]');
+    const otherOptionHTML = otherOptionRef ? otherOptionRef.outerHTML : '<option value="_OTHER_">Other...</option>'; // Fallback
+
+    // Set loading state - Only Placeholder + Other
+    categorySelect.innerHTML = '<option value="" disabled selected>Loading categories...</option>' + otherOptionHTML;
+
+    console.log("[DEBUG] Querying 'categories' table...");
+    try {
+        const { data: categoryData, error } = await supabaseClient
+            .from('categories').select('category_name').order('category_name', { ascending: true });
+
+        if (error) { throw error; }
+        console.log(`[DEBUG] Fetched ${categoryData?.length || 0} categories.`);
+
+        // *** Build options string FIRST ***
+        let optionsHTML = '<option value="" disabled selected>-- Select Category --</option>'; // Start with placeholder
+
+        if (categoryData) {
+            categoryData.forEach(cat => {
+                if (cat.category_name) {
+                    const name = cat.category_name;
+                    const escapedValue = name.replace(/"/g, '"');
+                    const escapedText = name.replace(/</g, '<').replace(/>/g, '>');
+                    optionsHTML += `<option value="${escapedValue}">${escapedText}</option>`;
+                }
+            });
+        }
+
+        // *** Replace innerHTML completely ***
+        categorySelect.innerHTML = optionsHTML + otherOptionHTML; // Add placeholder, categories, and Other...
+        console.log("[DEBUG] Category dropdown populated.");
+
+    } catch (error) {
+        console.error("Error during populateCategoryDropdown execution:", error);
+        // Ensure it doesn't get stuck on "Loading..." on error
+        categorySelect.innerHTML = '<option value="">Error loading</option>' + otherOptionHTML;
+    }
+} // End populateCategoryDropdown
 
 
-}); // End DOMContentLoaded
+// Populate Listings Dropdown (Unchanged - keep refined version)
+async function populateListingsDropdown() {
+    console.log("[DEBUG] Inside populateListingsDropdown function.");
+    if (!targetListingSelect || !currentTableName || !communityIdFromUrl || !supabaseClient) { /* ... */ return; }
+    targetListingSelect.innerHTML = '<option value="" disabled selected>Loading listings...</option>';
+    console.log(`[DEBUG] Querying '${currentTableName}' table for listings...`);
+    try {
+        const { data: listingData, error } = await supabaseClient.from(currentTableName).select('name').eq('community_id', communityIdFromUrl).order('name', { ascending: true });
+        if (error) { throw error; }
+        console.log(`[DEBUG] Fetched ${listingData?.length || 0} listings for dropdown.`);
+        let optionsHTML = '';
+        if (listingData && listingData.length > 0) { listingData.forEach(listing => { /* ... build optionsHTML ... */ }); targetListingSelect.innerHTML = '<option value="" selected>-- Select Listing --</option>' + optionsHTML; console.log("[DEBUG] Listings dropdown populated."); }
+        else { targetListingSelect.innerHTML = '<option value="" selected>-- No Listings Found --</option>'; }
+    } catch (error) { console.error("Error populating listings dropdown:", error); targetListingSelect.innerHTML = '<option value="">Error loading listings</option>'; }
+} // End populateListingsDropdown
 
 
-// Populate Category Dropdown (unchanged)
-async function populateCategoryDropdown() { /* ... */ }
-
-// Populate Listings Dropdown (unchanged)
-async function populateListingsDropdown() { /* ... */ }
-
-// Handle Category Dropdown Change (unchanged)
+// Handle Category Dropdown Change (Unchanged)
 function handleCategoryChange() { /* ... */ }
 
-// Function to Show/Hide Conditional Fields & Set Required (unchanged)
+// Function to Show/Hide Conditional Fields & Set Required (Unchanged)
 function handleRadioChange() { /* ... */ }
 
 // --- End: suggest_change.js ---
