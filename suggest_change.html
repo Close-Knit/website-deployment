@@ -7,7 +7,13 @@
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-QV1M0QM38B"></script>
-  <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-QV1M0QM38B'); </script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-QV1M0QM38B');
+  </script>
   <!-- End Google tag -->
 
   <!-- Link CSS and Font Awesome -->
@@ -15,7 +21,8 @@
   <link rel="stylesheet" href="styles.css">
 
    <!-- AdSense Script (Consistency) -->
-   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174" crossorigin="anonymous"></script>
+   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174"
+        crossorigin="anonymous"></script>
 
 </head>
 <body>
@@ -28,9 +35,26 @@
     <h2 id="form-context">For: Loading...</h2> <!-- Populated by JS -->
 
     <form id="suggestion-form">
-        <!-- Form Content Unchanged -->
-        <div class="form-group"> <label>Type of Change:</label> <div>...</div> <div>...</div> <div>...</div> </div>
-        <div class="form-group" id="target-listing-group" style="display: none;"> <label for="target_listing_select">Listing to Change/Remove:</label> <select id="target_listing_select" name="target_listing_select"> <option value="">-- Select Listing --</option> </select> </div> <hr>
+        <!-- Change Type Selection -->
+        <div class="form-group">
+            <label>Type of Change:</label>
+            <div> <input type="radio" id="add" name="change_type" value="ADD" required checked> <label for="add">Add New Listing</label> </div>
+            <div> <input type="radio" id="change" name="change_type" value="CHANGE" required> <label for="change">Change Existing Listing</label> </div>
+            <div> <input type="radio" id="delete" name="change_type" value="DELETE" required> <label for="delete">Remove Listing</label> </div>
+        </div>
+
+        <!-- Target Listing Field -->
+        <div class="form-group" id="target-listing-group" style="display: none;">
+            <label for="target_listing_select">Listing to Change/Remove:</label>
+            <select id="target_listing_select" name="target_listing_select">
+                 <option value="">-- Select Listing --</option>
+                 <!-- Options will be populated by JS -->
+            </select>
+        </div>
+
+        <hr>
+
+        <!-- Listing Details Fields -->
         <p><strong>Listing Details (Fill in for Add/Change):</strong></p>
         <div class="form-group"> <label for="suggested_name">Name:</label> <input type="text" id="suggested_name" name="suggested_name"> </div>
         <div class="form-group"> <label for="suggested_phone">Phone Number:</label> <input type="tel" id="suggested_phone" name="suggested_phone"> </div>
@@ -38,19 +62,38 @@
         <div class="form-group"> <label for="suggested_email">Email (Optional):</label> <input type="email" id="suggested_email" name="suggested_email"> </div>
         <div class="form-group"> <label for="suggested_category_select">Category:</label> <select id="suggested_category_select" name="suggested_category_select"> <option value="">Loading categories...</option> <option value="_OTHER_">Other...</option> </select> </div>
         <div class="form-group" id="other-category-group" style="display: none;"> <label for="suggested_category_other">Specify Other Category:</label> <input type="text" id="suggested_category_other" name="suggested_category_other"> </div>
-        <div class="form-group"> <label for="suggested_notes">Notes (Optional):</label> <textarea id="suggested_notes" name="suggested_notes" rows="3"></textarea> </div> <hr>
+        <div class="form-group"> <label for="suggested_notes">Notes (Optional):</label> <textarea id="suggested_notes" name="suggested_notes" rows="3"></textarea> </div>
+
+        <hr>
+
+        <!-- Submitter Comment Field -->
         <div class="form-group"> <label for="submitter_comment">Your Comments (Optional):</label> <textarea id="submitter_comment" name="submitter_comment" rows="3" placeholder="Reason for change, contact info (optional), etc."></textarea> </div>
-        <input type="hidden" id="community_id" name="community_id"> <input type="hidden" id="province_name" name="province_name"> <input type="hidden" id="community_name" name="community_name">
+
+         <!-- Hidden fields for context -->
+         <input type="hidden" id="community_id" name="community_id">
+         <input type="hidden" id="province_name" name="province_name">
+         <input type="hidden" id="community_name" name="community_name">
+
+        <!-- Message Area -->
         <div id="form-message" class="form-message"></div>
+
+        <!-- Submit Button -->
         <button type="submit" id="submit-button">Submit Suggestion</button>
     </form>
 
+    <!-- Back Link -->
     <p class="form-back-link"><a href="javascript:history.back()">Go Back to Directory</a></p>
 
-    <!-- Reverted Script Loading Order -->
+    <!-- ====================================================== -->
+    <!-- SCRIPT LOADING ORDER (Reverted) -->
+    <!-- ====================================================== -->
+    <!-- 1. Supabase Library FIRST -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Keep common.js deferred if it worked for other pages -->
+
+    <!-- 2. Common JS SECOND (Can use defer again) -->
     <script src="common.js" defer></script>
+
+    <!-- 3. Page Specific Script THIRD -->
     <script src="suggest_change.js" defer></script>
 
 </body>
