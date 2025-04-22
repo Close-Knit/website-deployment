@@ -27,64 +27,116 @@
         .success-container {
             max-width: 600px;
             margin: 40px auto;
-            padding: 30px;
-            border: 1px solid #c3e6cb; /* Green border */
+            padding: 30px 40px; /* Increased padding slightly */
+            border: 1px solid #c3e6cb;
             border-radius: 8px;
-            background-color: #d4edda; /* Light green background */
+            background-color: #f0fff4; /* Lighter green background */
             text-align: center;
-            color: #155724; /* Dark green text */
+            color: #155724;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* Add shadow */
+        }
+        .success-logo {
+             display: block;
+             width: 80px; /* Adjust size as needed */
+             height: auto;
+             margin: 0 auto 20px auto; /* Center logo and add space below */
         }
         .success-container h1 {
             color: #155724;
-            margin-bottom: 15px;
+            margin-top: 0; /* Remove default top margin */
+            margin-bottom: 20px;
+            font-size: 1.8em;
         }
         .success-container p {
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            font-size: 1.05em; /* Slightly larger text */
         }
-        .success-container a {
-            color: #007bff; /* Link color */
-            text-decoration: underline;
+        .success-container .listing-name {
+            font-weight: bold;
+            color: #0f5132; /* Darker green */
         }
-        .success-container .note {
+        .success-container a.return-link { /* Style the return link like a button */
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            color: #fff;
+            background-color: #0d6efd; /* Bootstrap primary blue */
+            border: 1px solid #0d6efd;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.2s ease;
+        }
+         .success-container a.return-link:hover {
+             background-color: #0b5ed7;
+             border-color: #0a58ca;
+             text-decoration: none;
+         }
+        .success-container .note { /* Style for the receipt note */
             font-size: 0.9em;
             color: #555;
             margin-top: 25px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- Site Logo Link -->
+    <!-- Site Logo Link (Keep outside container) -->
     <a href="index.html" id="site-logo-link" title="Go to Home Page">
        <img src="images/Bizly_Logo_150px.webp" alt="Bizly Logo - Go to Home" id="site-logo">
     </a>
 
     <div class="success-container">
-        <h1><i class="fa-solid fa-check-circle"></i> Promotion Successful!</h1>
-        <p>Thank you for your payment. Your listing, <strong id="success-listing-name">...</strong>, will be promoted shortly.</p>
-        <p>A receipt has been sent to the email address you provided.</p>
-        <p><a href="index.html">Return to Homepage</a></p>
+        <!-- Added Bizly Logo -->
+        <img src="images/Bizly_Logo_150px.webp" alt="Bizly Logo" class="success-logo">
 
-        <p class="note">Please note: It may take a few minutes for the promotion to become visible on the directory page as the system updates.</p>
-        <p class="note">(In a real application, this update happens instantly via webhooks, but we haven't set that part up yet!)</p>
+        <!-- Updated Heading and Text -->
+        <h1>Thank You!</h1>
+        <p>Your payment was successful.</p>
+        <p>Your listing, <strong id="success-listing-name" class="listing-name">your listing</strong>, will be promoted shortly!</p>
+
+        <!-- Removed delay note, kept receipt note -->
+        <p class="note">A receipt has been sent to the email address you provided via Stripe.</p>
+
+        <!-- Link back to the specific community directory -->
+        <p><a href="index.html" id="return-link" class="return-link">Return to Listings</a></p>
+
     </div>
 
     <script>
-        // Simple script to display the listing name from the URL parameter
+        // Script to display listing name and set correct return link
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const listingName = urlParams.get('listingName');
-            const listingNameElement = document.getElementById('success-listing-name');
+            const provinceName = urlParams.get('prov'); // Get province name
+            const communityName = urlParams.get('comm'); // Get community name
 
+            const listingNameElement = document.getElementById('success-listing-name');
+            const returnLinkElement = document.getElementById('return-link');
+
+            // Display listing name
             if (listingNameElement && listingName) {
                 listingNameElement.textContent = decodeURIComponent(listingName);
             } else if (listingNameElement) {
-                listingNameElement.textContent = "your listing"; // Fallback text
+                listingNameElement.textContent = "your listing"; // Fallback
+            }
+
+            // Set the return link URL
+            if (returnLinkElement && provinceName && communityName) {
+                const communityUrl = `community.html?province=${encodeURIComponent(provinceName)}&community=${encodeURIComponent(communityName)}`;
+                returnLinkElement.href = communityUrl;
+                console.log("Return link set to:", communityUrl);
+            } else if (returnLinkElement) {
+                 console.warn("Could not set dynamic return link, province/community params missing.");
+                 // Link will default to index.html as set in the HTML
+                 returnLinkElement.textContent = "Return to Homepage"; // Change text if params missing
             }
         });
     </script>
 
-     <!-- Common JS (optional, if needed for BackToTop etc.) -->
+     <!-- Optional Common JS -->
      <!-- <script src="common.js" defer></script> -->
 
 </body>
