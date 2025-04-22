@@ -7,13 +7,7 @@
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-QV1M0QM38B"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-QV1M0QM38B');
-  </script>
+  <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-QV1M0QM38B'); </script>
   <!-- End Google tag -->
 
   <!-- Link CSS and Font Awesome -->
@@ -21,8 +15,7 @@
   <link rel="stylesheet" href="styles.css">
 
    <!-- AdSense Script (Consistency) -->
-   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174"
-        crossorigin="anonymous"></script>
+   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174" crossorigin="anonymous"></script>
 
 </head>
 <body>
@@ -32,7 +25,7 @@
     </a>
 
     <h1>Suggest a Directory Change</h1>
-    <h2 id="form-context">For: Loading...</h2>
+    <h2 id="form-context">For: Loading...</h2> <!-- Updated by JS -->
 
     <form id="suggestion-form">
         <!-- Change Type Selection -->
@@ -69,7 +62,7 @@
         <!-- Submitter Comment Field -->
         <div class="form-group"> <label for="submitter_comment">Your Comments (Optional):</label> <textarea id="submitter_comment" name="submitter_comment" rows="3" placeholder="Reason for change, contact info (optional), etc."></textarea> </div>
 
-         <!-- Hidden fields -->
+         <!-- Hidden fields for context -->
          <input type="hidden" id="community_id" name="community_id">
          <input type="hidden" id="province_name" name="province_name">
          <input type="hidden" id="community_name" name="community_name">
@@ -84,10 +77,18 @@
     <!-- Back Link -->
     <p class="form-back-link"><a href="javascript:history.back()">Go Back to Directory</a></p>
 
-    <!-- JavaScript Libraries and Custom Script -->
+    <!-- ====================================================== -->
+    <!-- SCRIPT LOADING ORDER -->
+    <!-- ====================================================== -->
+    <!-- 1. Supabase Library FIRST -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- 2. Common JS SECOND (Initializes Client) -->
+    <!-- Remove defer to ensure execution before suggest_change.js -->
+    <script src="common.js"></script>
+
+    <!-- 3. Page Specific Script THIRD -->
     <script src="suggest_change.js" defer></script>
-    <!-- common.js might not be strictly needed here unless you add BackToTop -->
 
 </body>
 </html>
