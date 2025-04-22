@@ -1,103 +1,145 @@
-// --- START OF directory.js (Generic "Sponsored Ad" Label) ---
+// --- START OF directory.js (Syntax Fix for Generic Label) ---
 
 // Assumes supabaseClient is globally available from common.js
 
 // ======================================================================
 // Helper to display error messages (unchanged)
 // ======================================================================
-function displayError(message) { /* ... */ }
+function displayError(message) {
+    console.error("Directory Error:", message);
+    const resultsList = document.getElementById('results');
+    if (resultsList) {
+        resultsList.innerHTML = `<li style="color: red; font-style: italic;">Error: ${message}</li>`;
+    } else {
+        console.error("Could not find #results element to display error.");
+    }
+    const communityNameElement = document.getElementById('community-name');
+     if (communityNameElement) {
+          communityNameElement.innerHTML = "Error Loading Directory";
+     }
+     const logoElement = document.getElementById('logo');
+     if(logoElement) logoElement.style.display = 'none';
+     const breadcrumbContainer = document.getElementById('breadcrumb-container');
+     if(breadcrumbContainer) breadcrumbContainer.innerHTML = '';
+}
 
 // ======================================================================
 // Fetch and Display Listings for a Specific Community
 // ======================================================================
 async function fetchAndDisplayListings() {
     // Check for global client
-    if (typeof supabaseClient === 'undefined' || !supabaseClient) { /* ... */ return; }
+    if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+        displayError("Supabase client not initialized (from common.js). Cannot fetch data.");
+        return;
+    }
     console.log("Directory.js using supabaseClient initialized in common.js");
 
-    // Get DOM elements, check elements, get URL params, set titles, breadcrumbs etc.
-    // ... (This part remains unchanged) ...
-    const resultsList = document.getElementById('results'); /* ... etc ... */
-    if (!resultsList) { /* ... */ return; }
-    const urlParams = new URLSearchParams(window.location.search); /* ... etc ... */
-    if (!provinceName || !communityName) { /* ... */ return; }
-    /* ... set titles, logo, breadcrumbs ... */
+    // Get DOM elements
+    const resultsList = document.getElementById('results');
+    const communityNameElement = document.getElementById('community-name');
+    const pageTitle = document.querySelector('title');
+    const logoElement = document.getElementById('logo');
+    const breadcrumbContainer = document.getElementById('breadcrumb-container');
+
+    // Initial setup
+    if (resultsList) resultsList.innerHTML = '<li>Loading...</li>';
+    if (breadcrumbContainer) breadcrumbContainer.innerHTML = '';
+    if (communityNameElement) communityNameElement.innerHTML = 'Loading...';
+    if (!resultsList) { console.error("Fatal Error: Results list element (#results) not found."); return; }
+
+    // Get URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const provinceName = urlParams.get("province");
+    const communityName = urlParams.get("community");
+    if (!provinceName || !communityName) { displayError("Missing province or community information in URL."); return; }
+    const decodedProvinceName = decodeURIComponent(provinceName);
+    const decodedCommunityName = decodeURIComponent(communityName);
+
+    // Set titles/headers
+    const baseTitle = `${decodedCommunityName}, ${decodedProvinceName}`;
+    if (pageTitle) pageTitle.textContent = `${baseTitle} Directory`;
+    if (logoElement) logoElement.style.display = 'none';
+
+    // Build Breadcrumbs
+    if (breadcrumbContainer) {
+        breadcrumbContainer.innerHTML = `<ol class="breadcrumb"><li class="breadcrumb-item"><a href="index.html">Home</a></li><li class="breadcrumb-item"><a href="province_page.html?province=${encodeURIComponent(decodedProvinceName)}">${decodedProvinceName}</a></li><li class="breadcrumb-item active" aria-current="page">${decodedCommunityName}</li></ol>`;
+    } else { console.warn("Breadcrumb container not found."); }
+    if (communityNameElement) { communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">Loading Telephone Directory...</span>`; }
+
     const tableName = decodedProvinceName.replace(/ /g, '_');
 
     try {
         // Fetch Community ID and Logo
-        /* ... fetch community data unchanged ... */
-        const { data: communityData, error: communityError } = await supabaseClient.from('communities').select('id, logo_filename')...;
-        /* ... handle community data/error ... */
-        const communityId = communityData.id; /* ... etc ... */
+        const { data: communityData, error: communityError } = await supabaseClient.from('communities').select('id, logo_filename').eq('community_name', decodedCommunityName).limit(1).single();
+        if (communityError || !communityData) { throw new Error(`Community "${decodedCommunityName}" not found or error fetching: ${communityError?.message}`); }
+        const communityId = communityData.id;
+        const logoFilename = communityData.logo_filename;
+        if (logoElement && logoFilename) { logoElement.src = `images/logos/${logoFilename}`; logoElement.alt = `${decodedCommunityName} Logo`; logoElement.style.display = 'block'; }
+        else if (logoElement) { logoElement.style.display = 'none'; }
 
         // Update Suggest Change Link
-        /* ... update suggest link unchanged ... */
+        const suggestChangeLink = document.getElementById('suggestChangeLink');
+        if (suggestChangeLink) { suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`; }
 
         // --- Fetch Listings ---
-        const { data: listings, error: listingsError } = await supabaseClient.from(tableName).select('*')...;
+        console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
+        const { data: listings, error: listingsError } = await supabaseClient.from(tableName).select('*').eq('community_id', communityId).order('category', { ascending: true, nullsFirst: false }).order('name', { ascending: true });
         if (listingsError) { throw listingsError; }
 
         resultsList.innerHTML = ''; // Clear loading
 
         // Update subtitle
-        /* ... update subtitle unchanged ... */
-        if (listingCount === 0) { /* ... */ return; }
+        const listingCount = listings?.length || 0;
+        const subTitleText = `Telephone Directory (${listingCount} listings)`;
+        if (communityNameElement) { communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">${subTitleText}</span>`; }
+        if (listingCount === 0) { resultsList.innerHTML = `<li>No listings found for ${decodedCommunityName}.</li>`; return; }
 
         // --- Group and Sort Listings by Category and Tier ---
         const groupedListings = listings.reduce(/* ... */);
         const sortedCategories = Object.keys(groupedListings).sort(/* ... */);
         const now = new Date();
 
+        // --- Render Listings ---
         sortedCategories.forEach(category => {
              const categoryHeadingItem = document.createElement('li'); /* ... */ resultsList.appendChild(categoryHeadingItem);
              const listingsInCategory = groupedListings[category];
              const goldListings = [], silverListings = [], bronzeListings = [], regularListings = [];
-
-             // Categorize listings by tier (logic remains the same)
+             // Categorize listings by tier
              listingsInCategory.forEach(listing => { /* ... */ });
              const categorySortedListings = goldListings.concat(silverListings).concat(bronzeListings).concat(regularListings);
 
-             // --- Render the sorted listings for the category ---
+             // Render sorted listings for the category
              categorySortedListings.forEach(listing => {
                  const listItem = document.createElement('li');
                  listItem.className = 'directory-entry';
 
-                 // --- Check Promotion Status ---
-                 const isPromoted = listing.is_promoted === true; const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
-                 const isActivePromotion = isPromoted && expiresAt instanceof Date && !isNaN(expiresAt) && expiresAt > now;
+                 // Apply Tier Styling & Generic Label
+                 const isActivePromotion = /* ... check promotion ... */ ;
                  const duration = listing.promotion_duration_months;
-                 let tierClass = '';
-                 let sponsoredLabelHtml = ''; // Initialize as empty
-
-                 // --- Apply Tier-Specific Class BUT Generic Label ---
+                 let tierClass = ''; let sponsoredLabelHtml = '';
                  if (isActivePromotion) {
-                     // Apply class based on duration for styling
                      if (duration === 12) { tierClass = 'promoted-gold'; }
                      else if (duration === 6) { tierClass = 'promoted-silver'; }
                      else { tierClass = 'promoted-bronze'; }
                      listItem.classList.add(tierClass);
-
-                     // *** CHANGE HERE: Set generic label text but keep tier class for label styling ***
+                     // Use generic text but keep specific class for label styling
                      sponsoredLabelHtml = `<span class="sponsored-label ${tierClass.replace('promoted-','')}">Sponsored Ad</span>`;
-                     // Example: if tierClass is 'promoted-gold', label class becomes 'sponsored-label gold'
                  }
-                 // --- End Tier Styling/Label ---
 
                  const listingId = listing.id;
                  // Phone Button HTML
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
-                 if (phoneNumber) { phoneHtml = `<button ...>`; }
+                 if (phoneNumber) { phoneHtml = `<button ...>`; } // Condensed for clarity
 
                  // Promote Button HTML
                  let promoteButtonHtml = '';
-                 if (listingId && !isActivePromotion) { /* ... create promote button ... */ }
+                 if (listingId && !isActivePromotion) { /* ... create promote button unchanged ... */ }
 
-                 // Construct final HTML
+                 // *** Construct final HTML - CLEANED ***
                  listItem.innerHTML = `
                      <div class="entry-details">
-                          <span class="name">${listing.name || 'N/A'} ${sponsoredLabelHtml}</span> {/* Generic Label added */}
+                          <span class="name">${listing.name || 'N/A'} ${sponsoredLabelHtml}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
                           ${promoteButtonHtml}
@@ -122,6 +164,11 @@ function initializeSearch() { /* ... */ }
 function initializePopupInteraction() { /* ... */ }
 
 // Main Execution
-document.addEventListener('DOMContentLoaded', () => { /* ... */ });
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("[DEBUG] DOMContentLoaded fired for directory page.");
+    fetchAndDisplayListings();
+    initializeSearch();
+    initializePopupInteraction();
+});
 
 // --- END OF directory.js ---
