@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
     }
     if (categorySelect) {
         categorySelect.addEventListener('change', handleCategoryChange);
-    } else { console.warn("Category select dropdown not found for listener setup."); }
+    } else { console.warn("Category select dropdown not for listener setup."); }
     console.log("[DEBUG] Event listeners set up attempt complete.");
 
     // 7. Form Submission Handler
@@ -196,12 +196,12 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                     throw new Error("Please select the listing to change or remove.");
                  }
 
-                 // --- Submit to Supabase (Simplified Test) ---                                       // <<< MODIFICATION POINT
-                 console.log("[DEBUG] Sending data to 'suggested_changes' table (INSERT ONLY TEST)..."); // <<< MODIFICATION POINT
-                 const { error } = await supabaseClient                                                // <<< MODIFICATION POINT (Removed 'data')
+                 // --- Submit to Supabase ---                                                  // <<< MODIFICATION POINT
+                 console.log("[DEBUG] Sending data to 'suggested_changes' table...");
+                 const { error } = await supabaseClient                                         // <<< MODIFICATION POINT (Removed 'data')
                      .from('suggested_changes')
-                     .insert([suggestionData]);
-                     // .select(); // <<< MODIFICATION POINT (Temporarily removed to isolate INSERT)
+                     .insert([suggestionData], { returning: 'minimal' }); // <<< MODIFICATION POINT (Added returning minimal, removed .select())
+
 
                  if (error) {
                      // Provide more specific error info if possible
@@ -209,8 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                      throw new Error(`Database error: ${error.message} (Code: ${error.code}). Please check RLS policies or table schema.`);
                  }
 
-                 // If we reach here, insert was successful (without select)                           // <<< MODIFICATION POINT
-                 console.log("[DEBUG] Suggestion submitted successfully (insert only).");              // <<< MODIFICATION POINT (Updated log message)
+                 console.log("[DEBUG] Suggestion submitted successfully (minimal return).");   // <<< MODIFICATION POINT (Updated log message)
                  showMessage('Suggestion submitted successfully! Thank you.', 'success');
                  form.reset(); // Clear the form
                  handleRadioChange(); // Reset conditional field visibility/requirements
