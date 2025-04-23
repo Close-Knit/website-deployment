@@ -16,18 +16,18 @@ a:hover, a:focus { text-decoration: underline; }
 /* START: Beta Indicator Style */
 .beta-indicator {
     position: absolute;
-    top: 60px; /* Adjust this value slightly (e.g., 55px, 65px) to position below the logo */
-    left: 15px; /* Align with logo's left edge */
-    font-size: 0.65em; /* Make it quite small */
-    font-weight: bold;
-    color: #dc3545; /* A noticeable color like red */
-    background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white background */
+    top: 20px; /* Adjusted vertical position */
+    left: 75px; /* Positioned to the right of the 60px logo + spacing */
+    font-size: 0.7em; /* Slightly larger, adjust as needed */
+    font-weight: normal; /* Changed from bold */
+    color: #A0522D; /* Medium Brown (Sienna) */
+    /* background-color: rgba(255, 255, 255, 0.85); Removed */
     padding: 2px 5px;
     border-radius: 3px;
-    border: 1px solid rgba(220, 53, 69, 0.5); /* Faint red border */
-    z-index: 9; /* Ensure it's layered correctly, just below the logo link */
-    line-height: 1; /* Prevent extra vertical space */
-    white-space: nowrap; /* Keep it on one line */
+    /* border: 1px solid rgba(160, 82, 45, 0.5); Removed */
+    z-index: 9;
+    line-height: 1;
+    white-space: nowrap;
 }
 /* END: Beta Indicator Style */
 
@@ -260,10 +260,12 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     #backToTopBtn { bottom: 15px; right: 15px; padding: 8px 10px; font-size: 1em; }
     .copy-button { padding: 2px 6px; font-size: 0.85em; }
 
-    /* START: Beta Indicator Mobile Adjustment (Placeholder) */
+    /* START: Beta Indicator Mobile Adjustment */
      .beta-indicator {
-         /* top: 75px; */ /* Example adjustment if needed */
-         /* font-size: 0.6em; */
+         /* Adjust positioning if needed for small screens */
+         top: 18px; /* Example fine-tuning */
+         left: 70px; /* Example fine-tuning */
+         font-size: 0.65em;
      }
     /* END: Beta Indicator Mobile Adjustment */
 }
