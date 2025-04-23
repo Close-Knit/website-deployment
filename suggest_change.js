@@ -1,3 +1,5 @@
+--- START OF FILE suggest_change.js ---
+
 // --- suggest_change.js (Reverted to Debug Logging Version - Known Good Structure) ---
 
 // Uses global supabaseClient from common.js
@@ -194,12 +196,12 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                     throw new Error("Please select the listing to change or remove.");
                  }
 
-                 // --- Submit to Supabase ---
-                 console.log("[DEBUG] Sending data to 'suggested_changes' table...");
-                 const { data, error } = await supabaseClient
+                 // --- Submit to Supabase (Simplified Test) ---                                       // <<< MODIFICATION POINT
+                 console.log("[DEBUG] Sending data to 'suggested_changes' table (INSERT ONLY TEST)..."); // <<< MODIFICATION POINT
+                 const { error } = await supabaseClient                                                // <<< MODIFICATION POINT (Removed 'data')
                      .from('suggested_changes')
-                     .insert([suggestionData])
-                     .select(); // Added select() to potentially get back the inserted data/check response
+                     .insert([suggestionData]);
+                     // .select(); // <<< MODIFICATION POINT (Temporarily removed to isolate INSERT)
 
                  if (error) {
                      // Provide more specific error info if possible
@@ -207,7 +209,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                      throw new Error(`Database error: ${error.message} (Code: ${error.code}). Please check RLS policies or table schema.`);
                  }
 
-                 console.log("[DEBUG] Suggestion submitted successfully. Response data:", data);
+                 // If we reach here, insert was successful (without select)                           // <<< MODIFICATION POINT
+                 console.log("[DEBUG] Suggestion submitted successfully (insert only).");              // <<< MODIFICATION POINT (Updated log message)
                  showMessage('Suggestion submitted successfully! Thank you.', 'success');
                  form.reset(); // Clear the form
                  handleRadioChange(); // Reset conditional field visibility/requirements
@@ -375,3 +378,5 @@ function handleRadioChange() {
     if (phoneInput) { phoneInput.required = (selectedType === 'ADD'); }
     // Adjust requirements for other fields as needed
 }
+
+--- END OF FILE suggest_change.js ---
