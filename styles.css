@@ -96,7 +96,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 /* Form Styles (suggest_change.html & promote.html) */
 /* ====================================================================== */
 /* Suggestion Form Specific */
-#suggestion-form { max-width: 650px; margin: 30px auto; padding: 25px 30px; border: 1px solid #dee2e6; border-radius: 8px; background-color: #fdfdfd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+#suggestion-form { max-width: 650px; margin: 30px auto; padding: 25px 30px; border: 1px solid #dee2e6; border-radius: 8px; background-color: #f5f1e6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 #suggestion-form hr { border: none; border-top: 1px solid #e9ecef; margin: 25px 0; }
 #suggestion-form p { margin-top: 20px; margin-bottom: 10px; }
 #suggestion-form button[type="submit"] { padding: 12px 25px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1.1em; transition: background-color 0.2s ease; display: block; margin: 20px auto 0 auto; }
