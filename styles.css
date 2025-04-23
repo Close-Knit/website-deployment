@@ -1,3 +1,5 @@
+--- START OF FILE styles.css ---
+
 /* ====================================================================== */
 /* Global / Shared Styles */
 /* ====================================================================== */
@@ -10,6 +12,24 @@ a:hover, a:focus { text-decoration: underline; }
 /* --- Site Logo Styles --- */
 #site-logo-link { display: inline-block; text-decoration: none; border: none; position: absolute; top: 15px; left: 15px; z-index: 10; }
 #site-logo { display: block; width: 60px; height: auto; vertical-align: middle; }
+
+/* START: Beta Indicator Style */
+.beta-indicator {
+    position: absolute;
+    top: 60px; /* Adjust this value slightly (e.g., 55px, 65px) to position below the logo */
+    left: 15px; /* Align with logo's left edge */
+    font-size: 0.65em; /* Make it quite small */
+    font-weight: bold;
+    color: #dc3545; /* A noticeable color like red */
+    background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white background */
+    padding: 2px 5px;
+    border-radius: 3px;
+    border: 1px solid rgba(220, 53, 69, 0.5); /* Faint red border */
+    z-index: 9; /* Ensure it's layered correctly, just below the logo link */
+    line-height: 1; /* Prevent extra vertical space */
+    white-space: nowrap; /* Keep it on one line */
+}
+/* END: Beta Indicator Style */
 
 /* ====================================================================== */
 /* Styles for Home Page List (index.html) */
@@ -239,4 +259,12 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     .breadcrumb-item + .breadcrumb-item::before { padding: 0 0.4rem; }
     #backToTopBtn { bottom: 15px; right: 15px; padding: 8px 10px; font-size: 1em; }
     .copy-button { padding: 2px 6px; font-size: 0.85em; }
+
+    /* START: Beta Indicator Mobile Adjustment (Placeholder) */
+     .beta-indicator {
+         /* top: 75px; */ /* Example adjustment if needed */
+         /* font-size: 0.6em; */
+     }
+    /* END: Beta Indicator Mobile Adjustment */
 }
+--- END OF FILE styles.css ---
