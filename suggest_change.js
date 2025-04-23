@@ -3,7 +3,7 @@
 // Uses global supabaseClient from common.js
 
 let form, messageDiv, submitButton, changeTypeRadios, targetListingGroup, contextHeader,
-    communityIdInput, provinceNameInput, communityNameInput,
+    communityIdInput, provinceNameInput, communityNameInput, // Keep these inputs for context if needed elsewhere, but don't send their values directly
     targetListingSelect, nameInput, categorySelect, otherCategoryGroup, otherCategoryInput,
     addressInput, emailInput;
 
@@ -16,9 +16,9 @@ function initializeAndCheckDOMElements() {
     changeTypeRadios = document.querySelectorAll('input[name="change_type"]'); // Selector verified in HTML
     targetListingGroup = document.getElementById('target-listing-group');
     contextHeader = document.getElementById('form-context'); // ID verified in HTML
-    communityIdInput = document.getElementById('community_id');
-    provinceNameInput = document.getElementById('province_name');
-    communityNameInput = document.getElementById('community_name');
+    communityIdInput = document.getElementById('community_id'); // KEEP: We send community_id
+    provinceNameInput = document.getElementById('province_name'); // Keep for context display maybe
+    communityNameInput = document.getElementById('community_name'); // Keep for context display maybe
     targetListingSelect = document.getElementById('target_listing_select');
     nameInput = document.getElementById('suggested_name');
     categorySelect = document.getElementById('suggested_category_select'); // ID verified in HTML
@@ -35,6 +35,12 @@ function initializeAndCheckDOMElements() {
     }
     if (!contextHeader) { console.warn("Context header element (form-context) not found during init."); }
     if (!changeTypeRadios || changeTypeRadios.length === 0) { console.warn("Change type radios not found during initialization."); }
+    // Also check the hidden inputs we rely on
+    if (!communityIdInput || !provinceNameInput || !communityNameInput) {
+        console.error("Essential context hidden input elements missing!");
+        // Don't necessarily stop page load, but submission will fail later if communityId is missing.
+    }
+
 
     console.log("[DEBUG] All essential form elements successfully found and assigned.");
     return true; // Indicate success
@@ -79,7 +85,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
         if (contextHeader) contextHeader.textContent = "Error loading context (URL params).";
         return;
     }
-    console.log("[DEBUG] URL parameters found.");
+    console.log("[DEBUG] URL parameters found:", { communityIdFromUrl, provinceNameFromUrl, communityNameFromUrl });
+
 
     // 4. Setup UI - Context Header and hidden inputs
     try {
@@ -92,9 +99,11 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
         } else {
              console.error("[DEBUG] contextHeader element was NULL/not found earlier. Cannot set text.");
         }
+        // Populate hidden inputs from URL params
         if (communityIdInput) communityIdInput.value = communityIdFromUrl;
-        if (provinceNameInput) provinceNameInput.value = provinceNameFromUrl;
-        if (communityNameInput) communityNameInput.value = communityNameFromUrl;
+        if (provinceNameInput) provinceNameInput.value = provinceNameFromUrl; // Keep for potential future use?
+        if (communityNameInput) communityNameInput.value = communityNameFromUrl; // Keep for potential future use?
+
         currentTableName = decodedProv.replace(/ /g, '_'); // Still needed for listings dropdown
         console.log("[DEBUG] Target Table Name (for listings):", currentTableName);
         console.log("[DEBUG] UI context setup complete.");
@@ -128,7 +137,90 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
 
     // 7. Form Submission Handler
     if(form) {
-         form.addEventListener('submit', async (event) => { /* ... form submission logic unchanged ... */ });
+         form.addEventListener('submit', async (event) => {
+             event.preventDefault();
+             showMessage(''); // Clear previous messages
+             submitButton.disabled = true;
+             submitButton.textContent = 'Submitting...';
+             console.log("[DEBUG] Form submission started.");
+
+             try {
+                 // --- Collect form data ---
+                 const selectedType = document.querySelector('input[name="change_type"]:checked')?.value;
+                 let finalCategory = categorySelect.value;
+                 if (finalCategory === '_OTHER_') {
+                     finalCategory = otherCategoryInput.value.trim();
+                     if (!finalCategory) { throw new Error("Please specify the 'Other' category."); }
+                 }
+
+                // --- Prepare data object for Supabase ---
+                // Ensure communityIdInput exists and has a value from page load
+                if (!communityIdInput || !communityIdInput.value) {
+                     throw new Error("Community context is missing. Cannot submit.");
+                }
+
+                 const suggestionData = {
+                     // Context
+                     community_id: communityIdInput.value, // Send the ID
+                     // province_name: provinceNameInput.value, // REMOVED - Redundant
+                     // community_name: communityNameInput.value, // REMOVED - Redundant
+                     change_type: selectedType,
+                     target_listing_info: targetListingSelect.required ? targetListingSelect.value || null : null, // Use null if empty
+
+                     // Details from form fields
+                     suggested_name: nameInput.value.trim() || null,
+                     suggested_phone: document.getElementById('suggested_phone').value.trim() || null,
+                     suggested_address: addressInput.value.trim() || null, // Keep this - goes to new column
+                     suggested_email: emailInput.value.trim() || null,     // Keep this - goes to new column
+                     suggested_category: finalCategory || null,
+                     suggested_notes: document.getElementById('suggested_notes').value.trim() || null,
+
+                     // Comment
+                     submitter_comment: document.getElementById('submitter_comment').value.trim() || null, // Keep this
+
+                     // Status (set default in Supabase or here)
+                     status: 'PENDING' // Explicitly set status
+                 };
+
+                 console.log("[DEBUG] Data prepared for Supabase:", suggestionData);
+
+
+                 // --- Validate required fields based on change type ---
+                 if (selectedType === 'ADD' || selectedType === 'CHANGE') {
+                     if (!suggestionData.suggested_name) throw new Error("Listing Name is required for Add/Change.");
+                     // Add more required field checks if needed (e.g., category)
+                 }
+                 if ((selectedType === 'CHANGE' || selectedType === 'DELETE') && !suggestionData.target_listing_info) {
+                    throw new Error("Please select the listing to change or remove.");
+                 }
+
+                 // --- Submit to Supabase ---
+                 console.log("[DEBUG] Sending data to 'suggested_changes' table...");
+                 const { data, error } = await supabaseClient
+                     .from('suggested_changes')
+                     .insert([suggestionData])
+                     .select(); // Added select() to potentially get back the inserted data/check response
+
+                 if (error) {
+                     // Provide more specific error info if possible
+                     console.error("Supabase insert error details:", error);
+                     throw new Error(`Database error: ${error.message} (Code: ${error.code}). Please check RLS policies or table schema.`);
+                 }
+
+                 console.log("[DEBUG] Suggestion submitted successfully. Response data:", data);
+                 showMessage('Suggestion submitted successfully! Thank you.', 'success');
+                 form.reset(); // Clear the form
+                 handleRadioChange(); // Reset conditional field visibility/requirements
+                 handleCategoryChange(); // Reset other category field
+
+             } catch (error) {
+                 console.error("Error submitting suggestion:", error);
+                 showMessage(`Error submitting suggestion: ${error.message}`, 'error');
+             } finally {
+                 submitButton.disabled = false;
+                 submitButton.textContent = 'Submit Suggestion';
+             }
+         }); // End form submit listener
          console.log("[DEBUG] Form submit listener attached.");
     } else { console.error("Cannot attach submit listener, form not found earlier!");}
 
@@ -209,11 +301,26 @@ async function populateCategoryDropdown() {
 // Populate Listings Dropdown (Keep working version)
 async function populateListingsDropdown() {
     console.log("[DEBUG] Inside populateListingsDropdown function.");
-    if (!targetListingSelect || !currentTableName || !communityIdFromUrl || !supabaseClient) { /* ... */ return; }
+    if (!targetListingSelect || !currentTableName || !communityIdFromUrl || !supabaseClient) {
+         console.warn("Cannot populate listings dropdown: Missing element, table name, community ID, or client.");
+         if(targetListingSelect) targetListingSelect.innerHTML = '<option value="">Error</option>';
+         return;
+    }
     targetListingSelect.innerHTML = '<option value="" disabled selected>Loading listings...</option>';
     console.log(`[DEBUG] Querying '${currentTableName}' table for listings...`);
     try {
-        const { data: listingData, error } = await supabaseClient.from(currentTableName).select('name').eq('community_id', communityIdFromUrl).order('name', { ascending: true });
+        // Ensure communityIdFromUrl is treated as a number if your DB column is numeric
+        const communityIdNum = parseInt(communityIdFromUrl, 10);
+        if (isNaN(communityIdNum)) {
+            throw new Error(`Invalid community ID from URL: ${communityIdFromUrl}`);
+        }
+
+        const { data: listingData, error } = await supabaseClient
+             .from(currentTableName)
+             .select('name') // Only select name for dropdown
+             .eq('community_id', communityIdNum) // Use numeric ID
+             .order('name', { ascending: true });
+
         if (error) { throw error; }
         console.log(`[DEBUG] Fetched ${listingData?.length || 0} listings for dropdown.`);
 
@@ -221,19 +328,23 @@ async function populateListingsDropdown() {
         targetListingSelect.innerHTML = ''; // Clear loading
         const placeholder = document.createElement('option');
         placeholder.value = ""; placeholder.textContent = '-- Select Listing --';
+        placeholder.disabled = true; // Keep disabled
+        placeholder.selected = true; // Ensure it's selected initially
         targetListingSelect.appendChild(placeholder); // Add placeholder first
 
         if (listingData && listingData.length > 0) {
             listingData.forEach(listing => {
                  if (listing.name) {
                      const option = document.createElement('option');
-                     option.value = listing.name; option.textContent = listing.name;
+                     option.value = listing.name; // Use name as value
+                     option.textContent = listing.name;
                      targetListingSelect.appendChild(option);
                  }
              });
              console.log("[DEBUG] Listings dropdown populated by appending.");
         } else {
             placeholder.textContent = '-- No Listings Found --';
+            placeholder.disabled = true; // Ensure still disabled
         }
     } catch (error) { console.error("Error populating listings dropdown:", error); targetListingSelect.innerHTML = '<option value="">Error loading listings</option>'; }
 }
@@ -254,6 +365,13 @@ function handleRadioChange() {
     else { targetListingGroup.style.display = 'none'; targetListingSelect.required = false; targetListingSelect.value = ''; }
     const isAddOrChange = selectedType === 'ADD' || selectedType === 'CHANGE';
     nameInput.required = isAddOrChange;
-}
 
-// --- End: suggest_change.js ---
+    // Also set required for other fields based on type
+    const categorySelect = document.getElementById('suggested_category_select');
+    const phoneInput = document.getElementById('suggested_phone');
+    // Example: Make category required for ADD/CHANGE
+    if (categorySelect) { categorySelect.required = isAddOrChange; }
+    // Example: Make phone required for ADD
+    if (phoneInput) { phoneInput.required = (selectedType === 'ADD'); }
+    // Adjust requirements for other fields as needed
+}
