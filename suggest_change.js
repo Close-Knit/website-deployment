@@ -1,4 +1,4 @@
-// --- suggest_change.js (Fix Category Dropdown using innerHTML method) ---
+// --- suggest_change.js (Reverted to Debug Logging Version - Known Good Structure) ---
 
 // Uses global supabaseClient from common.js
 
@@ -13,29 +13,31 @@ function initializeAndCheckDOMElements() {
     form = document.getElementById('suggestion-form');
     messageDiv = document.getElementById('form-message');
     submitButton = document.getElementById('submit-button');
-    changeTypeRadios = document.querySelectorAll('input[name="change_type"]');
+    changeTypeRadios = document.querySelectorAll('input[name="change_type"]'); // Selector verified in HTML
     targetListingGroup = document.getElementById('target-listing-group');
-    contextHeader = document.getElementById('form-context');
+    contextHeader = document.getElementById('form-context'); // ID verified in HTML
     communityIdInput = document.getElementById('community_id');
     provinceNameInput = document.getElementById('province_name');
     communityNameInput = document.getElementById('community_name');
     targetListingSelect = document.getElementById('target_listing_select');
     nameInput = document.getElementById('suggested_name');
-    categorySelect = document.getElementById('suggested_category_select');
+    categorySelect = document.getElementById('suggested_category_select'); // ID verified in HTML
     otherCategoryGroup = document.getElementById('other-category-group');
     otherCategoryInput = document.getElementById('suggested_category_other');
     addressInput = document.getElementById('suggested_address');
     emailInput = document.getElementById('suggested_email');
 
+    // Check critical elements needed before dropdown population
     if (!form || !messageDiv || !submitButton || !categorySelect || !targetListingSelect) {
-        console.error("Essential form elements missing!", { /* ... */ });
+        console.error("Essential form elements missing!", { formFound: !!form, messageDivFound: !!messageDiv, submitButtonFound: !!submitButton, categorySelectFound: !!categorySelect, targetListingSelectFound: !!targetListingSelect });
         showMessage('Page Error: Critical form elements could not be loaded.', 'error');
-        return false;
+        return false; // Indicate failure
     }
     if (!contextHeader) { console.warn("Context header element (form-context) not found during init."); }
     if (!changeTypeRadios || changeTypeRadios.length === 0) { console.warn("Change type radios not found during initialization."); }
+
     console.log("[DEBUG] All essential form elements successfully found and assigned.");
-    return true;
+    return true; // Indicate success
 }
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -44,44 +46,107 @@ const provinceNameFromUrl = urlParams.get('prov');
 const communityNameFromUrl = urlParams.get('comm');
 let currentTableName = '';
 
-function showMessage(msg, type = 'info') { /* ... */ }
+function showMessage(msg, type = 'info') {
+    if (!messageDiv) { messageDiv = document.getElementById('form-message'); if (!messageDiv) { console.error("Cannot show message, messageDiv element not found.", {msg, type}); return; } }
+     messageDiv.textContent = msg; messageDiv.className = `form-message ${type}`; messageDiv.style.display = msg ? 'block' : 'none';
+}
 
 // Initial Page Setup (on DOMContentLoaded)
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => { // Keep async
     console.log("[DEBUG] Suggest Change DOMContentLoaded fired.");
-    if (!initializeAndCheckDOMElements()) { return; }
-    if (typeof supabaseClient === 'undefined' || !supabaseClient) { /* ... */ return; }
-    if (!communityIdFromUrl || !provinceNameFromUrl || !communityNameFromUrl) { /* ... */ return; }
+
+    // 1. Initialize and Check DOM Elements FIRST
+    if (!initializeAndCheckDOMElements()) {
+        console.error("[CRITICAL] Failed to initialize/find essential DOM elements. Stopping setup.");
+        return; // Stop if elements are missing
+    }
+
+    // 2. Check Supabase Client
+    if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+        console.error("Supabase client not initialized (from common.js). Suggest Change page cannot function.");
+        showMessage('Error: Cannot connect to data service.', 'error');
+        if(form) form.style.display = 'none';
+        if (contextHeader) contextHeader.textContent = "Error loading form (client).";
+        return;
+    }
+    console.log("[DEBUG] Supabase client confirmed available.");
+
+    // 3. Check URL Params
+    if (!communityIdFromUrl || !provinceNameFromUrl || !communityNameFromUrl) {
+        console.error("Missing URL parameters.");
+        showMessage('Missing community info in URL.', 'error');
+        if (form) form.style.display = 'none';
+        if (contextHeader) contextHeader.textContent = "Error loading context (URL params).";
+        return;
+    }
     console.log("[DEBUG] URL parameters found.");
-    try { /* ... Set UI context ... */ } catch (e) { /* ... */ return; }
+
+    // 4. Setup UI - Context Header and hidden inputs
+    try {
+        const decodedComm = decodeURIComponent(communityNameFromUrl);
+        const decodedProv = decodeURIComponent(provinceNameFromUrl);
+        if (contextHeader) { // Check if contextHeader was actually found
+             console.log("[DEBUG] contextHeader element FOUND. Attempting to set text...");
+             contextHeader.textContent = `Suggest Change For: ${decodedComm}, ${decodedProv}`;
+             console.log(`[DEBUG] Context header set to: ${contextHeader.textContent}`);
+        } else {
+             console.error("[DEBUG] contextHeader element was NULL/not found earlier. Cannot set text.");
+        }
+        if (communityIdInput) communityIdInput.value = communityIdFromUrl;
+        if (provinceNameInput) provinceNameInput.value = provinceNameFromUrl;
+        if (communityNameInput) communityNameInput.value = communityNameFromUrl;
+        currentTableName = decodedProv.replace(/ /g, '_'); // Still needed for listings dropdown
+        console.log("[DEBUG] Target Table Name (for listings):", currentTableName);
+        console.log("[DEBUG] UI context setup complete.");
+    } catch (e) {
+        console.error("Error setting up UI from URL params:", e);
+        showMessage('Error processing page context.', 'error');
+        return;
+    }
+
+    // 5. Populate Dropdowns
     console.log("[DEBUG] Calling populateCategoryDropdown...");
-    await populateCategoryDropdown();
+    await populateCategoryDropdown(); // Wait for categories
     console.log("[DEBUG] Calling populateListingsDropdown...");
-    await populateListingsDropdown();
+    await populateListingsDropdown(); // Wait for listings
     console.log("[DEBUG] Dropdown population finished.");
-    changeTypeRadios = document.querySelectorAll('input[name="change_type"]');
-    if (changeTypeRadios && changeTypeRadios.length > 0) { /* ... setup listeners ... */ } else { console.warn("Change type radios not found."); }
-    if (categorySelect) { /* ... setup listener ... */ } else { console.warn("Category select not found."); }
+
+
+    // 6. Setup Listeners
+    changeTypeRadios = document.querySelectorAll('input[name="change_type"]'); // Re-select
+    if (changeTypeRadios && changeTypeRadios.length > 0) {
+        console.log(`[DEBUG] Found ${changeTypeRadios.length} change type radios.`); // Log count
+        changeTypeRadios.forEach(radio => radio.addEventListener('change', handleRadioChange));
+        handleRadioChange(); // Initial call
+    } else {
+        console.warn("Change type radios not found after dropdowns."); // Changed to warn
+    }
+    if (categorySelect) {
+        categorySelect.addEventListener('change', handleCategoryChange);
+    } else { console.warn("Category select dropdown not found for listener setup."); }
     console.log("[DEBUG] Event listeners set up attempt complete.");
-    if(form) { form.addEventListener('submit', async (event) => { /* ... form submission logic ... */ }); } else { console.error("Form not found!");}
-});
+
+    // 7. Form Submission Handler
+    if(form) {
+         form.addEventListener('submit', async (event) => { /* ... form submission logic unchanged ... */ });
+         console.log("[DEBUG] Form submit listener attached.");
+    } else { console.error("Cannot attach submit listener, form not found earlier!");}
 
 
-// ======================================================================
-// Populate Category Dropdown (Reverted to innerHTML update method)
-// ======================================================================
+}); // End DOMContentLoaded
+
+
+// Populate Category Dropdown (Querying categories table - Original working fetch logic)
 async function populateCategoryDropdown() {
-    console.log("[DEBUG] Inside populateCategoryDropdown function (innerHTML method).");
+    console.log("[DEBUG] Inside populateCategoryDropdown function.");
     if (!categorySelect || !supabaseClient) {
         console.warn("Cannot populate categories: Missing element or client.");
         if(categorySelect) categorySelect.innerHTML = '<option value="">Error</option>';
         return;
     }
-
-    // Define the HTML for the "Other..." option consistently
-    const otherOptionHTML = '<option value="_OTHER_">Other...</option>';
-    // Set initial loading state
-    categorySelect.innerHTML = '<option value="" disabled selected>Loading categories...</option>' + otherOptionHTML;
+    const otherOption = categorySelect.querySelector('option[value="_OTHER_"]');
+    categorySelect.innerHTML = '<option value="" disabled selected>Loading categories...</option>'; // Set loading
+    if (otherOption) { categorySelect.appendChild(otherOption); } // Keep other option
 
     console.log("[DEBUG] Querying 'categories' table...");
     try {
@@ -91,41 +156,104 @@ async function populateCategoryDropdown() {
         if (error) { throw error; } // Let catch block handle
         console.log(`[DEBUG] Fetched ${categoryData?.length || 0} categories.`);
 
-        // *** Build the COMPLETE options string ***
-        let optionsHTML = '<option value="" disabled selected>-- Select Category --</option>'; // Start with placeholder
+        // Preserve placeholder and "Other..." option
+        const placeholder = categorySelect.options[0]; // Get the loading/placeholder
+        categorySelect.innerHTML = ''; // Clear only loading/previous data
+        if (placeholder && placeholder.value === "") { // Make sure it's the placeholder
+             placeholder.textContent = '-- Select Category --'; // Set correct placeholder text
+             placeholder.disabled = true; // Keep it disabled
+             categorySelect.appendChild(placeholder); // Add placeholder back first
+        } else {
+            // Fallback if placeholder wasn't found correctly
+            const fallbackPlaceholder = document.createElement('option');
+            fallbackPlaceholder.value = ""; fallbackPlaceholder.textContent = "-- Select Category --";
+            fallbackPlaceholder.disabled = true; fallbackPlaceholder.selected = true;
+            categorySelect.appendChild(fallbackPlaceholder);
+        }
+
 
         if (categoryData) {
             categoryData.forEach(cat => {
                 if (cat.category_name) {
-                    const name = cat.category_name;
-                    // Escape necessary characters for HTML attribute and text content
-                    const escapedValue = name.replace(/"/g, '"').replace(/'/g, ''');
-                    const escapedText = name.replace(/</g, '<').replace(/>/g, '>');
-                    optionsHTML += `<option value="${escapedValue}">${escapedText}</option>`;
+                    const option = document.createElement('option');
+                    option.value = cat.category_name;
+                    option.textContent = cat.category_name;
+                    // Insert before the "Other..." option if it exists
+                    if (otherOption && categorySelect.contains(otherOption)) { // Check if otherOption is still attached
+                        categorySelect.insertBefore(option, otherOption);
+                    } else {
+                        categorySelect.appendChild(option); // Append if Other isn't there
+                    }
                 }
             });
         }
-
-        // *** Replace innerHTML completely ONCE ***
-        categorySelect.innerHTML = optionsHTML + otherOptionHTML; // Placeholder + Categories + Other
-        // No need to manually set selectedIndex if placeholder has 'selected' attribute initially
-        console.log("[DEBUG] Category dropdown populated using innerHTML.");
+        // Ensure "Other..." is last if it was preserved or add fallback
+        if (otherOption && !categorySelect.contains(otherOption)) {
+             categorySelect.appendChild(otherOption); // Add if it wasn't re-added
+        } else if (!otherOption) {
+            // Add fallback if it never existed
+            const fallbackOther = document.createElement('option'); fallbackOther.value = "_OTHER_"; fallbackOther.textContent = "Other..."; categorySelect.appendChild(fallbackOther);
+        }
+        console.log("[DEBUG] Category dropdown populated by appending.");
 
     } catch (error) {
         console.error("Error during populateCategoryDropdown execution:", error);
-        // Set error state but still include Other... option
-        categorySelect.innerHTML = '<option value="">Error loading</option>' + otherOptionHTML;
+        categorySelect.innerHTML = '<option value="">Error loading</option>';
+        // Try to add Other even on error
+        const finalOtherOption = categorySelect.querySelector('option[value="_OTHER_"]') || otherOption || (() => {const fb = document.createElement('option'); fb.value="_OTHER_"; fb.textContent="Other..."; return fb;})() ;
+        if(finalOtherOption) categorySelect.appendChild(finalOtherOption);
     }
-} // End populateCategoryDropdown
+}
 
 
 // Populate Listings Dropdown (Keep working version)
-async function populateListingsDropdown() { /* ... unchanged ... */ }
+async function populateListingsDropdown() {
+    console.log("[DEBUG] Inside populateListingsDropdown function.");
+    if (!targetListingSelect || !currentTableName || !communityIdFromUrl || !supabaseClient) { /* ... */ return; }
+    targetListingSelect.innerHTML = '<option value="" disabled selected>Loading listings...</option>';
+    console.log(`[DEBUG] Querying '${currentTableName}' table for listings...`);
+    try {
+        const { data: listingData, error } = await supabaseClient.from(currentTableName).select('name').eq('community_id', communityIdFromUrl).order('name', { ascending: true });
+        if (error) { throw error; }
+        console.log(`[DEBUG] Fetched ${listingData?.length || 0} listings for dropdown.`);
+
+        // Use append method
+        targetListingSelect.innerHTML = ''; // Clear loading
+        const placeholder = document.createElement('option');
+        placeholder.value = ""; placeholder.textContent = '-- Select Listing --';
+        targetListingSelect.appendChild(placeholder); // Add placeholder first
+
+        if (listingData && listingData.length > 0) {
+            listingData.forEach(listing => {
+                 if (listing.name) {
+                     const option = document.createElement('option');
+                     option.value = listing.name; option.textContent = listing.name;
+                     targetListingSelect.appendChild(option);
+                 }
+             });
+             console.log("[DEBUG] Listings dropdown populated by appending.");
+        } else {
+            placeholder.textContent = '-- No Listings Found --';
+        }
+    } catch (error) { console.error("Error populating listings dropdown:", error); targetListingSelect.innerHTML = '<option value="">Error loading listings</option>'; }
+}
+
 
 // Handle Category Dropdown Change (Unchanged)
-function handleCategoryChange() { /* ... */ }
+function handleCategoryChange() {
+    if (!categorySelect || !otherCategoryGroup || !otherCategoryInput) return;
+    if (categorySelect.value === '_OTHER_') { otherCategoryGroup.style.display = 'block'; otherCategoryInput.required = true; otherCategoryInput.focus(); }
+    else { otherCategoryGroup.style.display = 'none'; otherCategoryInput.required = false; otherCategoryInput.value = ''; }
+}
 
 // Function to Show/Hide Conditional Fields & Set Required (Unchanged)
-function handleRadioChange() { /* ... */ }
+function handleRadioChange() {
+    const selectedType = document.querySelector('input[name="change_type"]:checked')?.value;
+    if (!targetListingGroup || !targetListingSelect || !nameInput) { console.warn("Missing elements for handleRadioChange."); return; }
+    if (selectedType === 'CHANGE' || selectedType === 'DELETE') { targetListingGroup.style.display = 'block'; targetListingSelect.required = true; }
+    else { targetListingGroup.style.display = 'none'; targetListingSelect.required = false; targetListingSelect.value = ''; }
+    const isAddOrChange = selectedType === 'ADD' || selectedType === 'CHANGE';
+    nameInput.required = isAddOrChange;
+}
 
 // --- End: suggest_change.js ---
