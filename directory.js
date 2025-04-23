@@ -1,5 +1,3 @@
---- START OF FILE directory.js ---
-
 // --- START OF directory.js (Generic "Sponsored" Label - CAREFUL EDIT v2) ---
 
 // Assumes supabaseClient is globally available from common.js
@@ -233,5 +231,3 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeSearch();
     initializePopupInteraction();
 });
-
-// --- END OF directory.js ---
