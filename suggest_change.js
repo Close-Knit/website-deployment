@@ -1,5 +1,3 @@
---- START OF FILE suggest_change.js ---
-
 // --- suggest_change.js (Reverted to Debug Logging Version - Known Good Structure) ---
 
 // Uses global supabaseClient from common.js
@@ -377,5 +375,3 @@ function handleRadioChange() {
     if (phoneInput) { phoneInput.required = (selectedType === 'ADD'); }
     // Adjust requirements for other fields as needed
 }
-
---- END OF FILE suggest_change.js ---
