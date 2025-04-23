@@ -108,7 +108,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 /* START: Website Link Style */
 .website-link {
     display: inline-block;
-    margin-right: 8px; /* Space before the promote button */
+    margin-left: 8px; /* Space after the promote button */
     font-size: 1.1em;  /* Make icon slightly larger */
     color: #0d6efd;
     vertical-align: middle;
@@ -128,12 +128,13 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 .phone-container { text-align: right; flex-shrink: 0; }
 /* START: Promote Button Container Style Update */
 .promote-button-container {
-    margin-top: 8px;
+    /* margin-top: 8px; Removed fixed margin */
     text-align: left;
-    display: flex;        /* Added */
-    align-items: center;  /* Added */
-    flex-wrap: wrap;      /* Allow wrap if needed */
-    gap: 5px;             /* Add gap between items */
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px; /* Keeps small gap between button and icon */
+    margin-top: 5px; /* Added smaller margin */
 }
 /* END: Promote Button Container Style Update */
 .promote-button { /* Inherits .button-style */ }

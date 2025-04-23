@@ -1,4 +1,4 @@
-// --- START OF directory.js (Generic "Sponsored" Label - CAREFUL EDIT v2) ---
+// --- START OF directory.js (Reverting File Markers Fix from Previous Step) ---
 
 // Assumes supabaseClient is globally available from common.js
 
@@ -162,7 +162,6 @@ async function fetchAndDisplayListings() {
                      }
                      // Basic check to avoid javascript: links or other oddities
                      if (formattedUrl.startsWith('http://') || formattedUrl.startsWith('https://')) {
-                         // Note: The space is now added within the promoteButtonHtml template below
                          websiteLinkHtml = `<a href="${formattedUrl}" target="_blank" title="${rawUrl}" class="website-link" rel="noopener noreferrer nofollow"><i class="fa-solid fa-globe"></i></a>`;
                      } else {
                           console.warn(`Skipping invalid URL format for listing ${listing.id}: ${rawUrl}`);
@@ -181,10 +180,10 @@ async function fetchAndDisplayListings() {
                  // Only show promote button OR website link if NOT actively promoted
                  if (listingId && !isActivePromotion) {
                      const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(listing.address || '')}&phone=${encodeURIComponent(listing.phone_number || '')}`;
-                     // Add website link *before* the promote button, with a space if both exist
-                     const websiteLinkSpacing = websiteLinkHtml ? ' ' : '';
+                     // Add website link *after* the promote button, with a space if both exist
+                     const websiteLinkSpacing = websiteLinkHtml ? ' ' : ''; // Space before website link
                      promoteButtonHtml = `<div class="promote-button-container">
-                                               ${websiteLinkHtml}${websiteLinkSpacing}<a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}"><i class="fa-solid fa-rocket"></i> Promote</a>
+                                              <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}"><i class="fa-solid fa-rocket"></i> Promote</a>${websiteLinkSpacing}${websiteLinkHtml}
                                           </div>`;
                  } else if (websiteLinkHtml) {
                      // If listing IS promoted, but still has a website, show only the website link
@@ -198,7 +197,7 @@ async function fetchAndDisplayListings() {
                           <span class="name">${listing.name || 'N/A'}${sponsoredLabelHtml}</span> <!-- Website link removed from here -->
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${promoteButtonHtml} <!-- Container potentially holds website link + promote btn -->
+                          ${promoteButtonHtml} <!-- Container potentially holds promote btn + website link -->
                      </div>
                      <div class="phone-container">
                           ${phoneHtml}
