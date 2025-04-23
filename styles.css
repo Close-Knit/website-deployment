@@ -105,10 +105,37 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 .name { font-weight: bold; font-size: 1.1em; display: block; color: #212529; margin-bottom: 4px; }
 .name span { display: inline; }
 .name .sponsored-label { display: inline-block; }
+/* START: Website Link Style */
+.website-link {
+    display: inline-block;
+    margin-right: 8px; /* Space before the promote button */
+    font-size: 1.1em;  /* Make icon slightly larger */
+    color: #0d6efd;
+    vertical-align: middle;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.website-link:hover {
+    color: #0a58ca;
+    text-decoration: none;
+}
+.website-link i {
+    vertical-align: middle;
+}
+/* END: Website Link Style */
 .address { display: block; font-size: 0.9em; color: #555; margin-top: 4px; }
 .notes { display: block; font-size: 0.9em; color: #6c757d; margin-top: 4px; margin-bottom: 4px; }
 .phone-container { text-align: right; flex-shrink: 0; }
-.promote-button-container { margin-top: 8px; text-align: left; }
+/* START: Promote Button Container Style Update */
+.promote-button-container {
+    margin-top: 8px;
+    text-align: left;
+    display: flex;        /* Added */
+    align-items: center;  /* Added */
+    flex-wrap: wrap;      /* Allow wrap if needed */
+    gap: 5px;             /* Add gap between items */
+}
+/* END: Promote Button Container Style Update */
 .promote-button { /* Inherits .button-style */ }
 .notice { font-size: 0.85em; color: #6c757d; margin-top: 40px; text-align: center; padding: 0 15px; line-height: 1.4; }
 
@@ -209,7 +236,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 @media print {
     html { scroll-behavior: auto; }
     body { padding: 10px; font-size: 10pt; color: #000; }
-    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton, .promote-button-container, .sponsored-label { display: none !important; }
+    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton, .promote-button-container, .sponsored-label, .website-link /* Hide website link in print */ { display: none !important; }
     #results li.promoted-gold,
     #results li.promoted-silver,
     #results li.promoted-bronze { background-color: transparent !important; border: none !important; padding: 12px 10px !important; box-shadow: none !important; border-bottom: 1px solid #ccc !important; }
@@ -240,11 +267,15 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     #results li.promoted-bronze { border-left-width: 0; border-width: 2px; padding: 10px 8px; box-shadow: 1px 1px 2px rgba(0,0,0,0.08); }
     .entry-details { margin-right: 0; margin-bottom: 8px; order: 1; text-align: left; }
     .address { font-size: 0.85em; }
-    .name { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: nowrap; line-height: normal; }
-    .name span { display: inline; margin-right: 5px; }
-    .name .sponsored-label { flex-shrink: 0; margin-left: auto; white-space: nowrap; }
+    .name { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; /* Allow wrap for long names/links */ line-height: normal; }
+    .name span { display: inline; margin-right: 5px; } /* Ensure name part stays inline */
+    .name .sponsored-label { flex-shrink: 0; margin-left: auto; white-space: nowrap; /* Keep label itself nowrap */ }
+    /* .name .website-link { margin-left: 8px; } Removed from here */
     .phone-container { text-align: right; width: 100%; margin-top: 0; order: 2; white-space: normal; }
     .promote-button-container { margin-top: 8px; text-align: left; order: 3; }
+    /* Ensure alignment on mobile */
+    .website-link { font-size: 1em; } /* Adjust icon size if needed on mobile */
+    .promote-button { /* Ensure button size is consistent */ }
     .sponsored-label { font-size: 0.7em; padding: 2px 5px; }
     .action-buttons { gap: 10px; }
      #suggestion-form { padding: 20px 15px; }

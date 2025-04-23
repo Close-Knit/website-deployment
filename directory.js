@@ -1,3 +1,5 @@
+--- START OF FILE directory.js ---
+
 // --- START OF directory.js (Generic "Sponsored" Label - CAREFUL EDIT v2) ---
 
 // Assumes supabaseClient is globally available from common.js
@@ -76,18 +78,20 @@ async function fetchAndDisplayListings() {
         const suggestChangeLink = document.getElementById('suggestChangeLink');
         if (suggestChangeLink) { suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`; }
 
-        // --- Fetch Listings ---
+        // --- Fetch Listings (Assuming 'website_url' column exists) ---
         console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
         const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
-            .select('*')
+            .select('*') // '*' will include the new website_url column
             .eq('community_id', communityId)
             .order('category', { ascending: true, nullsFirst: false })
             .order('name', { ascending: true });
 
         if (listingsError) {
              if (listingsError.code === '42P01') { throw new Error(`DB table "${tableName}" not found for province "${decodedProvinceName}".`); }
-             if (listingsError.code === '42703') { throw new Error(`Column 'community_id' missing or misspelled in table "${tableName}". Check Supabase schema.`); }
+             if (listingsError.code === '42703') { // Check for missing website_url column too? Maybe too complex.
+                throw new Error(`Column 'community_id' missing or misspelled in table "${tableName}". Check Supabase schema.`);
+             }
              throw new Error(`Failed to fetch listings: ${listingsError.message}`);
         }
 
@@ -130,25 +134,43 @@ async function fetchAndDisplayListings() {
                  const listItem = document.createElement('li');
                  listItem.className = 'directory-entry';
 
-                 // Apply Tier Styling & *** Generic Label ***
-                 const isActivePromotion = listing.is_promoted === true && listing.promotion_expires_at && new Date(listing.promotion_expires_at) > now;
+                 // Check promotion status
+                 const isPromoted = listing.is_promoted === true;
+                 const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
+                 const isActivePromotion = isPromoted && expiresAt instanceof Date && !isNaN(expiresAt) && expiresAt > now;
                  const duration = listing.promotion_duration_months;
+
+                 // Apply Tier Styling & Sponsored Label
                  let tierClass = '';
                  let sponsoredLabelHtml = '';
-                 let labelTierClass = ''; // Class for the label span styling
+                 let labelTierClass = '';
 
                  if (isActivePromotion) {
-                     // Determine tier class for the LI background/border
                      if (duration === 12) { tierClass = 'promoted-gold'; labelTierClass = 'gold'; }
                      else if (duration === 6) { tierClass = 'promoted-silver'; labelTierClass = 'silver'; }
-                     else { tierClass = 'promoted-bronze'; labelTierClass = 'bronze'; } // Default to bronze class
+                     else { tierClass = 'promoted-bronze'; labelTierClass = 'bronze'; }
                      listItem.classList.add(tierClass);
-
-                     // *** Generate Generic "Sponsored" Label BUT with tier class for styling ***
                      sponsoredLabelHtml = `<span class="sponsored-label ${labelTierClass}">Sponsored</span>`;
                  }
-                 // --- End Tier Styling/Label ---
 
+                 // --- START: Website Link Logic ---
+                 let websiteLinkHtml = ''; // Initialize as empty
+                 if (listing.website_url && listing.website_url.trim() !== '') {
+                     let rawUrl = listing.website_url.trim();
+                     let formattedUrl = rawUrl;
+                     // Ensure URL has a protocol (http or https)
+                     if (!/^https?:\/\//i.test(rawUrl)) {
+                         formattedUrl = `https://${rawUrl}`;
+                     }
+                     // Basic check to avoid javascript: links or other oddities
+                     if (formattedUrl.startsWith('http://') || formattedUrl.startsWith('https://')) {
+                         // Note: The space is now added within the promoteButtonHtml template below
+                         websiteLinkHtml = `<a href="${formattedUrl}" target="_blank" title="${rawUrl}" class="website-link" rel="noopener noreferrer nofollow"><i class="fa-solid fa-globe"></i></a>`;
+                     } else {
+                          console.warn(`Skipping invalid URL format for listing ${listing.id}: ${rawUrl}`);
+                     }
+                 }
+                 // --- END: Website Link Logic ---
 
                  const listingId = listing.id;
                  // Phone Button HTML
@@ -156,20 +178,29 @@ async function fetchAndDisplayListings() {
                  let phoneHtml = '';
                  if (phoneNumber) { phoneHtml = `<button class="revealPhoneBtn" data-phone="${phoneNumber}" title="Show phone number for ${listing.name || 'this listing'}"><i class="fa-solid fa-phone"></i> Show Phone</button>`; }
 
-                 // Promote Button HTML
+                 // Promote Button HTML (Now potentially includes website link)
                  let promoteButtonHtml = '';
+                 // Only show promote button OR website link if NOT actively promoted
                  if (listingId && !isActivePromotion) {
                      const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(listing.address || '')}&phone=${encodeURIComponent(listing.phone_number || '')}`;
-                     promoteButtonHtml = `<div class="promote-button-container" style="margin-top: 8px;"><a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}"><i class="fa-solid fa-rocket"></i> Promote</a></div>`;
+                     // Add website link *before* the promote button, with a space if both exist
+                     const websiteLinkSpacing = websiteLinkHtml ? ' ' : '';
+                     promoteButtonHtml = `<div class="promote-button-container">
+                                               ${websiteLinkHtml}${websiteLinkSpacing}<a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}"><i class="fa-solid fa-rocket"></i> Promote</a>
+                                          </div>`;
+                 } else if (websiteLinkHtml) {
+                     // If listing IS promoted, but still has a website, show only the website link
+                     promoteButtonHtml = `<div class="promote-button-container">${websiteLinkHtml}</div>`;
                  }
 
-                 // Construct final HTML (Cleaned)
+
+                 // Construct final HTML
                  listItem.innerHTML = `
                      <div class="entry-details">
-                          <span class="name">${listing.name || 'N/A'} ${sponsoredLabelHtml}</span>
+                          <span class="name">${listing.name || 'N/A'}${sponsoredLabelHtml}</span> <!-- Website link removed from here -->
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${promoteButtonHtml}
+                          ${promoteButtonHtml} <!-- Container potentially holds website link + promote btn -->
                      </div>
                      <div class="phone-container">
                           ${phoneHtml}
