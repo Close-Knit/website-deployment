@@ -85,6 +85,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script> <!-- <<< ADDED QR Code Library -->
     <script src="directory.js" defer></script>
     <script src="common.js" defer></script>
 
@@ -120,6 +121,49 @@
     <button id="backToTopBtn" title="Go to top">
         <i class="fa-solid fa-arrow-up"></i>
     </button>
+
+    <!-- Start: Virtual Card Popup -->
+    <div id="virtualCardPopup" class="popup hidden">
+        <div class="popup-content vcard-content"> <!-- Added vcard-content class -->
+            <span id="closeVCardPopup" class="close-button" title="Close">×</span>
+
+            <div class="vcard-header">
+                 <img id="vcard-logo" src="images/Bizly_Logo_150px.webp" alt="Business Logo" class="vcard-logo"> <!-- Default logo -->
+                 <h3 id="vcard-name" class="vcard-name">Business Name</h3>
+            </div>
+
+            <div class="vcard-details">
+                 <p id="vcard-contact-person" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-user fa-fw"></i> <span></span></p>
+                 <p id="vcard-phone" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-phone fa-fw"></i> <a href="#"><span></span></a></p>
+                 <p id="vcard-email" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-envelope fa-fw"></i> <a href="#"><span></span></a></p>
+                 <p id="vcard-website" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-globe fa-fw"></i> <a href="#" target="_blank" rel="noopener noreferrer"><span></span></a></p>
+                 <p id="vcard-address" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-location-dot fa-fw"></i> <span></span></p>
+                 <p id="vcard-notes" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-clipboard fa-fw"></i> <span></span></p> <!-- Added Notes Field -->
+            </div>
+
+            <div class="vcard-actions">
+                <a id="vcard-download-link" href="#" download="contact.vcf" class="button-style vcard-button" title="Save contact to phone">
+                    <i class="fa-solid fa-address-card"></i> Save Contact
+                </a>
+                 <button id="vcard-show-qr-button" class="button-style vcard-button" title="Show QR Code">
+                     <i class="fa-solid fa-qrcode"></i> Show QR
+                 </button>
+                <a id="vcard-sms-link" href="#" class="button-style vcard-button" title="Share contact via SMS">
+                    <i class="fa-solid fa-comment-sms"></i> Share SMS
+                </a>
+                <button id="vcard-share-button" class="button-style vcard-button" title="More sharing options">
+                     <i class="fa-solid fa-share-nodes"></i> Share...
+                </button>
+            </div>
+
+            <div id="vcard-qrcode-container" class="vcard-qrcode-container" style="display: none;">
+                <p><small>Scan QR to save contact:</small></p>
+                <!-- QR Code Canvas/Image will be rendered here by JS -->
+            </div>
+
+        </div>
+    </div>
+    <!-- End: Virtual Card Popup -->
 
 </body>
 </html>

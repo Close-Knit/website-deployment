@@ -140,9 +140,14 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 5px; /* Keeps small gap between button and icon */
+    gap: 8px; /* Keep small gap between buttons/icons */
     margin-top: 5px; /* Added smaller margin */
 }
+/* Style for specific vCard button within the container */
+.promote-button-container .view-vcard-btn {
+    padding: 5px 8px; /* Slightly smaller padding maybe */
+}
+
 /* END: Promote Button Container Style Update */
 .promote-button { /* Inherits .button-style */ }
 .notice { font-size: 0.85em; color: #6c757d; margin-top: 40px; text-align: center; padding: 0 15px; line-height: 1.4; }
@@ -249,11 +254,166 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 #backToTopBtn:hover { background-color: rgba(80, 85, 90, 0.9); }
 
 
+/* ====================================================================== */
+/* Virtual Business Card Styles (Added) */
+/* ====================================================================== */
+
+/* Base popup styling is inherited */
+#virtualCardPopup .popup-content.vcard-content {
+    max-width: 420px; /* Card width */
+    padding: 25px 20px 20px 20px; /* Top, R/L, Bottom padding */
+    text-align: left;
+    /* === Paper Texture Background === */
+    background-color: #fdfbf5; /* Light cream fallback */
+    background-image: url('images/textures/paper_texture.png'); /* <<< ENSURE this path is correct */
+    background-repeat: repeat; /* Tile the texture */
+    /* =============================== */
+    border-radius: 8px;
+    border: 1px solid #d1c8b3; /* Soft border */
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.15);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Example font stack */
+    z-index: 1001; /* Ensure vCard is above phone popup if both open */
+}
+
+#virtualCardPopup .close-button {
+    top: 8px; /* Adjust close button position */
+    right: 8px;
+    color: #a09480; /* Muted color */
+    z-index: 1002; /* Ensure close is on top */
+}
+#virtualCardPopup .close-button:hover {
+    color: #7a6d5a;
+}
+
+
+.vcard-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0d8c8; /* Lighter separator */
+}
+
+.vcard-logo {
+    width: 65px; /* Logo size */
+    height: 65px;
+    object-fit: contain;
+    margin-right: 15px;
+    border-radius: 6px; /* Slightly rounded square */
+    border: 1px solid #ccc;
+    background-color: #fff;
+    flex-shrink: 0; /* Prevent logo from shrinking */
+}
+
+.vcard-name {
+    font-family: 'Georgia', Times, serif; /* Example different font for name */
+    font-size: 1.6em; /* Larger name */
+    font-weight: bold;
+    margin: 0;
+    color: #40382d; /* Darker text color */
+    line-height: 1.2;
+}
+
+.vcard-details {
+    margin-bottom: 20px;
+    color: #595145; /* Default text color for details */
+}
+
+.vcard-detail-item {
+    margin: 10px 0; /* Spacing between items */
+    font-size: 0.95em;
+    display: flex;
+    align-items: flex-start; /* Align icons top */
+    line-height: 1.5;
+}
+
+.vcard-detail-item i.fa-fw { /* Use FontAwesome fixed-width */
+    margin-right: 12px;
+    color: #007bff; /* Icon color */
+    width: 18px; /* Fixed width */
+    text-align: center;
+    margin-top: 3px; /* Align icon slightly lower */
+    flex-shrink: 0; /* Prevent icon shrinking */
+}
+
+.vcard-detail-item span,
+.vcard-detail-item a {
+    flex-grow: 1; /* Allow text to take remaining space */
+    word-break: break-word; /* Break long words/URLs */
+}
+
+.vcard-detail-item a {
+    color: #1a0dab;
+    text-decoration: none;
+}
+.vcard-detail-item a:hover {
+    text-decoration: underline;
+}
+
+/* Specific style for notes */
+#vcard-notes span {
+    font-style: italic;
+    color: #6f675d;
+    white-space: pre-wrap; /* Respect line breaks in notes */
+}
+
+
+.vcard-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0d8c8;
+}
+
+.vcard-button {
+    flex: 1 1 calc(50% - 10px); /* Two buttons per row on wider screens */
+    max-width: calc(50% - 10px);
+    padding: 9px 12px;
+    font-size: 0.9em;
+    text-align: center;
+    background-color: #f8f9fa; /* Lighter button background */
+    border: 1px solid #ced4da;
+    color: #333;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap; /* Prevent button text wrapping */
+}
+ .vcard-button:hover {
+     background-color: #e9ecef;
+     border-color: #adb5bd;
+     color: #000;
+ }
+
+.vcard-button i {
+     margin-right: 6px;
+}
+
+.vcard-qrcode-container {
+    text-align: center;
+    margin-top: 15px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+}
+.vcard-qrcode-container p { margin: 0 0 8px 0; font-weight: bold; color: #40382d; }
+.vcard-qrcode-container canvas, /* Target canvas generated by qrcode.js */
+.vcard-qrcode-container img { /* Or img if library generates that */
+    display: block;
+    margin: 0 auto;
+    background-color: white; /* Ensure QR code bg is white */
+    padding: 5px; /* Small padding around QR */
+    border: 1px solid #eee;
+}
+
+
 /* Print Styles (Adjusted for Tiers) */
 @media print {
     html { scroll-behavior: auto; }
     body { padding: 10px; font-size: 10pt; color: #000; }
-    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton, .promote-button-container, .sponsored-label, .website-link,
+    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton, .promote-button-container .promote-button, .promote-button-container .view-vcard-btn, .sponsored-label, .website-link, .revealPhoneBtn, #phonePopup, #virtualCardPopup /* Hide popups and triggers */,
     .contact-person /* Hide contact person in print */ { display: none !important; }
     #results li.promoted-gold,
     #results li.promoted-silver,
@@ -263,6 +423,17 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
      #results li.promoted-silver:last-child,
      #results li.promoted-bronze:last-child { border-bottom: none !important; }
     /* ... rest of print styles ... */
+    /* Ensure basic listing details print */
+     #results li.directory-entry { border-bottom: 1px solid #ccc !important; display: block !important; }
+     #results .entry-details { display: block !important; margin-bottom: 5pt; }
+     #results .name { font-size: 11pt; margin-bottom: 2pt; }
+     #results .address, #results .notes { font-size: 9pt; margin-top: 1pt; }
+     #results .phone-container { display: block !important; } /* Show phone container in print */
+     #results .phone-container::before { content: "Phone: "; font-weight: bold; }
+     #results .phone-container button { display: none !important; } /* Hide button */
+     /* Add phone number directly if possible (requires JS change or different structure) */
+     /* For now, it only shows "Phone: " */
+
 }
 
 /* Responsive Styles (Adjusted for Tiered Labels & Mobile Label Alignment) */
@@ -290,7 +461,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     .name .sponsored-label { flex-shrink: 0; margin-left: auto; white-space: nowrap; /* Keep label itself nowrap */ }
     /* .name .website-link { margin-left: 8px; } Removed from here */
     .phone-container { text-align: right; width: 100%; margin-top: 0; order: 2; white-space: normal; }
-    .promote-button-container { margin-top: 8px; text-align: left; order: 3; }
+    .promote-button-container { margin-top: 8px; text-align: left; order: 3; justify-content: flex-start; /* Align buttons left on mobile */}
     /* Ensure alignment on mobile */
     .website-link { font-size: 1em; } /* Adjust icon size if needed on mobile */
     .promote-button { /* Ensure button size is consistent */ }
@@ -324,4 +495,22 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
          font-size: 0.65em;
      }
     /* END: Beta Indicator Mobile Adjustment */
+
+    /* START: vCard Mobile Adjustment */
+    #virtualCardPopup .popup-content.vcard-content {
+        max-width: 92%;
+        padding: 20px 15px 15px 15px;
+    }
+    .vcard-name { font-size: 1.4em; }
+    .vcard-detail-item { font-size: 0.9em; }
+    .vcard-button {
+        flex-basis: 100%; /* Stack buttons */
+        max-width: 100%;
+    }
+    .vcard-qrcode-container canvas,
+    .vcard-qrcode-container img {
+        width: 120px !important; /* Adjust QR code size */
+        height: 120px !important;
+    }
+     /* END: vCard Mobile Adjustment */
 }
