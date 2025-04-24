@@ -265,7 +265,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     text-align: left;
     /* === Paper Texture Background === */
     background-color: #fdfbf5; /* Light cream fallback */
-    background-image: url('images/textures/paper_texture.png'); /* <<< ENSURE this path is correct */
+    background-image: url('images/textures/paper_texture.jpg'); /* <<< CORRECTED EXTENSION */
     background-repeat: repeat; /* Tile the texture */
     /* =============================== */
     border-radius: 8px;
