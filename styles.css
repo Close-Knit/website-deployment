@@ -166,8 +166,17 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 .form-group input[type="text"],
 .form-group input[type="tel"],
 .form-group input[type="email"],
+.form-group input[type="url"], /* <<< ADDED input[type="url"] here */
 .form-group textarea,
-.form-group select { width: 100%; padding: 10px 12px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-size: 1em; line-height: 1.5; }
+.form-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1em;
+    line-height: 1.5;
+}
 .form-group input[type="radio"] { margin-right: 8px; vertical-align: middle; }
 .form-group input[type="radio"] + label { display: inline-block; margin-bottom: 0; font-weight: normal; vertical-align: middle;}
 .form-group div { margin-bottom: 8px; }
@@ -290,6 +299,12 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     .action-buttons { gap: 10px; }
      #suggestion-form { padding: 20px 15px; }
      #suggestion-form button[type="submit"] { width: 100%; }
+     .form-group input[type="text"], /* Ensure mobile inputs take full width too */
+     .form-group input[type="tel"],
+     .form-group input[type="email"],
+     .form-group input[type="url"],
+     .form-group textarea,
+     .form-group select { width: 100%; }
     #province-name-heading { margin-bottom: 15px; }
     .community-list-grouped { max-width: 100%; margin: 15px 0; }
     .letter-heading { font-size: 1.2em; padding: 6px 10px; }
