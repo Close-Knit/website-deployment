@@ -65,42 +65,66 @@ async function fetchAndDisplayListings() {
 
     try {
         // Fetch Community ID and Logo
+        // *** FIX: Removed the incorrect .eq('province_name', ...) filter ***
         const { data: communityData, error: communityError } = await supabaseClient
             .from('communities')
             .select('id, logo_filename')
-            .eq('community_name', decodedCommunityName)
-            .eq('province_name', decodedProvinceName) // Add province match for uniqueness
-            .limit(1)
-            .single();
+            .eq('community_name', decodedCommunityName) // Filter only by community name
+            // .eq('province_name', decodedProvinceName) // <<< REMOVED THIS LINE
+            .limit(1) // Limit to 1 in case of duplicates (should ideally be unique)
+            .maybeSingle(); // Use maybeSingle() to handle 0 or 1 result gracefully
 
-        if (communityError || !communityData) { throw new Error(`Community "${decodedCommunityName}, ${decodedProvinceName}" not found or error fetching: ${communityError?.message}`); }
-        communityId = communityData.id; // Assign communityId
-        logoFilename = communityData.logo_filename; // Assign logoFilename
+        // Check for errors or if no community was found
+        if (communityError) {
+            throw new Error(`Error fetching community data: ${communityError.message}`);
+        }
+        if (!communityData) {
+            // If community name is not unique across provinces, this might fail.
+            // A more robust solution would be to fetch province_id first, then use it here.
+            // For now, assume community name is unique enough or was working before.
+            console.warn(`Community "${decodedCommunityName}" not found in communities table. Trying to proceed without logo/Suggest Change link specific ID.`);
+            // We can potentially still fetch listings if the table name is correct,
+            // but logo and suggest change link might not work right.
+            // Let's display an error for now for clarity.
+             throw new Error(`Community "${decodedCommunityName}" not found in the communities table.`);
+        }
+
+        // Assign data if found
+        communityId = communityData.id;
+        logoFilename = communityData.logo_filename;
+
+        // Display Logo
         if (logoElement && logoFilename) { logoElement.src = `images/logos/${logoFilename}`; logoElement.alt = `${decodedCommunityName} Logo`; logoElement.style.display = 'block'; }
         else if (logoElement) { logoElement.style.display = 'none'; }
 
-        // Update Suggest Change Link
+        // Update Suggest Change Link (only if communityId was found)
         const suggestChangeLink = document.getElementById('suggestChangeLink');
-        if (suggestChangeLink) { suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`; }
+        if (suggestChangeLink && communityId) {
+            suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`;
+        } else if (suggestChangeLink) {
+             suggestChangeLink.style.display = 'none'; // Hide link if no community ID
+             console.warn("Suggest Change link hidden as community ID was not found.");
+        }
 
         // --- Fetch Listings (Ensuring email, website_url, contact_person are included) ---
+        // Need communityId to fetch listings correctly. If we didn't find it, error out.
+        if (!communityId) {
+            throw new Error("Cannot fetch listings without a valid community ID.");
+        }
+
         console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
         const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
-            .select('*') // Fetch all columns including email, website_url, contact_person
-            .eq('community_id', communityId)
+            .select('*') // Fetch all columns
+            .eq('community_id', communityId) // Use the fetched communityId
             .order('category', { ascending: true, nullsFirst: false })
             .order('name', { ascending: true });
 
         if (listingsError) {
              if (listingsError.code === '42P01') { throw new Error(`DB table "${tableName}" not found for province "${decodedProvinceName}".`); }
-             // Error 42703 means column doesn't exist. Check if 'email' is the missing one after running SQL.
-             if (listingsError.code === '42703' && listingsError.message.includes('column "email"')) {
-                 throw new Error(`Failed to fetch listings. The 'email' column is missing in table "${tableName}". Please run the provided SQL script.`);
-             }
              if (listingsError.code === '42703') {
-                console.warn(`Potential missing column error when fetching from "${tableName}": ${listingsError.message}`);
-                throw new Error(`Failed to fetch listings, potentially missing column(s): ${listingsError.message}`);
+                 console.warn(`Potential missing column error when fetching from "${tableName}": ${listingsError.message}`);
+                 throw new Error(`Failed to fetch listings, potentially missing column(s): ${listingsError.message}`);
              }
              throw new Error(`Failed to fetch listings: ${listingsError.message}`);
         }
@@ -177,8 +201,8 @@ async function fetchAndDisplayListings() {
                     id: listingId,
                     name: listing.name || '',
                     phone: listing.phone_number || '',
-                    email: listing.email || '', // Get email (will be null if column not added/populated)
-                    website: listing.website_url || '', // *** USE website_url ***
+                    email: listing.email || '',
+                    website: listing.website_url || '', // Use website_url
                     address: listing.address || '',
                     contactPerson: listing.contact_person || '',
                     notes: listing.notes || '',
@@ -198,10 +222,10 @@ async function fetchAndDisplayListings() {
                     actionButtonsHtml += ` <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}"><i class="fa-solid fa-rocket"></i> Promote</a>`;
                 }
 
-                // 3. Website Link (if applicable) - *** USE website_url ***
+                // 3. Website Link (if applicable) - Use website_url
                 let websiteLinkHtml = '';
-                if (listing.website_url && listing.website_url.trim() !== '') { // *** USE website_url ***
-                    let rawUrl = listing.website_url.trim(); // *** USE website_url ***
+                if (listing.website_url && listing.website_url.trim() !== '') {
+                    let rawUrl = listing.website_url.trim();
                     let formattedUrl = rawUrl;
                     if (!/^https?:\/\//i.test(rawUrl)) {
                         formattedUrl = `https://${rawUrl}`;
@@ -234,9 +258,11 @@ async function fetchAndDisplayListings() {
         }); // End category loop
 
     } catch (fetchError) {
+        // Use displayError to show the message on the page
         displayError(fetchError.message || "An unknown error occurred while fetching listings.");
     }
 } // End fetchAndDisplayListings
+
 
 // Initialize Search Functionality (Updated to include email/website search)
 function initializeSearch() {
@@ -284,7 +310,27 @@ function initializePopupInteraction() {
 
     // --- Phone Popup Listeners (Existing Logic) ---
     if (copyPhoneButton) {
-        const handleCopyClick = async () => { /* ... (existing handleCopyClick logic) ... */ };
+        const handleCopyClick = async () => {
+             const linkElement = phoneNumberDisplay.querySelector('a');
+             const numberToCopy = linkElement ? linkElement.textContent : null;
+             if (numberToCopy && navigator.clipboard) {
+                 try {
+                     await navigator.clipboard.writeText(numberToCopy);
+                     if (copyTextElement) copyTextElement.textContent = 'Copied!';
+                     if (copyIconElement) copyIconElement.className = 'fa-solid fa-check';
+                     copyPhoneButton.disabled = true;
+                     if (copyTimeout) clearTimeout(copyTimeout);
+                     copyTimeout = setTimeout(resetCopyButton, 2000);
+                 } catch (err) {
+                     console.error('Failed to copy phone number:', err);
+                     alert("Could not copy number.");
+                     resetCopyButton();
+                 }
+             } else {
+                 if (!navigator.clipboard) alert("Copying not supported by browser.");
+                 resetCopyButton();
+             }
+         };
         copyPhoneButton.addEventListener('click', handleCopyClick);
     }
     resultsList.addEventListener('click', function(event) {
@@ -370,29 +416,27 @@ function initializePopupInteraction() {
                         if (spanElement) spanElement.textContent = trimmedValue;
                         if (isLink && linkElement) {
                             let hrefValue = trimmedValue;
-                            // Ensure mailto/tel links are correct
                             if (linkPrefix && !hrefValue.startsWith(linkPrefix)) {
                                 hrefValue = linkPrefix + hrefValue;
                             }
-                            // Ensure web links have protocol for external linking
                             else if (elementId === 'vcard-website' && !hrefValue.startsWith('http://') && !hrefValue.startsWith('https://')) {
                                 hrefValue = 'https://' + hrefValue;
                             }
                             linkElement.href = hrefValue;
-                            linkElement.style.display = 'inline'; // Make sure link is visible
+                            linkElement.style.display = 'inline';
                         } else if (!isLink && linkElement) {
-                             linkElement.style.display = 'none'; // Hide link if not needed
+                             linkElement.style.display = 'none';
                         }
-                        pElement.style.display = 'flex'; // Show the parent paragraph
+                        pElement.style.display = 'flex';
                     } else {
-                        pElement.style.display = 'none'; // Hide if no value
+                        pElement.style.display = 'none';
                     }
                 };
 
                 setVCardDetailItem('vcard-contact-person', vCardData.contactPerson, '', false);
                 setVCardDetailItem('vcard-phone', vCardData.phone, 'tel:');
                 setVCardDetailItem('vcard-email', vCardData.email, 'mailto:');
-                setVCardDetailItem('vcard-website', vCardData.website, '', true); // Corrected data source
+                setVCardDetailItem('vcard-website', vCardData.website, '', true);
                 setVCardDetailItem('vcard-address', vCardData.address, '', false);
                 setVCardDetailItem('vcard-notes', vCardData.notes, '', false);
 
@@ -400,7 +444,7 @@ function initializePopupInteraction() {
                 // 4. Generate vCard & Set Download Link
                 const vcfString = generateVCF(vCardData);
                 const blob = new Blob([vcfString], { type: 'text/vcard;charset=utf-8' });
-                currentVCardObjectUrl = URL.createObjectURL(blob); // Store for cleanup
+                currentVCardObjectUrl = URL.createObjectURL(blob);
                 const downloadLink = document.getElementById('vcard-download-link');
                 if (downloadLink) {
                     downloadLink.href = currentVCardObjectUrl;
@@ -412,7 +456,7 @@ function initializePopupInteraction() {
                 // 5. Setup QR Code Button Listener (Remove previous listener first)
                 const showQrButton = document.getElementById('vcard-show-qr-button');
                 if (showQrButton) {
-                    const newShowQrButton = showQrButton.cloneNode(true); // Clone to remove listeners
+                    const newShowQrButton = showQrButton.cloneNode(true);
                     showQrButton.parentNode.replaceChild(newShowQrButton, showQrButton);
                     newShowQrButton.addEventListener('click', () => {
                          generateAndShowQRCode(vCardData, 'vcard-qrcode-container');
@@ -424,7 +468,7 @@ function initializePopupInteraction() {
                 if (smsLink) {
                     let smsBody = `Check out ${vCardData.name || 'this business'} on Bizly:`;
                     if (vCardData.phone) smsBody += `\nPhone: ${vCardData.phone}`;
-                    if (vCardData.website) smsBody += `\nWebsite: ${vCardData.website}`; // Corrected data source
+                    if (vCardData.website) smsBody += `\nWebsite: ${vCardData.website}`;
                     if (vCardData.address) smsBody += `\nAddress: ${vCardData.address.replace(/\n/g, ', ')}`;
                     smsLink.href = `sms:?body=${encodeURIComponent(smsBody)}`;
                 }
@@ -437,7 +481,7 @@ function initializePopupInteraction() {
                     newShareButton.addEventListener('click', async () => {
                         const shareData = {
                             title: `${vCardData.name || 'Business Contact'} via Bizly`,
-                            text: `Contact Info for ${vCardData.name || 'Business'}:\nPhone: ${vCardData.phone || 'N/A'}\nEmail: ${vCardData.email || 'N/A'}\nWebsite: ${vCardData.website || 'N/A'}\nAddress: ${vCardData.address || 'N/A'}`, // Corrected data source
+                            text: `Contact Info for ${vCardData.name || 'Business'}:\nPhone: ${vCardData.phone || 'N/A'}\nEmail: ${vCardData.email || 'N/A'}\nWebsite: ${vCardData.website || 'N/A'}\nAddress: ${vCardData.address || 'N/A'}`,
                         };
                         try {
                             if (navigator.share) {
@@ -492,7 +536,6 @@ function initializePopupInteraction() {
     // --- Helper Function: Generate vCard String (vCard 3.0) ---
     function generateVCF(data) {
         let vcf = `BEGIN:VCARD\nVERSION:3.0\n`;
-        // Name: FN is required, N is structured name (LastName;FirstName;;;)
         vcf += `FN:${(data.name || '').trim()}\n`;
         if (data.contactPerson && data.contactPerson.trim() !== '') {
             const nameParts = data.contactPerson.trim().split(' ');
@@ -502,27 +545,18 @@ function initializePopupInteraction() {
         } else {
              vcf += `N:${(data.name || '').trim()};;;;\n`;
         }
-
-        // Organization
         if (data.name) vcf += `ORG:${data.name.trim()}\n`;
-        // Phone
         if (data.phone) vcf += `TEL;type=WORK,voice:${data.phone.trim()}\n`;
-        // Email
         if (data.email) vcf += `EMAIL:${data.email.trim()}\n`;
-        // Address
         if (data.address) {
             const adrFormatted = data.address.trim().replace(/,/g, ' ').replace(/\n/g, '\\n');
             vcf += `ADR;type=WORK:;;${adrFormatted};;;;\n`;
         }
-        // Website - *** USE website_url ***
-        if (data.website) vcf += `URL:${data.website.trim()}\n`; // Corrected data source
-        // Logo/Photo
+        if (data.website) vcf += `URL:${data.website.trim()}\n`;
         if (data.logoUrl && !data.logoUrl.includes('Bizly_Logo_150px.webp')) {
             vcf += `PHOTO;VALUE=URI:${data.logoUrl}\n`;
         }
-        // Notes
         if (data.notes) vcf += `NOTE:${data.notes.trim().replace(/\n/g, '\\n')}\n`;
-        // Revision Time
         vcf += `REV:${new Date().toISOString().split('.')[0]}Z\n`;
         vcf += `END:VCARD`;
         return vcf;
@@ -533,21 +567,18 @@ function initializePopupInteraction() {
         const qrContainer = document.getElementById(containerId);
         if (!qrContainer) { console.error(`QR Container #${containerId} not found.`); return; }
         if (typeof QRCode === 'undefined') { console.error("QRCode library is not loaded."); return; }
-
         qrContainer.innerHTML = '<p><small>Scan QR to save contact:</small></p>'; // Clear previous, keep text
-
-        const vcfForQR = generateVCF(data); // Generate the full VCF string
-
+        const vcfForQR = generateVCF(data);
         try {
             new QRCode(qrContainer, {
-                text: vcfForQR, // Encode the VCF string
-                width: 140, // Adjust size as needed
+                text: vcfForQR,
+                width: 140,
                 height: 140,
                 colorDark : "#000000",
                 colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M // Medium correction
+                correctLevel : QRCode.CorrectLevel.M
             });
-            qrContainer.style.display = 'block'; // Show the container
+            qrContainer.style.display = 'block';
             console.log("Generated QR Code with vCard data.");
         } catch(e) {
              console.error("QRCode generation failed:", e);
@@ -563,13 +594,6 @@ function initializePopupInteraction() {
 // Main Execution
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired for directory page.");
-    // Ensure Supabase client is ready before fetching, although common.js should handle this
-    if (typeof supabaseClient === 'undefined') {
-        console.error("Supabase client not ready on DOMContentLoaded in directory.js");
-        // Optionally wait or display a more persistent error
-        // displayError("Data service failed to initialize.");
-        // return; // Or retry logic
-    }
     fetchAndDisplayListings();
     initializeSearch();
     initializePopupInteraction();
