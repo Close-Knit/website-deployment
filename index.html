@@ -3,7 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Community Directory - Home</title>
+    <title>Bizly.ca - Canada's small-town directory</title> <!-- You might want a more engaging title here too -->
+
+    <!-- ********** START: Open Graph Meta Tags for Link Previews ********** -->
+    <meta property="og:title" content="Bizly.ca - Your Local Community Directory" />
+    <meta property="og:description" content="Find local businesses, services, and resources easily. Select your community on Bizly.ca to get started!" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://bizly.ca/" /> <!-- Use your main domain URL -->
+    <meta property="og:image" content="https://bizly.ca/images/Bizly_Logo_150px.webp" /> <!-- Absolute URL to your logo -->
+    <meta property="og:image:width" content="150" /> <!-- Specify width (optional but good) -->
+    <!-- <meta property="og:image:height" content="XXX" /> --> <!-- Add height if known -->
+    <meta property="og:site_name" content="Bizly.ca" />
+    <!-- ********** END: Open Graph Meta Tags ********** -->
+
+    <!-- You might also want Twitter Card tags (optional but recommended) -->
+    <meta name="twitter:card" content="summary" /> <!-- Use "summary_large_image" if you have a larger preview image -->
+    <meta name="twitter:title" content="Bizly.ca - Your Local Community Directory" />
+    <meta name="twitter:description" content="Find local businesses, services, and resources easily. Select your community on Bizly.ca to get started!" />
+    <meta name="twitter:image" content="https://bizly.ca/images/Bizly_Logo_150px.webp" />
+    <!-- <meta name="twitter:site" content="@YourTwitterHandle"> --> <!-- Add if you have a Twitter handle -->
+    <!-- End Twitter Card tags -->
+
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QV1M0QM38B"></script>
@@ -28,6 +48,7 @@
 
   <!-- Start: Site Logo Link -->
   <a href="index.html" id="site-logo-link" title="Go to Home Page">
+    <!-- The src here is relative, which is fine for the page display -->
     <img src="images/Bizly_Logo_150px.webp" alt="Bizly Logo - Go to Home" id="site-logo">
   </a>
   <!-- End: Site Logo Link -->
@@ -51,11 +72,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Load Common JS SECOND (initializes supabaseClient) -->
-    <!-- Removed 'defer' to ensure it executes before home.js -->
     <script src="common.js"></script>
 
     <!-- Load Home page script THIRD (uses supabaseClient from common.js) -->
-    <!-- Can keep 'defer' here as it depends on common.js and DOM -->
     <script src="home.js" defer></script>
 
 </body>
