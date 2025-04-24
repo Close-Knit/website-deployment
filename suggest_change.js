@@ -3,7 +3,7 @@
 let form, messageDiv, submitButton, changeTypeRadios, targetListingGroup, contextHeader,
     communityIdInput, provinceNameInput, communityNameInput,
     targetListingSelect, nameInput, categorySelect, otherCategoryGroup, otherCategoryInput,
-    addressInput, emailInput, websiteInput, phoneInput; // <<< Added phoneInput variable
+    addressInput, emailInput, websiteInput, phoneInput; // Keep phoneInput variable declaration for submit handler
 
 // Function to initialize DOM elements and perform checks
 function initializeAndCheckDOMElements() {
@@ -25,7 +25,7 @@ function initializeAndCheckDOMElements() {
     addressInput = document.getElementById('suggested_address');
     emailInput = document.getElementById('suggested_email');
     websiteInput = document.getElementById('suggested_website');
-    phoneInput = document.getElementById('suggested_phone'); // <<< Get phone input element
+    phoneInput = document.getElementById('suggested_phone'); // Still get phone input for submit and formatting
 
     // Check critical elements needed before dropdown population
     if (!form || !messageDiv || !submitButton || !categorySelect || !targetListingSelect) {
@@ -39,7 +39,7 @@ function initializeAndCheckDOMElements() {
         console.error("Essential context hidden input elements missing!");
     }
     if (!websiteInput) { console.warn("Suggested website input element not found during init."); }
-    if (!phoneInput) { console.warn("Suggested phone input element not found during init."); } // <<< Check phone input
+    if (!phoneInput) { console.warn("Suggested phone input element not found during init."); }
 
     console.log("[DEBUG] All essential form elements successfully found and assigned.");
     return true; // Indicate success
@@ -100,7 +100,6 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
     }
 
     // 2. Check Supabase Client
-    // ... (unchanged Supabase check) ...
      if (typeof supabaseClient === 'undefined' || !supabaseClient) {
         console.error("Supabase client not initialized (from common.js). Suggest Change page cannot function.");
         showMessage('Error: Cannot connect to data service.', 'error');
@@ -112,7 +111,6 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
 
 
     // 3. Check URL Params
-    // ... (unchanged URL param check) ...
     if (!communityIdFromUrl || !provinceNameFromUrl || !communityNameFromUrl) {
         console.error("Missing URL parameters.");
         showMessage('Missing community info in URL.', 'error');
@@ -124,23 +122,21 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
 
 
     // 4. Setup UI - Context Header and hidden inputs
-    // ... (unchanged UI setup) ...
     try {
         const decodedComm = decodeURIComponent(communityNameFromUrl);
         const decodedProv = decodeURIComponent(provinceNameFromUrl);
-        if (contextHeader) { // Check if contextHeader was actually found
+        if (contextHeader) {
              console.log("[DEBUG] contextHeader element FOUND. Attempting to set text...");
              contextHeader.textContent = `Suggest Change For: ${decodedComm}, ${decodedProv}`;
              console.log(`[DEBUG] Context header set to: ${contextHeader.textContent}`);
         } else {
              console.error("[DEBUG] contextHeader element was NULL/not found earlier. Cannot set text.");
         }
-        // Populate hidden inputs from URL params
         if (communityIdInput) communityIdInput.value = communityIdFromUrl;
-        if (provinceNameInput) provinceNameInput.value = provinceNameFromUrl; // Keep for potential future use?
-        if (communityNameInput) communityNameInput.value = communityNameFromUrl; // Keep for potential future use?
+        if (provinceNameInput) provinceNameInput.value = provinceNameFromUrl;
+        if (communityNameInput) communityNameInput.value = communityNameFromUrl;
 
-        currentTableName = decodedProv.replace(/ /g, '_'); // Still needed for listings dropdown
+        currentTableName = decodedProv.replace(/ /g, '_');
         console.log("[DEBUG] Target Table Name (for listings):", currentTableName);
         console.log("[DEBUG] UI context setup complete.");
     } catch (e) {
@@ -150,7 +146,6 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
     }
 
     // 5. Populate Dropdowns
-    // ... (unchanged dropdown population) ...
     console.log("[DEBUG] Calling populateCategoryDropdown...");
     await populateCategoryDropdown(); // Wait for categories
     console.log("[DEBUG] Calling populateListingsDropdown...");
@@ -159,41 +154,38 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
 
 
     // 6. Setup Listeners
-    // ... (unchanged radio/category listeners) ...
-    changeTypeRadios = document.querySelectorAll('input[name="change_type"]'); // Re-select
+    changeTypeRadios = document.querySelectorAll('input[name="change_type"]');
     if (changeTypeRadios && changeTypeRadios.length > 0) {
-        console.log(`[DEBUG] Found ${changeTypeRadios.length} change type radios.`); // Log count
+        console.log(`[DEBUG] Found ${changeTypeRadios.length} change type radios.`);
         changeTypeRadios.forEach(radio => radio.addEventListener('change', handleRadioChange));
         handleRadioChange(); // Initial call
     } else {
-        console.warn("Change type radios not found after dropdowns."); // Changed to warn
+        console.warn("Change type radios not found after dropdowns.");
     }
     if (categorySelect) {
         categorySelect.addEventListener('change', handleCategoryChange);
     } else { console.warn("Category select dropdown not for listener setup."); }
     console.log("[DEBUG] Event listeners set up attempt complete.");
 
-    // --- START: Add Phone Formatting Listener ---
+    // Add Phone Formatting Listener
     if (phoneInput) {
         phoneInput.addEventListener('input', formatPhoneNumber);
         console.log("[DEBUG] Phone number formatting listener attached.");
     } else {
         console.warn("[DEBUG] Phone input not found, cannot attach formatting listener.");
     }
-    // --- END: Add Phone Formatting Listener ---
 
     // 7. Form Submission Handler
-    // ... (unchanged form submission logic using returning:minimal) ...
      if(form) {
          form.addEventListener('submit', async (event) => {
              event.preventDefault();
-             showMessage(''); // Clear previous messages
+             showMessage('');
              submitButton.disabled = true;
              submitButton.textContent = 'Submitting...';
              console.log("[DEBUG] Form submission started.");
 
              try {
-                 // --- Collect form data ---
+                 // Collect form data
                  const selectedType = document.querySelector('input[name="change_type"]:checked')?.value;
                  let finalCategory = categorySelect.value;
                  if (finalCategory === '_OTHER_') {
@@ -201,44 +193,33 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                      if (!finalCategory) { throw new Error("Please specify the 'Other' category."); }
                  }
 
-                // --- Prepare data object for Supabase ---
-                // Ensure communityIdInput exists and has a value from page load
+                // Prepare data object for Supabase
                 if (!communityIdInput || !communityIdInput.value) {
                      throw new Error("Community context is missing. Cannot submit.");
                 }
-                // Ensure websiteInput was found (it might not be critical, but good practice)
                 if (!websiteInput) {
                     console.warn("Website input element reference missing during submission prep.");
-                    // Decide if you want to throw an error or allow submission without it
-                    // throw new Error("Internal page error: Website field reference missing.");
                 }
 
                  const suggestionData = {
-                     // Context
-                     community_id: communityIdInput.value, // Send the ID
+                     community_id: communityIdInput.value,
                      change_type: selectedType,
-                     target_listing_info: targetListingSelect.required ? targetListingSelect.value || null : null, // Use null if empty
-
-                     // Details from form fields
+                     target_listing_info: targetListingSelect.required ? targetListingSelect.value || null : null,
                      suggested_name: nameInput.value.trim() || null,
-                     suggested_phone: phoneInput ? phoneInput.value.trim() || null : null, // Use phoneInput variable
+                     suggested_phone: phoneInput ? phoneInput.value.trim() || null : null,
                      suggested_address: addressInput.value.trim() || null,
                      suggested_email: emailInput.value.trim() || null,
                      suggested_website: websiteInput ? websiteInput.value.trim() || null : null,
                      suggested_category: finalCategory || null,
                      suggested_notes: document.getElementById('suggested_notes').value.trim() || null,
-
-                     // Comment
                      submitter_comment: document.getElementById('submitter_comment').value.trim() || null,
-
-                     // Status
                      status: 'PENDING'
                  };
 
                  console.log("[DEBUG] Data prepared for Supabase:", suggestionData);
 
 
-                 // --- Validate required fields based on change type ---
+                 // Validate required fields based on change type
                  if (selectedType === 'ADD' || selectedType === 'CHANGE') {
                      if (!suggestionData.suggested_name) throw new Error("Listing Name is required for Add/Change.");
                  }
@@ -250,11 +231,11 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                  }
 
 
-                 // --- Submit to Supabase ---
+                 // Submit to Supabase
                  console.log("[DEBUG] Sending data to 'suggested_changes' table...");
-                 const { error } = await supabaseClient // Removed 'data'
+                 const { error } = await supabaseClient
                      .from('suggested_changes')
-                     .insert([suggestionData], { returning: 'minimal' }); // Using returning minimal
+                     .insert([suggestionData], { returning: 'minimal' });
 
 
                  if (error) {
@@ -275,7 +256,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                  submitButton.disabled = false;
                  submitButton.textContent = 'Submit Suggestion';
              }
-         }); // End form submit listener
+         });
          console.log("[DEBUG] Form submit listener attached.");
     } else { console.error("Cannot attach submit listener, form not found earlier!");}
 
@@ -284,7 +265,6 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
 
 
 // Populate Category Dropdown (Querying categories table - Original working fetch logic)
-// ... (unchanged populateCategoryDropdown function) ...
 async function populateCategoryDropdown() {
     console.log("[DEBUG] Inside populateCategoryDropdown function.");
     if (!categorySelect || !supabaseClient) {
@@ -355,7 +335,6 @@ async function populateCategoryDropdown() {
 
 
 // Populate Listings Dropdown (Keep working version)
-// ... (unchanged populateListingsDropdown function) ...
 async function populateListingsDropdown() {
     console.log("[DEBUG] Inside populateListingsDropdown function.");
     if (!targetListingSelect || !currentTableName || !communityIdFromUrl || !supabaseClient) {
@@ -414,21 +393,29 @@ function handleCategoryChange() {
     else { otherCategoryGroup.style.display = 'none'; otherCategoryInput.required = false; otherCategoryInput.value = ''; }
 }
 
-// Function to Show/Hide Conditional Fields & Set Required (Unchanged)
+// Function to Show/Hide Conditional Fields & Set Required
 function handleRadioChange() {
     const selectedType = document.querySelector('input[name="change_type"]:checked')?.value;
     if (!targetListingGroup || !targetListingSelect || !nameInput) { console.warn("Missing elements for handleRadioChange."); return; }
-    if (selectedType === 'CHANGE' || selectedType === 'DELETE') { targetListingGroup.style.display = 'block'; targetListingSelect.required = true; }
-    else { targetListingGroup.style.display = 'none'; targetListingSelect.required = false; targetListingSelect.value = ''; }
+
+    // Show/hide Target Listing dropdown
+    if (selectedType === 'CHANGE' || selectedType === 'DELETE') {
+        targetListingGroup.style.display = 'block';
+        targetListingSelect.required = true;
+    } else {
+        targetListingGroup.style.display = 'none';
+        targetListingSelect.required = false;
+        targetListingSelect.value = '';
+    }
+
+    // Set required status for Name and Category for ADD/CHANGE
     const isAddOrChange = selectedType === 'ADD' || selectedType === 'CHANGE';
     nameInput.required = isAddOrChange;
-
-    // Also set required for other fields based on type
-    const categorySelect = document.getElementById('suggested_category_select');
-    const phoneInput = document.getElementById('suggested_phone');
-    // Example: Make category required for ADD/CHANGE
     if (categorySelect) { categorySelect.required = isAddOrChange; }
-    // Example: Make phone required for ADD
-    if (phoneInput) { phoneInput.required = (selectedType === 'ADD'); }
-    // Adjust requirements for other fields as needed
+
+    // --- Phone Number is NO LONGER required dynamically ---            // <<< MODIFICATION POINT
+    // const phoneInput = document.getElementById('suggested_phone');    // <<< REMOVED
+    // if (phoneInput) { phoneInput.required = (selectedType === 'ADD'); }// <<< REMOVED
+
+    // Address field is never dynamically required by this script
 }
