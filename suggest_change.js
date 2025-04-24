@@ -1,11 +1,9 @@
-// --- suggest_change.js (Reverted to Debug Logging Version - Known Good Structure) ---
-
 // Uses global supabaseClient from common.js
 
 let form, messageDiv, submitButton, changeTypeRadios, targetListingGroup, contextHeader,
-    communityIdInput, provinceNameInput, communityNameInput, // Keep these inputs for context if needed elsewhere, but don't send their values directly
+    communityIdInput, provinceNameInput, communityNameInput,
     targetListingSelect, nameInput, categorySelect, otherCategoryGroup, otherCategoryInput,
-    addressInput, emailInput;
+    addressInput, emailInput, websiteInput; // <<< Added websiteInput variable
 
 // Function to initialize DOM elements and perform checks
 function initializeAndCheckDOMElements() {
@@ -16,9 +14,9 @@ function initializeAndCheckDOMElements() {
     changeTypeRadios = document.querySelectorAll('input[name="change_type"]'); // Selector verified in HTML
     targetListingGroup = document.getElementById('target-listing-group');
     contextHeader = document.getElementById('form-context'); // ID verified in HTML
-    communityIdInput = document.getElementById('community_id'); // KEEP: We send community_id
-    provinceNameInput = document.getElementById('province_name'); // Keep for context display maybe
-    communityNameInput = document.getElementById('community_name'); // Keep for context display maybe
+    communityIdInput = document.getElementById('community_id');
+    provinceNameInput = document.getElementById('province_name');
+    communityNameInput = document.getElementById('community_name');
     targetListingSelect = document.getElementById('target_listing_select');
     nameInput = document.getElementById('suggested_name');
     categorySelect = document.getElementById('suggested_category_select'); // ID verified in HTML
@@ -26,6 +24,7 @@ function initializeAndCheckDOMElements() {
     otherCategoryInput = document.getElementById('suggested_category_other');
     addressInput = document.getElementById('suggested_address');
     emailInput = document.getElementById('suggested_email');
+    websiteInput = document.getElementById('suggested_website'); // <<< Get website input element
 
     // Check critical elements needed before dropdown population
     if (!form || !messageDiv || !submitButton || !categorySelect || !targetListingSelect) {
@@ -35,10 +34,11 @@ function initializeAndCheckDOMElements() {
     }
     if (!contextHeader) { console.warn("Context header element (form-context) not found during init."); }
     if (!changeTypeRadios || changeTypeRadios.length === 0) { console.warn("Change type radios not found during initialization."); }
-    // Also check the hidden inputs we rely on
-    if (!communityIdInput || !provinceNameInput || !communityNameInput) {
+    if (!communityIdInput || !provinceNameInput || !communityNameInput) { // Still check context inputs
         console.error("Essential context hidden input elements missing!");
-        // Don't necessarily stop page load, but submission will fail later if communityId is missing.
+    }
+    if (!websiteInput) { // Check new website input
+         console.warn("Suggested website input element not found during init.");
     }
 
 
@@ -158,6 +158,12 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                 if (!communityIdInput || !communityIdInput.value) {
                      throw new Error("Community context is missing. Cannot submit.");
                 }
+                // Ensure websiteInput was found (it might not be critical, but good practice)
+                if (!websiteInput) {
+                    console.warn("Website input element reference missing during submission prep.");
+                    // Decide if you want to throw an error or allow submission without it
+                    // throw new Error("Internal page error: Website field reference missing.");
+                }
 
                  const suggestionData = {
                      // Context
@@ -172,6 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                      suggested_phone: document.getElementById('suggested_phone').value.trim() || null,
                      suggested_address: addressInput.value.trim() || null, // Keep this - goes to new column
                      suggested_email: emailInput.value.trim() || null,     // Keep this - goes to new column
+                     suggested_website: websiteInput ? websiteInput.value.trim() || null : null, // <<< Added website value
                      suggested_category: finalCategory || null,
                      suggested_notes: document.getElementById('suggested_notes').value.trim() || null,
 
@@ -193,12 +200,19 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                  if ((selectedType === 'CHANGE' || selectedType === 'DELETE') && !suggestionData.target_listing_info) {
                     throw new Error("Please select the listing to change or remove.");
                  }
+                 // Basic URL validation (optional, type="url" does some)
+                 if (suggestionData.suggested_website && !suggestionData.suggested_website.toLowerCase().startsWith('http')) {
+                    console.warn("Website URL doesn't start with http/https, proceeding anyway:", suggestionData.suggested_website);
+                    // You could throw an error here if you want stricter validation:
+                    // throw new Error("Please enter a valid website URL including http:// or https://");
+                 }
 
-                 // --- Submit to Supabase ---                                                  // <<< MODIFICATION POINT
+
+                 // --- Submit to Supabase ---
                  console.log("[DEBUG] Sending data to 'suggested_changes' table...");
-                 const { error } = await supabaseClient                                         // <<< MODIFICATION POINT (Removed 'data')
+                 const { error } = await supabaseClient // Removed 'data'
                      .from('suggested_changes')
-                     .insert([suggestionData], { returning: 'minimal' }); // <<< MODIFICATION POINT (Added returning minimal, removed .select())
+                     .insert([suggestionData], { returning: 'minimal' }); // Using returning minimal
 
 
                  if (error) {
@@ -207,7 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                      throw new Error(`Database error: ${error.message} (Code: ${error.code}). Please check RLS policies or table schema.`);
                  }
 
-                 console.log("[DEBUG] Suggestion submitted successfully (minimal return).");   // <<< MODIFICATION POINT (Updated log message)
+                 console.log("[DEBUG] Suggestion submitted successfully (minimal return)."); // Updated log message
                  showMessage('Suggestion submitted successfully! Thank you.', 'success');
                  form.reset(); // Clear the form
                  handleRadioChange(); // Reset conditional field visibility/requirements

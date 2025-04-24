@@ -60,6 +60,12 @@
         <div class="form-group"> <label for="suggested_phone">Phone Number:</label> <input type="tel" id="suggested_phone" name="suggested_phone"> </div>
         <div class="form-group"> <label for="suggested_address">Address (Optional):</label> <input type="text" id="suggested_address" name="suggested_address"> </div>
         <div class="form-group"> <label for="suggested_email">Email (Optional):</label> <input type="email" id="suggested_email" name="suggested_email"> </div>
+        <!-- START: Added Website Field -->
+        <div class="form-group">
+            <label for="suggested_website">Website (Optional):</label>
+            <input type="url" id="suggested_website" name="suggested_website" placeholder="https://www.example.com">
+        </div>
+        <!-- END: Added Website Field -->
         <div class="form-group"> <label for="suggested_category_select">Category:</label> <select id="suggested_category_select" name="suggested_category_select"> <option value="">Loading categories...</option> <option value="_OTHER_">Other...</option> </select> </div>
         <div class="form-group" id="other-category-group" style="display: none;"> <label for="suggested_category_other">Specify Other Category:</label> <input type="text" id="suggested_category_other" name="suggested_category_other"> </div>
         <div class="form-group"> <label for="suggested_notes">Notes (Optional):</label> <textarea id="suggested_notes" name="suggested_notes" rows="3"></textarea> </div>
