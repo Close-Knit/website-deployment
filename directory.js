@@ -1,5 +1,3 @@
-// --- START OF directory.js (Reverting File Markers Fix from Previous Step) ---
-
 // Assumes supabaseClient is globally available from common.js
 
 // ======================================================================
@@ -76,19 +74,21 @@ async function fetchAndDisplayListings() {
         const suggestChangeLink = document.getElementById('suggestChangeLink');
         if (suggestChangeLink) { suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`; }
 
-        // --- Fetch Listings (Assuming 'website_url' column exists) ---
+        // --- Fetch Listings (Assuming 'contact_person' column exists) ---
         console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
         const { data: listings, error: listingsError } = await supabaseClient
             .from(tableName)
-            .select('*') // '*' will include the new website_url column
+            .select('*') // '*' includes 'contact_person' if the column exists
             .eq('community_id', communityId)
             .order('category', { ascending: true, nullsFirst: false })
             .order('name', { ascending: true });
 
         if (listingsError) {
              if (listingsError.code === '42P01') { throw new Error(`DB table "${tableName}" not found for province "${decodedProvinceName}".`); }
-             if (listingsError.code === '42703') { // Check for missing website_url column too? Maybe too complex.
-                throw new Error(`Column 'community_id' missing or misspelled in table "${tableName}". Check Supabase schema.`);
+             if (listingsError.code === '42703') {
+                // More specific check if needed, but '*' should work or throw error if column missing entirely
+                console.warn(`Potential missing column error when fetching from "${tableName}": ${listingsError.message}`);
+                throw new Error(`Failed to fetch listings, potentially missing column: ${listingsError.message}`);
              }
              throw new Error(`Failed to fetch listings: ${listingsError.message}`);
         }
@@ -151,23 +151,20 @@ async function fetchAndDisplayListings() {
                      sponsoredLabelHtml = `<span class="sponsored-label ${labelTierClass}">Sponsored</span>`;
                  }
 
-                 // --- START: Website Link Logic ---
-                 let websiteLinkHtml = ''; // Initialize as empty
+                 // Website Link Logic
+                 let websiteLinkHtml = '';
                  if (listing.website_url && listing.website_url.trim() !== '') {
                      let rawUrl = listing.website_url.trim();
                      let formattedUrl = rawUrl;
-                     // Ensure URL has a protocol (http or https)
                      if (!/^https?:\/\//i.test(rawUrl)) {
                          formattedUrl = `https://${rawUrl}`;
                      }
-                     // Basic check to avoid javascript: links or other oddities
                      if (formattedUrl.startsWith('http://') || formattedUrl.startsWith('https://')) {
                          websiteLinkHtml = `<a href="${formattedUrl}" target="_blank" title="${rawUrl}" class="website-link" rel="noopener noreferrer nofollow"><i class="fa-solid fa-globe"></i></a>`;
                      } else {
                           console.warn(`Skipping invalid URL format for listing ${listing.id}: ${rawUrl}`);
                      }
                  }
-                 // --- END: Website Link Logic ---
 
                  const listingId = listing.id;
                  // Phone Button HTML
@@ -175,13 +172,11 @@ async function fetchAndDisplayListings() {
                  let phoneHtml = '';
                  if (phoneNumber) { phoneHtml = `<button class="revealPhoneBtn" data-phone="${phoneNumber}" title="Show phone number for ${listing.name || 'this listing'}"><i class="fa-solid fa-phone"></i> Show Phone</button>`; }
 
-                 // Promote Button HTML (Now potentially includes website link)
+                 // Promote Button HTML (potentially includes website link)
                  let promoteButtonHtml = '';
-                 // Only show promote button OR website link if NOT actively promoted
                  if (listingId && !isActivePromotion) {
                      const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(listing.address || '')}&phone=${encodeURIComponent(listing.phone_number || '')}`;
-                     // Add website link *after* the promote button, with a space if both exist
-                     const websiteLinkSpacing = websiteLinkHtml ? ' ' : ''; // Space before website link
+                     const websiteLinkSpacing = websiteLinkHtml ? ' ' : ''; // Space before website link if it exists
                      promoteButtonHtml = `<div class="promote-button-container">
                                               <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}"><i class="fa-solid fa-rocket"></i> Promote</a>${websiteLinkSpacing}${websiteLinkHtml}
                                           </div>`;
@@ -194,10 +189,11 @@ async function fetchAndDisplayListings() {
                  // Construct final HTML
                  listItem.innerHTML = `
                      <div class="entry-details">
-                          <span class="name">${listing.name || 'N/A'}${sponsoredLabelHtml}</span> <!-- Website link removed from here -->
+                          <span class="name">${listing.name || 'N/A'}${sponsoredLabelHtml}</span>
                           ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
                           ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${promoteButtonHtml} <!-- Container potentially holds promote btn + website link -->
+                          ${listing.contact_person ? `<span class="contact-person">Contact: ${listing.contact_person}</span>` : ''} <!-- <<< ADDED THIS LINE -->
+                          ${promoteButtonHtml}
                      </div>
                      <div class="phone-container">
                           ${phoneHtml}
