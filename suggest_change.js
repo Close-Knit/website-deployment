@@ -3,7 +3,7 @@
 let form, messageDiv, submitButton, changeTypeRadios, targetListingGroup, contextHeader,
     communityIdInput, provinceNameInput, communityNameInput,
     targetListingSelect, nameInput, categorySelect, otherCategoryGroup, otherCategoryInput,
-    addressInput, emailInput, websiteInput; // <<< Added websiteInput variable
+    addressInput, emailInput, websiteInput, phoneInput; // <<< Added phoneInput variable
 
 // Function to initialize DOM elements and perform checks
 function initializeAndCheckDOMElements() {
@@ -24,7 +24,8 @@ function initializeAndCheckDOMElements() {
     otherCategoryInput = document.getElementById('suggested_category_other');
     addressInput = document.getElementById('suggested_address');
     emailInput = document.getElementById('suggested_email');
-    websiteInput = document.getElementById('suggested_website'); // <<< Get website input element
+    websiteInput = document.getElementById('suggested_website');
+    phoneInput = document.getElementById('suggested_phone'); // <<< Get phone input element
 
     // Check critical elements needed before dropdown population
     if (!form || !messageDiv || !submitButton || !categorySelect || !targetListingSelect) {
@@ -34,13 +35,11 @@ function initializeAndCheckDOMElements() {
     }
     if (!contextHeader) { console.warn("Context header element (form-context) not found during init."); }
     if (!changeTypeRadios || changeTypeRadios.length === 0) { console.warn("Change type radios not found during initialization."); }
-    if (!communityIdInput || !provinceNameInput || !communityNameInput) { // Still check context inputs
+    if (!communityIdInput || !provinceNameInput || !communityNameInput) {
         console.error("Essential context hidden input elements missing!");
     }
-    if (!websiteInput) { // Check new website input
-         console.warn("Suggested website input element not found during init.");
-    }
-
+    if (!websiteInput) { console.warn("Suggested website input element not found during init."); }
+    if (!phoneInput) { console.warn("Suggested phone input element not found during init."); } // <<< Check phone input
 
     console.log("[DEBUG] All essential form elements successfully found and assigned.");
     return true; // Indicate success
@@ -57,6 +56,39 @@ function showMessage(msg, type = 'info') {
      messageDiv.textContent = msg; messageDiv.className = `form-message ${type}`; messageDiv.style.display = msg ? 'block' : 'none';
 }
 
+// --- START: Phone Number Formatting Function ---
+function formatPhoneNumber(event) {
+    const input = event.target;
+    // 1. Get current value and remove all non-digit characters
+    let digits = input.value.replace(/\D/g, '');
+
+    // 2. Limit to 10 digits
+    digits = digits.substring(0, 10);
+
+    // 3. Apply formatting based on the number of digits
+    let formattedValue = '';
+    if (digits.length > 0) {
+        // Add opening parenthesis
+        formattedValue = '(' + digits.substring(0, 3);
+    }
+    if (digits.length >= 4) {
+        // Add closing parenthesis, space, and next 3 digits
+        formattedValue += ') ' + digits.substring(3, 6);
+    }
+    if (digits.length >= 7) {
+        // Add hyphen and last 4 digits
+        formattedValue += '-' + digits.substring(6, 10);
+    }
+
+    // 4. Update the input field value only if it has changed
+    // This prevents potential issues with cursor position or infinite loops
+    if (input.value !== formattedValue) {
+        input.value = formattedValue;
+    }
+}
+// --- END: Phone Number Formatting Function ---
+
+
 // Initial Page Setup (on DOMContentLoaded)
 document.addEventListener('DOMContentLoaded', async () => { // Keep async
     console.log("[DEBUG] Suggest Change DOMContentLoaded fired.");
@@ -68,7 +100,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
     }
 
     // 2. Check Supabase Client
-    if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+    // ... (unchanged Supabase check) ...
+     if (typeof supabaseClient === 'undefined' || !supabaseClient) {
         console.error("Supabase client not initialized (from common.js). Suggest Change page cannot function.");
         showMessage('Error: Cannot connect to data service.', 'error');
         if(form) form.style.display = 'none';
@@ -77,7 +110,9 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
     }
     console.log("[DEBUG] Supabase client confirmed available.");
 
+
     // 3. Check URL Params
+    // ... (unchanged URL param check) ...
     if (!communityIdFromUrl || !provinceNameFromUrl || !communityNameFromUrl) {
         console.error("Missing URL parameters.");
         showMessage('Missing community info in URL.', 'error');
@@ -89,6 +124,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
 
 
     // 4. Setup UI - Context Header and hidden inputs
+    // ... (unchanged UI setup) ...
     try {
         const decodedComm = decodeURIComponent(communityNameFromUrl);
         const decodedProv = decodeURIComponent(provinceNameFromUrl);
@@ -114,6 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
     }
 
     // 5. Populate Dropdowns
+    // ... (unchanged dropdown population) ...
     console.log("[DEBUG] Calling populateCategoryDropdown...");
     await populateCategoryDropdown(); // Wait for categories
     console.log("[DEBUG] Calling populateListingsDropdown...");
@@ -122,6 +159,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
 
 
     // 6. Setup Listeners
+    // ... (unchanged radio/category listeners) ...
     changeTypeRadios = document.querySelectorAll('input[name="change_type"]'); // Re-select
     if (changeTypeRadios && changeTypeRadios.length > 0) {
         console.log(`[DEBUG] Found ${changeTypeRadios.length} change type radios.`); // Log count
@@ -135,8 +173,18 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
     } else { console.warn("Category select dropdown not for listener setup."); }
     console.log("[DEBUG] Event listeners set up attempt complete.");
 
+    // --- START: Add Phone Formatting Listener ---
+    if (phoneInput) {
+        phoneInput.addEventListener('input', formatPhoneNumber);
+        console.log("[DEBUG] Phone number formatting listener attached.");
+    } else {
+        console.warn("[DEBUG] Phone input not found, cannot attach formatting listener.");
+    }
+    // --- END: Add Phone Formatting Listener ---
+
     // 7. Form Submission Handler
-    if(form) {
+    // ... (unchanged form submission logic using returning:minimal) ...
+     if(form) {
          form.addEventListener('submit', async (event) => {
              event.preventDefault();
              showMessage(''); // Clear previous messages
@@ -168,25 +216,23 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                  const suggestionData = {
                      // Context
                      community_id: communityIdInput.value, // Send the ID
-                     // province_name: provinceNameInput.value, // REMOVED - Redundant
-                     // community_name: communityNameInput.value, // REMOVED - Redundant
                      change_type: selectedType,
                      target_listing_info: targetListingSelect.required ? targetListingSelect.value || null : null, // Use null if empty
 
                      // Details from form fields
                      suggested_name: nameInput.value.trim() || null,
-                     suggested_phone: document.getElementById('suggested_phone').value.trim() || null,
-                     suggested_address: addressInput.value.trim() || null, // Keep this - goes to new column
-                     suggested_email: emailInput.value.trim() || null,     // Keep this - goes to new column
-                     suggested_website: websiteInput ? websiteInput.value.trim() || null : null, // <<< Added website value
+                     suggested_phone: phoneInput ? phoneInput.value.trim() || null : null, // Use phoneInput variable
+                     suggested_address: addressInput.value.trim() || null,
+                     suggested_email: emailInput.value.trim() || null,
+                     suggested_website: websiteInput ? websiteInput.value.trim() || null : null,
                      suggested_category: finalCategory || null,
                      suggested_notes: document.getElementById('suggested_notes').value.trim() || null,
 
                      // Comment
-                     submitter_comment: document.getElementById('submitter_comment').value.trim() || null, // Keep this
+                     submitter_comment: document.getElementById('submitter_comment').value.trim() || null,
 
-                     // Status (set default in Supabase or here)
-                     status: 'PENDING' // Explicitly set status
+                     // Status
+                     status: 'PENDING'
                  };
 
                  console.log("[DEBUG] Data prepared for Supabase:", suggestionData);
@@ -195,16 +241,12 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
                  // --- Validate required fields based on change type ---
                  if (selectedType === 'ADD' || selectedType === 'CHANGE') {
                      if (!suggestionData.suggested_name) throw new Error("Listing Name is required for Add/Change.");
-                     // Add more required field checks if needed (e.g., category)
                  }
                  if ((selectedType === 'CHANGE' || selectedType === 'DELETE') && !suggestionData.target_listing_info) {
                     throw new Error("Please select the listing to change or remove.");
                  }
-                 // Basic URL validation (optional, type="url" does some)
                  if (suggestionData.suggested_website && !suggestionData.suggested_website.toLowerCase().startsWith('http')) {
                     console.warn("Website URL doesn't start with http/https, proceeding anyway:", suggestionData.suggested_website);
-                    // You could throw an error here if you want stricter validation:
-                    // throw new Error("Please enter a valid website URL including http:// or https://");
                  }
 
 
@@ -216,16 +258,15 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
 
 
                  if (error) {
-                     // Provide more specific error info if possible
                      console.error("Supabase insert error details:", error);
                      throw new Error(`Database error: ${error.message} (Code: ${error.code}). Please check RLS policies or table schema.`);
                  }
 
-                 console.log("[DEBUG] Suggestion submitted successfully (minimal return)."); // Updated log message
+                 console.log("[DEBUG] Suggestion submitted successfully (minimal return).");
                  showMessage('Suggestion submitted successfully! Thank you.', 'success');
-                 form.reset(); // Clear the form
-                 handleRadioChange(); // Reset conditional field visibility/requirements
-                 handleCategoryChange(); // Reset other category field
+                 form.reset();
+                 handleRadioChange();
+                 handleCategoryChange();
 
              } catch (error) {
                  console.error("Error submitting suggestion:", error);
@@ -243,6 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => { // Keep async
 
 
 // Populate Category Dropdown (Querying categories table - Original working fetch logic)
+// ... (unchanged populateCategoryDropdown function) ...
 async function populateCategoryDropdown() {
     console.log("[DEBUG] Inside populateCategoryDropdown function.");
     if (!categorySelect || !supabaseClient) {
@@ -313,6 +355,7 @@ async function populateCategoryDropdown() {
 
 
 // Populate Listings Dropdown (Keep working version)
+// ... (unchanged populateListingsDropdown function) ...
 async function populateListingsDropdown() {
     console.log("[DEBUG] Inside populateListingsDropdown function.");
     if (!targetListingSelect || !currentTableName || !communityIdFromUrl || !supabaseClient) {
