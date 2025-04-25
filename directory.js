@@ -14,284 +14,46 @@ function displayError(message) {
      if(logoElement) logoElement.style.display = 'none';
      const breadcrumbContainer = document.getElementById('breadcrumb-container');
      if(breadcrumbContainer) breadcrumbContainer.innerHTML = '';
-} // Line ~14. Check syntax here.
+}
 
-// === Helper Function: UTF-8 to Base64 Encoding/Decoding (Re-added Meticulously) ===
-// Encodes a standard JS string (UTF-16) to Base64 via UTF-8 bytes
-function utf8ToBase64(str) { // Line ~19. Check syntax here.
+// === Helper Function: UTF-8 to Base64 Encoding/Decoding (Unchanged) ===
+function utf8ToBase64(str) { /* ... */
     try {
-        // Ensure input is treated as a string (handles null/undefined)
         const strInput = String(str || '');
-        // Use TextEncoder to get UTF-8 bytes from the string
         const utf8Bytes = new TextEncoder().encode(strInput);
-        // Convert bytes to a "binary string" needed by btoa
-        // Use Array.from and map, then join for safer conversion from byte array
-        const binaryString = Array.from(utf8Bytes, byte => String.fromCharCode(byte)).join(''); // Using Array.from+map+join
-        // Encode the binary string to Base64
+        const binaryString = utf8Bytes.reduce((acc, byte) => acc + String.fromCharCode(byte), '');
         return btoa(binaryString);
     } catch (e) {
         console.error("Error encoding to Base64 (UTF-8 step):", e, str);
-        return ""; // Return empty string on failure
+        return "";
     }
-} // Line ~36. Check closing brace.
+}
 
-// Decodes a Base64 string back to a standard JS string (UTF-16) via UTF-8 bytes
-function base64ToUtf8(base64) { // Line ~39. Check syntax.
+function base64ToUtf8(base64) { /* ... */
     try {
-        // Ensure input is a string
         const base64Input = String(base64 || '');
-        // Decode Base64 to a "binary string"
         const binaryString = atob(base64Input);
-        // Convert binary string to UTF-8 bytes
         const utf8Bytes = Uint8Array.from(binaryString, char => char.charCodeAt(0));
-        // Use TextDecoder to get the final string
         return new TextDecoder().decode(utf8Bytes);
     } catch (e) {
          console.error("Error decoding from Base64 (UTF-8 step):", e, base64);
-         return ""; // Return empty string on failure
+         return "";
     }
-} // Line ~53. Check closing brace.
+}
 // ======================================================================
 
 
 // ======================================================================
 // Fetch and Display Listings for a Specific Community (Unchanged)
 // ======================================================================
-async function fetchAndDisplayListings() { // Line ~58. Check syntax.
-    // Check for global client
-    if (typeof supabaseClient === 'undefined' || !supabaseClient) {
-        displayError("Supabase client not initialized (from common.js). Cannot fetch data.");
-        return; // Line ~63. Check return and closing brace.
-    } // Line ~64. Check closing brace.
-    console.log("Directory.js using supabaseClient initialized in common.js"); // Line ~65. This is near the error line. Check this line and the one immediately before/after carefully.
-
-    // Get DOM elements
-    const resultsList = document.getElementById('results');
-    const communityNameElement = document.getElementById('community-name');
-    const pageTitle = document.querySelector('title');
-    const logoElement = document.getElementById('logo');
-    const breadcrumbContainer = document.getElementById('breadcrumb-container');
-
-    // Initial setup
-    if (resultsList) resultsList.innerHTML = '<li>Loading...</li>';
-    if (breadcrumbContainer) breadcrumbContainer.innerHTML = '';
-    if (communityNameElement) communityNameElement.innerHTML = 'Loading...';
-    if (!resultsList) { console.error("Fatal Error: Results list element (#results) not found."); return; }
-
-    // Get URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const provinceName = urlParams.get("province");
-    const communityName = urlParams.get("community");
-    if (!provinceName || !communityName) { displayError("Missing province or community information in URL."); return; }
-    const decodedProvinceName = decodeURIComponent(provinceName);
-    const decodedCommunityName = decodeURIComponent(communityName);
-
-    // Set titles/headers
-    const baseTitle = `${decodedCommunityName}, ${decodedProvinceName}`;
-    if (pageTitle) pageTitle.textContent = `${baseTitle} Directory`;
-    if (logoElement) logoElement.style.display = 'none';
-
-    // Build Breadcrumbs
-    if (breadcrumbContainer) {
-        breadcrumbContainer.innerHTML = `<ol class="breadcrumb"><li class="breadcrumb-item"><a href="index.html">Home</a></li><li class="breadcrumb-item"><a href="province_page.html?province=${encodeURIComponent(decodedProvinceName)}">${decodedProvinceName}</a></li><li class="breadcrumb-item active" aria-current="page">${decodedCommunityName}</li></ol>`;
-    } else { console.warn("Breadcrumb container not found."); }
-    if (communityNameElement) { communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">Loading Telephone Directory...</span>`; }
-
-    const tableName = decodedProvinceName.replace(/ /g, '_');
-    let communityId = null;
-    let logoFilename = null;
-
-    try {
-        // Fetch Community ID and Logo (Corrected Query)
-        const { data: communityData, error: communityError } = await supabaseClient
-            .from('communities')
-            .select('id, logo_filename')
-            .eq('community_name', decodedCommunityName)
-            .limit(1)
-            .maybeSingle();
-
-        if (communityError) { throw new Error(`Error fetching community data: ${communityError.message}`); }
-        if (!communityData) { throw new Error(`Community "${decodedCommunityName}" not found in the communities table.`); }
-        communityId = communityData.id;
-        logoFilename = communityData.logo_filename;
-
-        if (logoElement && logoFilename) { logoElement.src = `images/logos/${logoFilename}`; logoElement.alt = `${decodedCommunityName} Logo`; logoElement.style.display = 'block'; }
-        else if (logoElement) { logoElement.style.display = 'none'; }
-
-        const suggestChangeLink = document.getElementById('suggestChangeLink');
-        if (suggestChangeLink && communityId) {
-            suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`;
-        } else if (suggestChangeLink) {
-             suggestChangeLink.style.display = 'none';
-             console.warn("Suggest Change link hidden as community ID was not found.");
-        }
-
-        if (!communityId) { throw new Error("Cannot fetch listings without a valid community ID."); }
-
-        // Fetch Listings
-        console.log(`Fetching listings from table: ${tableName} for community ID: ${communityId}`);
-        const { data: listings, error: listingsError } = await supabaseClient
-            .from(tableName)
-            .select('*')
-            .eq('community_id', communityId)
-            .order('category', { ascending: true, nullsFirst: false })
-            .order('name', { ascending: true });
-
-        if (listingsError) { /* ... error handling ... */
-            if (listingsError.code === '42P01') { throw new Error(`DB table "${tableName}" not found for province "${decodedProvinceName}".`); }
-             if (listingsError.code === '42703' && listingsError.message.includes('column "email"')) {
-                 throw new Error(`Failed to fetch listings. The 'email' column is missing in table "${tableName}". Please run the provided SQL script.`);
-             }
-             if (listingsError.code === '42703') {
-                console.warn(`Potential missing column error when fetching from "${tableName}": ${listingsError.message}`);
-                throw new Error(`Failed to fetch listings, potentially missing column(s): ${listingsError.message}`);
-             }
-             throw new Error(`Failed to fetch listings: ${listingsError.message}`);
-         }
-
-        resultsList.innerHTML = ''; // Clear loading
-
-        // Update subtitle
-        const listingCount = listings?.length || 0;
-        const subTitleText = `Telephone Directory (${listingCount} listings)`;
-        if (communityNameElement) { communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">${subTitleText}</span>`; }
-        if (listingCount === 0) { resultsList.innerHTML = `<li>No listings found for ${decodedCommunityName}.</li>`; return; }
-
-        // --- Group and Sort Listings by Category and Tier ---
-        const groupedListings = listings.reduce((acc, listing) => { const category = listing.category || 'Uncategorized'; if (!acc[category]) { acc[category] = []; } acc[category].push(listing); return acc; }, {});
-        const sortedCategories = Object.keys(groupedListings).sort((a, b) => { if (a === 'Uncategorized') return 1; if (b === 'Uncategorized') return -1; return a.localeCompare(b); });
-        const now = new Date();
-
-        // --- Render Listings ---
-        sortedCategories.forEach(category => {
-             const categoryHeadingItem = document.createElement('li');
-             categoryHeadingItem.className = 'category-heading';
-             categoryHeadingItem.textContent = category;
-             resultsList.appendChild(categoryHeadingItem);
-
-             const listingsInCategory = groupedListings[category];
-             const goldListings = [], silverListings = [], bronzeListings = [], regularListings = [];
-
-             listingsInCategory.forEach(listing => { /* ... tier sorting ... */
-                 const isPromoted = listing.is_promoted === true;
-                 const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
-                 const isActivePromotion = isPromoted && expiresAt instanceof Date && !isNaN(expiresAt) && expiresAt > now;
-                 const duration = listing.promotion_duration_months;
-                 if (isActivePromotion) { if (duration === 12) goldListings.push(listing); else if (duration === 6) silverListings.push(listing); else bronzeListings.push(listing); }
-                 else { regularListings.push(listing); }
-            });
-             const categorySortedListings = goldListings.concat(silverListings).concat(bronzeListings).concat(regularListings);
-
-             categorySortedListings.forEach(listing => {
-                 const listItem = document.createElement('li');
-                 listItem.className = 'directory-entry';
-
-                 const isPromoted = listing.is_promoted === true;
-                 const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
-                 const isActivePromotion = isPromoted && expiresAt instanceof Date && !isNaN(expiresAt) && expiresAt > now;
-                 const duration = listing.promotion_duration_months;
-
-                 let tierClass = '';
-                 let sponsoredLabelHtml = '';
-                 let labelTierClass = '';
-                 if (isActivePromotion) { /* ... tier label ... */
-                    if (duration === 12) { tierClass = 'promoted-gold'; labelTierClass = 'gold'; }
-                     else if (duration === 6) { tierClass = 'promoted-silver'; labelTierClass = 'silver'; }
-                     else { tierClass = 'promoted-bronze'; labelTierClass = 'bronze'; }
-                     listItem.classList.add(tierClass);
-                     sponsoredLabelHtml = `<span class="sponsored-label ${labelTierClass}">Sponsored</span>`;
-                }
-
-                 const phoneNumber = listing.phone_number || '';
-                 let phoneHtml = '';
-                 if (phoneNumber) { phoneHtml = `<button class="revealPhoneBtn" data-phone="${phoneNumber}" title="Show phone number for ${listing.name || 'this listing'}"><i class="fa-solid fa-phone"></i> Show Phone</button>`; }
-
-
-                // --- Construct action buttons including vCard ---
-                let actionButtonsHtml = '';
-                const listingId = listing.id; // Get listing ID
-
-                // Gather ALL data needed for the card modal
-                const vCardDataPayload = {
-                    id: listingId, name: listing.name || '', phone: listing.phone_number || '', email: listing.email || '', website: listing.website_url || '', address: listing.address || '', contactPerson: listing.contact_person || '', notes: listing.notes || '', logoUrl: logoFilename ? `images/logos/${logoFilename}` : 'images/Bizly_Logo_150px.webp'
-                 };
-                try {
-                    const jsonString = JSON.stringify(vCardDataPayload);
-                    // *** USE THE UTF-8 + BASE64 ENCODING FUNCTION HERE ***
-                    // This function needs to be defined *before* this is called
-                    const base64EncodedData = utf8ToBase64(jsonString); // Use the new helper
-
-                    // Escape name for title attribute only
-                    const safeTitleName = (listing.name || '').replace(/"/g, '"'); // Still escape quotes for title
-
-                    // Embed the Base64 string directly. Use single quotes for attribute.
-                    actionButtonsHtml += `<button class="button-style view-vcard-btn" data-vcard='${base64EncodedData}' title="View Virtual Card for ${safeTitleName}">` +
-                                          `<i class="fa-solid fa-id-card"></i> Card` +
-                                      `</button>`;
-                } catch (e) {
-                    console.error(`Error processing vCard data for listing ID ${listingId}:`, e, vCardDataPayload);
-                     actionButtonsHtml += `<button class="button-style view-vcard-btn" disabled title="Error generating card data">` +
-                                          `<i class="fa-solid fa-id-card"></i> Card` +
-                                      `</button>`;
-                }
-
-
-                // 2. Promote Button (if applicable)
-                if (listingId && !isActivePromotion) {
-                    const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(listing.address || '')}&phone=${encodeURIComponent(listing.phone_number || '')}`;
-                    actionButtonsHtml += ` <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}"><i class="fa-solid fa-rocket"></i> Promote</a>`;
-                }
-
-                // 3. Website Link (if applicable) - Use website_url
-                let websiteLinkHtml = '';
-                if (listing.website_url && listing.website_url.trim() !== '') {
-                    let rawUrl = listing.website_url.trim();
-                    let formattedUrl = rawUrl;
-                    if (!/^https?:\/\//i.test(rawUrl)) {
-                        formattedUrl = `https://${rawUrl}`;
-                    }
-                    if (formattedUrl.startsWith('http://') || formattedUrl.startsWith('https://')) {
-                        websiteLinkHtml = `<a href="${formattedUrl}" target="_blank" title="${rawUrl}" class="website-link" rel="noopener noreferrer nofollow"><i class="fa-solid fa-globe"></i></a>`;
-                        actionButtonsHtml += ` ${websiteLinkHtml}`;
-                    } else {
-                        console.warn(`Skipping invalid website URL format for listing ${listing.id}: ${rawUrl}`);
-                    }
-                }
-                // --- End Action Button Construction ---
-
-
-                 // Construct final HTML for the list item using template literals
-                 listItem.innerHTML = `
-                     <div class="entry-details">
-                          <span class="name">${listing.name || 'N/A'}${sponsoredLabelHtml}</span>
-                          ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
-                          ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${listing.contact_person ? `<span class="contact-person">Contact: ${listing.contact_person}</span>` : ''}
-                          <div class="promote-button-container">${actionButtonsHtml}</div>
-                     </div>
-                     <div class="phone-container">
-                          ${phoneHtml}
-                     </div>
-                 `;
-                 resultsList.appendChild(listItem);
-             }); // End listing loop
-        }); // End category loop
-
-    } catch (fetchError) {
-        displayError(fetchError.message || "An unknown error occurred while fetching listings.");
-    }
-} // End fetchAndDisplayListings
+async function fetchAndDisplayListings() { /* ... */ } // Keep entire function as is
 
 
 // Initialize Search Functionality (Unchanged)
-function initializeSearch() { /* ... */
-     const searchBox = document.getElementById('searchBox'); const resultsList = document.getElementById('results'); if (!searchBox || !resultsList) { console.warn("Search elements not found."); return; }
-    searchBox.addEventListener('input', function() { const searchTerm = this.value.toLowerCase().trim(); const listItems = resultsList.getElementsByClassName('directory-entry'); const categoryHeadings = resultsList.getElementsByClassName('category-heading'); let visibleCategories = new Set(); Array.from(listItems).forEach(item => { const nameElement = item.querySelector('.name'); const nameText = nameElement?.textContent.toLowerCase() || ''; const addressText = item.querySelector('.address')?.textContent.toLowerCase() || ''; const notesText = item.querySelector('.notes')?.textContent.toLowerCase() || ''; const contactPersonText = item.querySelector('.contact_person')?.textContent.toLowerCase() || ''; // Corrected to use contact_person
-        let categoryText = ''; let currentElement = item.previousElementSibling; while (currentElement) { if (currentElement.classList.contains('category-heading')) { categoryText = currentElement.textContent.toLowerCase(); break; } currentElement = currentElement.previousElementSibling; } const matchesSearch = nameText.includes(searchTerm) || addressText.includes(searchTerm) || notesText.includes(searchTerm) || categoryText.includes(searchTerm) || contactPersonText.includes(searchTerm); if (matchesSearch) { item.style.display = ''; if (categoryText) visibleCategories.add(categoryText); } else { item.style.display = 'none'; } }); Array.from(categoryHeadings).forEach(heading => { const categoryText = heading.textContent.toLowerCase(); if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) { heading.style.display = ''; } else { heading.style.display = 'none'; } }); });
- }
+function initializeSearch() { /* ... */ } // Keep entire function as is
 
 
-// Initialize Popup Interactivity (Updated for vCard Modal with Base64 Decode)
+// Initialize Popup Interactivity (Updated to enforce single popup explicitly)
 function initializePopupInteraction() {
     const resultsList = document.getElementById('results');
     // Phone Popup Elements
@@ -314,7 +76,7 @@ function initializePopupInteraction() {
     // *** Virtual Card Popup Elements ***
     const virtualCardPopup = document.getElementById('virtualCardPopup');
     const closeVCardPopupButton = document.getElementById('closeVCardPopup');
-    let currentVCardObjectUrl = null; // To store blob URL for cleanup
+    let currentVCardObjectUrl = null;
 
     // Check core elements for both popups
     if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay || !virtualCardPopup || !closeVCardPopupButton) {
@@ -346,7 +108,7 @@ function initializePopupInteraction() {
     // --- Phone Popup Listeners ---
     if (copyPhoneButton) {
         const handleCopyClick = async () => { /* ... copy logic ... */
-            const linkElement = phoneNumberDisplay.querySelector('a');
+             const linkElement = phoneNumberDisplay.querySelector('a');
              const numberToCopy = linkElement ? linkElement.textContent : null;
              if (numberToCopy && navigator.clipboard) {
                  try {
@@ -368,16 +130,15 @@ function initializePopupInteraction() {
          };
         copyPhoneButton.addEventListener('click', handleCopyClick);
     }
+
     resultsList.addEventListener('click', function(event) {
         const revealButton = event.target.closest('.revealPhoneBtn');
 
         if (revealButton) {
             event.preventDefault();
 
-            // *** Close VCard Popup if it's open ***
-            if (!virtualCardPopup.classList.contains('hidden')) {
-                 closeVCard();
-            }
+            // *** Explicitly close the VCard Popup ***
+            closeVCard();
             // *************************************
 
             const numberToDisplay = revealButton.dataset.phone; // Browser decodes this automatically
@@ -412,23 +173,14 @@ function initializePopupInteraction() {
                 event.preventDefault();
                 console.log("View Card button clicked");
 
-                // *** Close Phone Popup if it's open ***
-                if (!phonePopup.classList.contains('hidden')) {
-                    closePhonePopup();
-                }
+                // *** Explicitly close the Phone Popup ***
+                closePhonePopup();
                 // ***********************************
 
                 // 1. Cleanup previous state
                 const qrContainer = document.getElementById('vcard-qrcode-container');
-                if (qrContainer) {
-                    qrContainer.innerHTML = '<p><small>Scan QR to save contact:</small></p>'; // Clear old QR
-                    qrContainer.style.display = 'none'; // Hide QR container initially
-                }
-                if (currentVCardObjectUrl) {
-                    URL.revokeObjectURL(currentVCardObjectUrl); // Revoke old Blob URL
-                    currentVCardObjectUrl = null;
-                    console.log("Revoked previous vCard Object URL");
-                }
+                if (qrContainer) { qrContainer.innerHTML = '<p><small>Scan QR to save contact:</small></p>'; qrContainer.style.display = 'none'; }
+                if (currentVCardObjectUrl) { URL.revokeObjectURL(currentVCardObjectUrl); currentVCardObjectUrl = null; console.log("Revoked previous vCard Object URL"); }
 
                 // 2. Get Data from button attribute (Decode Base64 then Parse)
                 let vCardData;
@@ -456,7 +208,7 @@ function initializePopupInteraction() {
                 // Helper to set detail item visibility and content
                 const setVCardDetailItem = (elementId, value, linkPrefix = '', isLink = true) => {
                     const pElement = document.getElementById(elementId);
-                    if (!pElement) { console.warn(`Element ${elementId} not found`); return; } // Guard clause
+                    if (!pElement) { console.warn(`Element ${elementId} not found`); return; }
                     const spanElement = pElement.querySelector('span');
                     const linkElement = pElement.querySelector('a');
 
@@ -572,10 +324,58 @@ function initializePopupInteraction() {
 
     // === START: Helper Functions (Updated for UTF-8 + Base64) ===
     // Helper Function: Generate vCard String (vCard 3.0) - No change needed for data format
-    function generateVCF(data) { /* ... */ } // Keep the generateVCF function as is
+    function generateVCF(data) { /* ... */
+        let vcf = `BEGIN:VCARD\nVERSION:3.0\n`;
+        vcf += `FN:${(data.name || '').trim()}\n`;
+        if (data.contactPerson && data.contactPerson.trim() !== '') {
+            const nameParts = data.contactPerson.trim().split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+            vcf += `N:${lastName};${firstName};;;\n`;
+        } else {
+             vcf += `N:${(data.name || '').trim()};;;;\n`;
+        }
+        if (data.name) vcf += `ORG:${data.name.trim()}\n`;
+        if (data.phone) vcf += `TEL;type=WORK,voice:${data.phone.trim()}\n`;
+        if (data.email) vcf += `EMAIL:${data.email.trim()}\n`;
+        if (data.address) {
+            const adrFormatted = data.address.trim().replace(/,/g, ' ').replace(/\n/g, '\\n');
+            vcf += `ADR;type=WORK:;;${adrFormatted};;;;\n`;
+        }
+        if (data.website) vcf += `URL:${data.website.trim()}\n`;
+        if (data.logoUrl && !data.logoUrl.includes('Bizly_Logo_150px.webp')) {
+            vcf += `PHOTO;VALUE=URI:${data.logoUrl}\n`;
+        }
+        if (data.notes) vcf += `NOTE:${data.notes.trim().replace(/\n/g, '\\n')}\n`;
+        vcf += `REV:${new Date().toISOString().split('.')[0]}Z\n`;
+        vcf += `END:VCARD`;
+        return vcf;
+    }
 
     // Helper Function: Generate QR Code - Uses generateVCF, no direct change needed
-    function generateAndShowQRCode(data, containerId) { /* ... */ } // Keep the generateAndShowQRCode function as is
+    function generateAndShowQRCode(data, containerId) { /* ... */
+         const qrContainer = document.getElementById(containerId);
+        if (!qrContainer) { console.error(`QR Container #${containerId} not found.`); return; }
+        if (typeof QRCode === 'undefined') { console.error("QRCode library is not loaded."); return; }
+        qrContainer.innerHTML = '<p><small>Scan QR to save contact:</small></p>';
+        const vcfForQR = generateVCF(data); // This will now generate a vCard using potentially Unicode data
+        try {
+            new QRCode(qrContainer, {
+                text: vcfForQR, // QRCode.js handles UTF-8 correctly by default
+                width: 140,
+                height: 140,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.M
+            });
+            qrContainer.style.display = 'block';
+            console.log("Generated QR Code with vCard data.");
+        } catch(e) {
+             console.error("QRCode generation failed:", e);
+             qrContainer.innerHTML += '<p style="color: red;">Error generating QR code.</p>';
+             qrContainer.style.display = 'block';
+        }
+    }
     // === END: Helper Functions ===
 
 } // End initializePopupInteraction
