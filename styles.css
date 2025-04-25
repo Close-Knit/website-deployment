@@ -413,7 +413,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 @media print {
     html { scroll-behavior: auto; }
     body { padding: 10px; font-size: 10pt; color: #000; }
-    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton, .promote-button-container .promote-button, .promote-button-container .view-vcard-btn, .sponsored-label, .website-link, .revealPhoneBtn, #phonePopup, #virtualCardPopup /* Hide popups and triggers */,
+    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton, .promote-button-container .promote-button, .promote-button-container .view-vcard-btn, .sponsored-label, .website-link, .revealPhoneBtn, #phonePopup, #virtualCardPopup /* Hide popups and triggers */,
     .contact-person /* Hide contact person in print */ { display: none !important; }
     #results li.promoted-gold,
     #results li.promoted-silver,
@@ -455,7 +455,6 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     #results li.promoted-silver,
     #results li.promoted-bronze { border-left-width: 0; border-width: 2px; padding: 10px 8px; box-shadow: 1px 1px 2px rgba(0,0,0,0.08); }
     .entry-details { margin-right: 0; margin-bottom: 8px; order: 1; text-align: left; }
-    .address { font-size: 0.85em; }
     .name { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; /* Allow wrap for long names/links */ line-height: normal; }
     .name span { display: inline; margin-right: 5px; } /* Ensure name part stays inline */
     .name .sponsored-label { flex-shrink: 0; margin-left: auto; white-space: nowrap; /* Keep label itself nowrap */ }
