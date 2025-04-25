@@ -369,8 +369,10 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 }
 
 .vcard-button {
-    flex: 1 1 calc(50% - 10px); /* Two buttons per row on wider screens */
-    max-width: calc(50% - 10px);
+    /* --- MODIFIED --- */
+    flex: 1 1 100%; /* Ensure it takes full width */
+    max-width: 100%; /* Ensure it takes full width */
+    /* ------------- */
     padding: 9px 12px;
     font-size: 0.9em;
     text-align: center;
@@ -502,10 +504,11 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     }
     .vcard-name { font-size: 1.4em; }
     .vcard-detail-item { font-size: 0.9em; }
-    .vcard-button {
-        flex-basis: 100%; /* Stack buttons */
+    /* These are now handled by the base rule */
+    /* .vcard-button {
+        flex-basis: 100%;
         max-width: 100%;
-    }
+    } */
     .vcard-qrcode-container canvas,
     .vcard-qrcode-container img {
         width: 120px !important; /* Adjust QR code size */
