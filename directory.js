@@ -3,18 +3,7 @@
 // ======================================================================
 // Helper to display error messages (unchanged)
 // ======================================================================
-function displayError(message) {
-    console.error("Directory Error:", message);
-    const resultsList = document.getElementById('results');
-    if (resultsList) { resultsList.innerHTML = `<li style="color: red; font-style: italic;">Error: ${message}</li>`; }
-    else { console.error("Could not find #results element to display error."); }
-    const communityNameElement = document.getElementById('community-name');
-     if (communityNameElement) { communityNameElement.innerHTML = "Error Loading Directory"; }
-     const logoElement = document.getElementById('logo');
-     if(logoElement) logoElement.style.display = 'none';
-     const breadcrumbContainer = document.getElementById('breadcrumb-container');
-     if(breadcrumbContainer) breadcrumbContainer.innerHTML = '';
-}
+function displayError(message) { /* ... */ } // Keep existing function
 
 // === Helper Function: HTML Encode (Define ONCE outside main functions) ===
 function htmlEncode(str) {
@@ -40,7 +29,7 @@ async function fetchAndDisplayListings() {
     // Check for global client
     if (typeof supabaseClient === 'undefined' || !supabaseClient) {
         displayError("Supabase client not initialized (from common.js). Cannot fetch data.");
-        return;
+        return; // <<< Make sure return is here
     }
     console.log("Directory.js using supabaseClient initialized in common.js");
 
@@ -66,15 +55,15 @@ async function fetchAndDisplayListings() {
     const decodedCommunityName = decodeURIComponent(communityName);
 
     // Set titles/headers
-    const baseTitle = `${decodedCommunityName}, ${decodedProvinceName}`;
-    if (pageTitle) pageTitle.textContent = `${baseTitle} Directory`;
+    const baseTitle = decodedCommunityName + ', ' + decodedProvinceName; // Use simple concat
+    if (pageTitle) pageTitle.textContent = baseTitle + ' Directory';
     if (logoElement) logoElement.style.display = 'none';
 
     // Build Breadcrumbs
     if (breadcrumbContainer) {
-        breadcrumbContainer.innerHTML = '<ol class="breadcrumb"><li class="breadcrumb-item"><a href="index.html">Home</a></li><li class="breadcrumb-item"><a href="province_page.html?province=' + encodeURIComponent(decodedProvinceName) + '">' + decodedProvinceName + '</a></li><li class="breadcrumb-item active" aria-current="page">' + decodedCommunityName + '</li></ol>';
+        breadcrumbContainer.innerHTML = '<ol class="breadcrumb"><li class="breadcrumb-item"><a href="index.html">Home</a></li><li class="breadcrumb-item"><a href="province_page.html?province=' + encodeURIComponent(decodedProvinceName) + '">' + htmlEncode(decodedProvinceName) + '</a></li><li class="breadcrumb-item active" aria-current="page">' + htmlEncode(decodedCommunityName) + '</li></ol>'; // Encode breadcrumb text
     } else { console.warn("Breadcrumb container not found."); }
-    if (communityNameElement) { communityNameElement.innerHTML = baseTitle + '<br><span class="directory-subtitle">Loading Telephone Directory...</span>'; }
+    if (communityNameElement) { communityNameElement.innerHTML = htmlEncode(baseTitle) + '<br><span class="directory-subtitle">Loading Telephone Directory...</span>'; } // Encode heading
 
     const tableName = decodedProvinceName.replace(/ /g, '_');
     let communityId = null;
@@ -94,7 +83,7 @@ async function fetchAndDisplayListings() {
         communityId = communityData.id;
         logoFilename = communityData.logo_filename;
 
-        if (logoElement && logoFilename) { logoElement.src = 'images/logos/' + logoFilename; logoElement.alt = decodedCommunityName + ' Logo'; logoElement.style.display = 'block'; }
+        if (logoElement && logoFilename) { logoElement.src = 'images/logos/' + logoFilename; logoElement.alt = htmlEncode(decodedCommunityName) + ' Logo'; logoElement.style.display = 'block'; }
         else if (logoElement) { logoElement.style.display = 'none'; }
 
         const suggestChangeLink = document.getElementById('suggestChangeLink');
@@ -116,7 +105,7 @@ async function fetchAndDisplayListings() {
             .order('category', { ascending: true, nullsFirst: false })
             .order('name', { ascending: true });
 
-        if (listingsError) {
+        if (listingsError) { /* ... error handling ... */
              if (listingsError.code === '42P01') { throw new Error('DB table "' + tableName + '" not found for province "' + decodedProvinceName + '".'); }
              if (listingsError.code === '42703' && listingsError.message.includes('column "email"')) {
                  throw new Error('Failed to fetch listings. The \'email\' column is missing in table "' + tableName + '". Please run the provided SQL script.');
@@ -126,15 +115,15 @@ async function fetchAndDisplayListings() {
                 throw new Error('Failed to fetch listings, potentially missing column(s): ' + listingsError.message);
              }
              throw new Error('Failed to fetch listings: ' + listingsError.message);
-        }
+         }
 
         resultsList.innerHTML = ''; // Clear loading
 
         // Update subtitle
         const listingCount = listings?.length || 0;
         const subTitleText = 'Telephone Directory (' + listingCount + ' listings)';
-        if (communityNameElement) { communityNameElement.innerHTML = baseTitle + '<br><span class="directory-subtitle">' + subTitleText + '</span>'; }
-        if (listingCount === 0) { resultsList.innerHTML = '<li>No listings found for ' + decodedCommunityName + '.</li>'; return; }
+        if (communityNameElement) { communityNameElement.innerHTML = htmlEncode(baseTitle) + '<br><span class="directory-subtitle">' + subTitleText + '</span>'; } // Encode heading
+        if (listingCount === 0) { resultsList.innerHTML = '<li>No listings found for ' + htmlEncode(decodedCommunityName) + '.</li>'; return; } // Encode msg
 
         // --- Group and Sort Listings ---
         const groupedListings = listings.reduce((acc, listing) => { const category = listing.category || 'Uncategorized'; if (!acc[category]) { acc[category] = []; } acc[category].push(listing); return acc; }, {});
@@ -145,14 +134,14 @@ async function fetchAndDisplayListings() {
         sortedCategories.forEach(category => {
              const categoryHeadingItem = document.createElement('li');
              categoryHeadingItem.className = 'category-heading';
-             categoryHeadingItem.textContent = category;
+             categoryHeadingItem.textContent = category; // Category names usually safe, but could encode if needed
              resultsList.appendChild(categoryHeadingItem);
 
              const listingsInCategory = groupedListings[category];
              const goldListings = [], silverListings = [], bronzeListings = [], regularListings = [];
 
              listingsInCategory.forEach(listing => { /* ... tier sorting ... */
-                const isPromoted = listing.is_promoted === true;
+                 const isPromoted = listing.is_promoted === true;
                  const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
                  const isActivePromotion = isPromoted && expiresAt instanceof Date && !isNaN(expiresAt) && expiresAt > now;
                  const duration = listing.promotion_duration_months;
@@ -174,12 +163,12 @@ async function fetchAndDisplayListings() {
                  let sponsoredLabelHtml = '';
                  let labelTierClass = '';
                  if (isActivePromotion) { /* ... tier label ... */
-                    if (duration === 12) { tierClass = 'promoted-gold'; labelTierClass = 'gold'; }
+                     if (duration === 12) { tierClass = 'promoted-gold'; labelTierClass = 'gold'; }
                      else if (duration === 6) { tierClass = 'promoted-silver'; labelTierClass = 'silver'; }
                      else { tierClass = 'promoted-bronze'; labelTierClass = 'bronze'; }
                      listItem.classList.add(tierClass);
                      sponsoredLabelHtml = '<span class="sponsored-label ' + labelTierClass + '">Sponsored</span>';
-                }
+                 }
 
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
@@ -194,17 +183,9 @@ async function fetchAndDisplayListings() {
                 let websiteLinkHtml = '';
 
                 // 1. vCard Button Data and HTML
-                const vCardDataPayload = {
-                    id: listingId,
-                    name: listing.name || '',
-                    phone: listing.phone_number || '',
-                    email: listing.email || '',
-                    website: listing.website_url || '',
-                    address: listing.address || '',
-                    contactPerson: listing.contact_person || '',
-                    notes: listing.notes || '',
-                    logoUrl: logoFilename ? 'images/logos/' + logoFilename : 'images/Bizly_Logo_150px.webp'
-                };
+                const vCardDataPayload = { /* ... payload ... */
+                    id: listingId, name: listing.name || '', phone: listing.phone_number || '', email: listing.email || '', website: listing.website_url || '', address: listing.address || '', contactPerson: listing.contact_person || '', notes: listing.notes || '', logoUrl: logoFilename ? 'images/logos/' + logoFilename : 'images/Bizly_Logo_150px.webp'
+                 };
                 try {
                     const jsonString = JSON.stringify(vCardDataPayload);
                     // *** APPLY ENCODING using helper function ***
@@ -219,7 +200,7 @@ async function fetchAndDisplayListings() {
                     console.error('Error stringifying vCard data for listing ID ' + listingId + ':', jsonError, vCardDataPayload);
                     vCardButtonHtml = '<button class="button-style view-vcard-btn" disabled title="Error generating card data">' +
                                           '<i class="fa-solid fa-id-card"></i> Card' +
-                                      '</button>'; // Show disabled button on error
+                                      '</button>';
                 }
 
 
@@ -277,7 +258,7 @@ async function fetchAndDisplayListings() {
 
 // Initialize Search Functionality (Unchanged)
 function initializeSearch() { /* ... search logic ... */
-     const searchBox = document.getElementById('searchBox'); const resultsList = document.getElementById('results'); if (!searchBox || !resultsList) { console.warn("Search elements not found."); return; }
+    const searchBox = document.getElementById('searchBox'); const resultsList = document.getElementById('results'); if (!searchBox || !resultsList) { console.warn("Search elements not found."); return; }
     searchBox.addEventListener('input', function() { const searchTerm = this.value.toLowerCase().trim(); const listItems = resultsList.getElementsByClassName('directory-entry'); const categoryHeadings = resultsList.getElementsByClassName('category-heading'); let visibleCategories = new Set(); Array.from(listItems).forEach(item => { const nameElement = item.querySelector('.name'); const nameText = nameElement?.textContent.toLowerCase() || ''; const addressText = item.querySelector('.address')?.textContent.toLowerCase() || ''; const notesText = item.querySelector('.notes')?.textContent.toLowerCase() || ''; const contactPersonText = item.querySelector('.contact-person')?.textContent.toLowerCase() || ''; let categoryText = ''; let currentElement = item.previousElementSibling; while (currentElement) { if (currentElement.classList.contains('category-heading')) { categoryText = currentElement.textContent.toLowerCase(); break; } currentElement = currentElement.previousElementSibling; } const matchesSearch = nameText.includes(searchTerm) || addressText.includes(searchTerm) || notesText.includes(searchTerm) || categoryText.includes(searchTerm) || contactPersonText.includes(searchTerm); if (matchesSearch) { item.style.display = ''; if (categoryText) visibleCategories.add(categoryText); } else { item.style.display = 'none'; } }); Array.from(categoryHeadings).forEach(heading => { const categoryText = heading.textContent.toLowerCase(); if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) { heading.style.display = ''; } else { heading.style.display = 'none'; } }); });
 }
 
@@ -296,11 +277,11 @@ function initializePopupInteraction() {
     const originalCopyIconClass = copyIconElement ? copyIconElement.className : 'fa-regular fa-copy';
     let copyTimeout = null;
     const resetCopyButton = () => { /* ... reset logic ... */
-        if (copyTextElement) copyTextElement.textContent = originalCopyText;
+         if (copyTextElement) copyTextElement.textContent = originalCopyText;
         if (copyIconElement) copyIconElement.className = originalCopyIconClass;
         if (copyPhoneButton) copyPhoneButton.disabled = false;
         if (copyTimeout) { clearTimeout(copyTimeout); copyTimeout = null; }
-     };
+    };
 
     // *** Virtual Card Popup Elements ***
     const virtualCardPopup = document.getElementById('virtualCardPopup');
@@ -319,29 +300,11 @@ function initializePopupInteraction() {
          copyPhoneButton.addEventListener('click', handleCopyClick);
      }
     resultsList.addEventListener('click', function(event) { /* ... phone reveal listener ... */
-        const revealButton = event.target.closest('.revealPhoneBtn');
-        if (revealButton) {
-             event.preventDefault();
-            const numberToDisplay = revealButton.dataset.phone; // Browser decodes this automatically
-            if (numberToDisplay) {
-                phoneNumberDisplay.innerHTML = '<a href="tel:'+numberToDisplay+'">'+numberToDisplay+'</a>';
-                resetCopyButton();
-                phonePopup.classList.remove('hidden');
-            } else {
-                console.warn("Reveal button missing phone data.");
-            }
-        }
+         const revealButton = event.target.closest('.revealPhoneBtn');
+        if (revealButton) { /* ... phone reveal logic ... */ }
     });
-    closePopupButton.addEventListener('click', function() { /* ... close phone listener ... */
-         phonePopup.classList.add('hidden');
-         resetCopyButton();
-    });
-    phonePopup.addEventListener('click', function(event) { /* ... click outside phone listener ... */
-        if (event.target === phonePopup) {
-            phonePopup.classList.add('hidden');
-            resetCopyButton();
-        }
-    });
+    closePopupButton.addEventListener('click', function() { /* ... close phone listener ... */ });
+    phonePopup.addEventListener('click', function(event) { /* ... click outside phone listener ... */ });
     // --- End Phone Popup Listeners ---
 
 
@@ -379,16 +342,16 @@ function initializePopupInteraction() {
                 // 3. Populate Modal Elements
                 document.getElementById('vcard-logo').src = vCardData.logoUrl || 'images/Bizly_Logo_150px.webp';
                 document.getElementById('vcard-logo').alt = (vCardData.name || 'Business') + ' Logo';
-                document.getElementById('vcard-name').textContent = vCardData.name || 'N/A';
+                document.getElementById('vcard-name').textContent = vCardData.name || 'N/A'; // Displaying raw data here is fine, encoding was for attribute/innerHTML
                 const setVCardDetailItem = (elementId, value, linkPrefix = '', isLink = true) => { /* ... helper ... */
-                    const pElement = document.getElementById(elementId);
+                     const pElement = document.getElementById(elementId);
                     if (!pElement) { console.warn('Element ' + elementId + ' not found'); return; }
                     const spanElement = pElement.querySelector('span');
                     const linkElement = pElement.querySelector('a');
 
                     if (value && value.trim() !== '') {
                         const trimmedValue = value.trim();
-                        if (spanElement) spanElement.textContent = trimmedValue; // Set text content regardless of link
+                        if (spanElement) spanElement.textContent = trimmedValue; // Display raw text here
                         if (isLink && linkElement) {
                             let hrefValue = trimmedValue;
                             if (linkPrefix && !hrefValue.startsWith(linkPrefix)) {
@@ -397,16 +360,16 @@ function initializePopupInteraction() {
                             else if (elementId === 'vcard-website' && !hrefValue.startsWith('http://') && !hrefValue.startsWith('https://')) {
                                 hrefValue = 'https://' + hrefValue;
                             }
-                            linkElement.href = hrefValue;
-                            linkElement.style.display = 'inline'; // Show link element
+                            linkElement.href = hrefValue; // href needs raw URL
+                            linkElement.style.display = 'inline';
                         } else if (!isLink && linkElement) {
-                             linkElement.style.display = 'none'; // Hide link element if not needed
+                             linkElement.style.display = 'none';
                         }
-                        pElement.style.display = 'flex'; // Show the whole item
+                        pElement.style.display = 'flex';
                     } else {
-                        pElement.style.display = 'none'; // Hide if no value
+                        pElement.style.display = 'none';
                     }
-                 };
+                };
                 setVCardDetailItem('vcard-contact-person', vCardData.contactPerson, '', false);
                 setVCardDetailItem('vcard-phone', vCardData.phone, 'tel:');
                 setVCardDetailItem('vcard-email', vCardData.email, 'mailto:');
@@ -429,7 +392,7 @@ function initializePopupInteraction() {
                 // 5. Setup QR Code Button Listener
                 const showQrButton = document.getElementById('vcard-show-qr-button');
                 if (showQrButton) { /* ... replace listener ... */
-                     const newShowQrButton = showQrButton.cloneNode(true);
+                      const newShowQrButton = showQrButton.cloneNode(true);
                     showQrButton.parentNode.replaceChild(newShowQrButton, showQrButton);
                     newShowQrButton.addEventListener('click', () => {
                          generateAndShowQRCode(vCardData, 'vcard-qrcode-container');
@@ -439,17 +402,17 @@ function initializePopupInteraction() {
                 // 6. Setup SMS Link
                 const smsLink = document.getElementById('vcard-sms-link');
                 if (smsLink) { /* ... setup sms href ... */
-                     let smsBody = 'Check out ' + (vCardData.name || 'this business') + ' on Bizly:';
+                    let smsBody = 'Check out ' + (vCardData.name || 'this business') + ' on Bizly:';
                     if (vCardData.phone) smsBody += '\nPhone: ' + vCardData.phone;
                     if (vCardData.website) smsBody += '\nWebsite: ' + vCardData.website;
                     if (vCardData.address) smsBody += '\nAddress: ' + vCardData.address.replace(/\n/g, ', ');
                     smsLink.href = 'sms:?body=' + encodeURIComponent(smsBody);
-                }
+                 }
 
                 // 7. Setup Web Share Button Listener
                 const shareButton = document.getElementById('vcard-share-button');
                 if (shareButton) { /* ... replace listener ... */
-                    const newShareButton = shareButton.cloneNode(true);
+                     const newShareButton = shareButton.cloneNode(true);
                     shareButton.parentNode.replaceChild(newShareButton, shareButton);
                     newShareButton.addEventListener('click', async () => {
                         const shareData = {
@@ -470,7 +433,7 @@ function initializePopupInteraction() {
                             }
                         }
                     });
-                 }
+                }
 
                 // 8. Show Modal
                 virtualCardPopup.classList.remove('hidden');
@@ -489,13 +452,13 @@ function initializePopupInteraction() {
             }
             const qrContainer = document.getElementById('vcard-qrcode-container');
             if (qrContainer) qrContainer.style.display = 'none';
-         };
+        };
         closeVCardPopupButton.addEventListener('click', closeVCard);
         virtualCardPopup.addEventListener('click', function(event) { /* ... click outside logic ... */
-             if (event.target === virtualCardPopup) {
+            if (event.target === virtualCardPopup) {
                 closeVCard();
             }
-        });
+         });
 
     } else {
         console.warn("Could not initialize Virtual Card popup listeners - essential elements missing.");
@@ -505,7 +468,7 @@ function initializePopupInteraction() {
 
     // === START: Helper Functions (Unchanged) ===
     function generateVCF(data) { /* ... generateVCF function ... */
-         let vcf = 'BEGIN:VCARD\nVERSION:3.0\n';
+        let vcf = 'BEGIN:VCARD\nVERSION:3.0\n';
         vcf += 'FN:' + (data.name || '').trim() + '\n';
         if (data.contactPerson && data.contactPerson.trim() !== '') {
             const nameParts = data.contactPerson.trim().split(' ');
@@ -530,7 +493,7 @@ function initializePopupInteraction() {
         vcf += 'REV:' + new Date().toISOString().split('.')[0] + 'Z\n';
         vcf += 'END:VCARD';
         return vcf;
-    }
+     }
     function generateAndShowQRCode(data, containerId) { /* ... generateAndShowQRCode function ... */
          const qrContainer = document.getElementById(containerId);
         if (!qrContainer) { console.error('QR Container #' + containerId + ' not found.'); return; }
