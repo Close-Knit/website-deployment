@@ -16,11 +16,8 @@ function displayError(message) {
      if(breadcrumbContainer) breadcrumbContainer.innerHTML = '';
 }
 
-// === Removed unnecessary encoding/decoding helpers ===
-// The only character causing issue in HTML attribute seems to be single quote '
-
 // ======================================================================
-// Fetch and Display Listings for a Specific Community (Updated for targeted escaping)
+// Fetch and Display Listings for a Specific Community
 // ======================================================================
 async function fetchAndDisplayListings() {
     // Check for global client
@@ -180,33 +177,21 @@ async function fetchAndDisplayListings() {
                 const vCardDataPayload = {
                     id: listingId, name: listing.name || '', phone: listing.phone_number || '', email: listing.email || '', website: listing.website_url || '', address: listing.address || '', contactPerson: listing.contact_person || '', notes: listing.notes || '', logoUrl: logoFilename ? `images/logos/${logoFilename}` : 'images/Bizly_Logo_150px.webp'
                  };
-                try {
-                    const jsonString = JSON.stringify(vCardDataPayload);
-                    // *** FIX: Escape single quotes for HTML attribute safety ***
-                    // Replace single quotes with their HTML entity
-                    const attributeSafeJsonString = jsonString.replace(/'/g, ''');
+                // *** ORIGINAL VERSION - NO COMPLEX ESCAPING YET ***
+                // Use simple replace for double quotes only initially
+                // This might still break if data contains single quotes!
+                const vCardDataString = JSON.stringify(vCardDataPayload).replace(/"/g, '"');
 
-                    // Escape name for title attribute only
-                    const safeTitleName = (listing.name || '').replace(/"/g, '"'); // Still escape double quotes for title
-
-                    // 1. vCard Button
-                    actionButtonsHtml += `<button class="button-style view-vcard-btn" data-vcard='${attributeSafeJsonString}' title="View Virtual Card for ${safeTitleName}">` +
-                                          `<i class="fa-solid fa-id-card"></i> Card` +
-                                      `</button>`;
-                } catch (e) {
-                    console.error(`Error processing vCard data for listing ID ${listingId}:`, e, vCardDataPayload);
-                     actionButtonsHtml += `<button class="button-style view-vcard-btn" disabled title="Error generating card data">` +
-                                          `<i class="fa-solid fa-id-card"></i> Card` +
-                                      `</button>`;
-                }
-
+                // 1. vCard Button
+                const vCardButtonHtml = `<button class="button-style view-vcard-btn" data-vcard='${vCardDataString}' title="View Virtual Card for ${listing.name || ''}">
+                                           <i class="fa-solid fa-id-card"></i> Card
+                                        </button>`;
+                actionButtonsHtml += vCardButtonHtml;
 
                 // 2. Promote Button (if applicable)
                 if (listingId && !isActivePromotion) {
                     const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(listing.address || '')}&phone=${encodeURIComponent(listing.phone_number || '')}`;
-                    // Escape name for title attribute
-                     const promoteName = (listing.name || 'N/A').replace(/"/g, '"');
-                    actionButtonsHtml += ` <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${promoteName}"><i class="fa-solid fa-rocket"></i> Promote</a>`;
+                    actionButtonsHtml += ` <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${listing.name || ''}"><i class="fa-solid fa-rocket"></i> Promote</a>`;
                 }
 
                 // 3. Website Link (if applicable) - Use website_url
@@ -218,9 +203,7 @@ async function fetchAndDisplayListings() {
                         formattedUrl = `https://${rawUrl}`;
                     }
                     if (formattedUrl.startsWith('http://') || formattedUrl.startsWith('https://')) {
-                         // Escape for title attribute
-                        const safeRawUrl = rawUrl.replace(/"/g, '"');
-                        websiteLinkHtml = ` <a href="${formattedUrl}" target="_blank" title="${safeRawUrl}" class="website-link" rel="noopener noreferrer nofollow"><i class="fa-solid fa-globe"></i></a>`;
+                        websiteLinkHtml = `<a href="${formattedUrl}" target="_blank" title="${rawUrl}" class="website-link" rel="noopener noreferrer nofollow"><i class="fa-solid fa-globe"></i></a>`;
                         actionButtonsHtml += ` ${websiteLinkHtml}`;
                     } else {
                         console.warn(`Skipping invalid website URL format for listing ${listing.id}: ${rawUrl}`);
@@ -247,20 +230,21 @@ async function fetchAndDisplayListings() {
         }); // End category loop
 
     } catch (fetchError) {
+        // Use displayError to show the message on the page
         displayError(fetchError.message || "An unknown error occurred while fetching listings.");
     }
 } // End fetchAndDisplayListings
 
 
 // Initialize Search Functionality (Unchanged)
-function initializeSearch() { /* ... */
+function initializeSearch() { /* ... search logic ... */
      const searchBox = document.getElementById('searchBox'); const resultsList = document.getElementById('results'); if (!searchBox || !resultsList) { console.warn("Search elements not found."); return; }
     searchBox.addEventListener('input', function() { const searchTerm = this.value.toLowerCase().trim(); const listItems = resultsList.getElementsByClassName('directory-entry'); const categoryHeadings = resultsList.getElementsByClassName('category-heading'); let visibleCategories = new Set(); Array.from(listItems).forEach(item => { const nameElement = item.querySelector('.name'); const nameText = nameElement?.textContent.toLowerCase() || ''; const addressText = item.querySelector('.address')?.textContent.toLowerCase() || ''; const notesText = item.querySelector('.notes')?.textContent.toLowerCase() || ''; const contactPersonText = item.querySelector('.contact_person')?.textContent.toLowerCase() || ''; // Corrected to use contact_person
         let categoryText = ''; let currentElement = item.previousElementSibling; while (currentElement) { if (currentElement.classList.contains('category-heading')) { categoryText = currentElement.textContent.toLowerCase(); break; } currentElement = currentElement.previousElementSibling; } const matchesSearch = nameText.includes(searchTerm) || addressText.includes(searchTerm) || notesText.includes(searchTerm) || categoryText.includes(searchTerm) || contactPersonText.includes(searchTerm); if (matchesSearch) { item.style.display = ''; if (categoryText) visibleCategories.add(categoryText); } else { item.style.display = 'none'; } }); Array.from(categoryHeadings).forEach(heading => { const categoryText = heading.textContent.toLowerCase(); if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) { heading.style.display = ''; } else { heading.style.display = 'none'; } }); });
  }
 
 
-// Initialize Popup Interactivity (Updated for vCard Modal)
+// Initialize Popup Interactivity (Contains vCard logic, but data might be unparseable)
 function initializePopupInteraction() {
     const resultsList = document.getElementById('results');
     // Phone Popup Elements
@@ -303,19 +287,8 @@ function initializePopupInteraction() {
             console.log("Revoked vCard Object URL on close");
         }
         const qrContainer = document.getElementById('vcard-qrcode-container');
-        if (qrContainer) {
-             // Clear previous QR code by setting innerHTML to empty string (except for the small text)
-             // Need to recreate the paragraph element that holds the text, as clearing innerHTML removes everything
-             const smallText = qrContainer.querySelector('small')?.textContent || 'Scan QR to save contact:';
-             qrContainer.innerHTML = `<p><small>${smallText}</small></p>`;
-             // The QRCode.js library might create a canvas or an img. We need to ensure it's removed.
-             const qrCanvas = qrContainer.querySelector('canvas');
-             if(qrCanvas) qrCanvas.remove();
-             const qrImg = qrContainer.querySelector('img');
-             if(qrImg) qrImg.remove();
-
-             qrContainer.style.display = 'none'; // Hide QR container initially
-        }
+        if (qrContainer) qrContainer.innerHTML = '<p><small>Scan QR to save contact:</small></p>'; // Clear previous QR code
+        if (qrContainer) qrContainer.style.display = 'none'; // Hide QR container initially
     };
 
     // --- Common close function for Phone popup ---
@@ -355,10 +328,11 @@ function initializePopupInteraction() {
         if (revealButton) {
             event.preventDefault();
 
-            // Close VCard Popup if it's open
-            if (!virtualCardPopup.classList.contains('hidden')) {
-                 closeVCard();
-            }
+            // *** Original logic - will not close vCard ***
+            // if (!virtualCardPopup.classList.contains('hidden')) {
+            //      closeVCard();
+            // }
+            // *************************************
 
             const numberToDisplay = revealButton.dataset.phone; // Browser decodes this automatically
             if (numberToDisplay) {
@@ -388,39 +362,42 @@ function initializePopupInteraction() {
         resultsList.addEventListener('click', function(event) {
             const viewCardButton = event.target.closest('.view-vcard-btn');
 
-            if (viewCardButton && !viewCardButton.disabled) { // Check if button is not disabled
-                event.preventDefault();
+            if (viewCardButton) { // Removed disabled check for initial parse test
+                event.preventDefault(); // Prevent any default button action
                 console.log("View Card button clicked");
 
-                // Close Phone Popup if it's open
-                if (!phonePopup.classList.contains('hidden')) {
-                    closePhonePopup();
-                }
+                // *** Original logic - will not close phone popup ***
+                // if (!phonePopup.classList.contains('hidden')) {
+                //     closePhonePopup();
+                // }
+                // ***********************************
 
-                // 1. Cleanup previous state (QR, Blob URL) - Handled by closeVCard already, but safe to repeat some cleanup here
-                 const qrContainer = document.getElementById('vcard-qrcode-container');
-                 if (qrContainer) {
-                      // Clear previous QR code
-                      const smallText = qrContainer.querySelector('small')?.textContent || 'Scan QR to save contact:';
-                      qrContainer.innerHTML = `<p><small>${smallText}</small></p>`;
-                       const qrCanvas = qrContainer.querySelector('canvas'); if(qrCanvas) qrCanvas.remove();
-                       const qrImg = qrContainer.querySelector('img'); if(qrImg) qrImg.remove();
-                      qrContainer.style.display = 'none'; // Hide QR initially
-                 }
-                 if (currentVCardObjectUrl) { URL.revokeObjectURL(currentVCardObjectUrl); currentVCardObjectUrl = null; console.log("Revoked previous vCard Object URL"); }
+
+                // 1. Cleanup previous state (QR, Blob URL)
+                const qrContainer = document.getElementById('vcard-qrcode-container');
+                if (qrContainer) {
+                     // Clear previous QR code by setting innerHTML to empty string (except for the small text)
+                     qrContainer.innerHTML = '<p><small>Scan QR to save contact:</small></p>'; // Keep the text
+                    qrContainer.style.display = 'none'; // Hide QR container initially
+                }
+                if (currentVCardObjectUrl) {
+                    URL.revokeObjectURL(currentVCardObjectUrl); // Revoke old Blob URL
+                    currentVCardObjectUrl = null;
+                    console.log("Revoked previous vCard Object URL");
+                }
 
 
                 // 2. Get Data from button attribute (Decode Base64 then Parse)
                 let vCardData;
                 try {
-                    const base64EncodedData = viewCardButton.dataset.vcard;
-                    const decodedJsonString = base64ToUtf8(base64EncodedData); // Use the new helper
-                    vCardData = JSON.parse(decodedJsonString); // Parse the decoded JSON
+                     // *** ORIGINAL PARSING - Expecting potential errors ***
+                     // Browser automatically decodes basic entities like " here
+                    vCardData = JSON.parse(viewCardButton.dataset.vcard);
                     console.log("Parsed vCard Data:", vCardData);
                 } catch (e) {
-                    console.error("Failed to decode/parse vCard data from button:", e);
-                    console.error("Raw data-vcard (Base64):", viewCardButton.getAttribute('data-vcard'));
-                    alert("Error: Could not load card data.");
+                    console.error("Failed to parse vCard data from button:", e);
+                    console.error("Problematic data-vcard value:", viewCardButton.getAttribute('data-vcard')); // Log raw attribute
+                    alert("Error: Could not load card data. Data might be invalid.");
                     return; // IMPORTANT: Stop if parsing fails
                 }
                 if (!vCardData || typeof vCardData !== 'object') {
@@ -428,8 +405,8 @@ function initializePopupInteraction() {
                     return;
                 }
 
-                // 3. Populate Modal Elements (No changes needed here)
-                document.getElementById('vcard-logo').src = vCardData.logoUrl || 'images/Bizly_Logo_150px.webp';
+                // 3. Populate Modal Elements
+                document.getElementById('vcard-logo').src = vCardData.logoUrl || 'images/Bizly_Logo_150px.webp'; // Use fallback
                 document.getElementById('vcard-logo').alt = `${vCardData.name || 'Business'} Logo`;
                 document.getElementById('vcard-name').textContent = vCardData.name || 'N/A';
 
@@ -485,12 +462,10 @@ function initializePopupInteraction() {
                 // 5. Setup QR Code Button Listener (Remove previous listener first)
                 const showQrButton = document.getElementById('vcard-show-qr-button');
                 if (showQrButton) {
-                    // Clone node to remove existing listeners
-                    const newShowQrButton = showQrButton.cloneNode(true);
+                    const newShowQrButton = showQrButton.cloneNode(true); // Clone to remove listeners
                     showQrButton.parentNode.replaceChild(newShowQrButton, showQrButton);
-                    // Add the listener to the new node
                     newShowQrButton.addEventListener('click', () => {
-                         generateAndShowQRCode(vCardData, 'vcard-qrcode-container'); // Pass data and container ID
+                         generateAndShowQRCode(vCardData, 'vcard-qrcode-container');
                     });
                 }
 
@@ -553,108 +528,50 @@ function initializePopupInteraction() {
 
 
     // === START: Helper Functions (Updated for UTF-8 + Base64) ===
-    // Helper Function: Generate vCard String (vCard 3.0)
-    // Note: This function doesn't need Base64 logic; it just builds the standard VCF string format.
-    function generateVCF(data) {
+    // Helper Function: Generate vCard String (vCard 3.0) - No change needed for data format
+    function generateVCF(data) { /* ... */
         let vcf = `BEGIN:VCARD\nVERSION:3.0\n`;
-        // FN: Full Name (Required)
         vcf += `FN:${(data.name || '').trim()}\n`;
-
-        // N: Structured Name (Last;First;Middle;Prefix;Suffix)
-        // Best guess based on contactPerson, falling back to name
         if (data.contactPerson && data.contactPerson.trim() !== '') {
             const nameParts = data.contactPerson.trim().split(' ');
             const firstName = nameParts[0] || '';
             const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
             vcf += `N:${lastName};${firstName};;;\n`;
         } else {
-             // Use business name if no contact person, often used for ORG field
-             // N: structured name (Last;First;Middle;Prefix;Suffix) - empty fields important
              vcf += `N:${(data.name || '').trim()};;;;\n`;
         }
-
-
-        // ORG: Organization Name
         if (data.name) vcf += `ORG:${data.name.trim()}\n`;
-
-        // TEL: Telephone Number
         if (data.phone) vcf += `TEL;type=WORK,voice:${data.phone.trim()}\n`;
-
-        // EMAIL: Email Address
         if (data.email) vcf += `EMAIL:${data.email.trim()}\n`;
-
-        // ADR: Address (;;Street;City;Region;PostalCode;Country)
         if (data.address) {
-            // Simple attempt to split address lines/commas into vCard fields
-            // This is a simplification; real address parsing is complex.
-            const addressLines = data.address.trim().split('\n');
-            const street = addressLines[0] || ''; // Assume first line is street
-            const cityRegionPostal = addressLines[1] || ''; // Assume second line has City, Region, Postal
-            // Attempt to split city, region, postal - highly unreliable without structured data
-            const cityRegionPostalParts = cityRegionPostal.split(',');
-            const city = cityRegionPostalParts[0]?.trim() || '';
-            const region = cityRegionPostalParts[1]?.trim() || ''; // Could be province code
-            const postalCode = cityRegionPostalParts[2]?.trim() || ''; // Could be postal code
-
-            // Rebuild ADR string using vCard format, escaping semicolons and newlines
-             const adrFormatted = `;;${street.replace(/;/g, '\\;').replace(/\n/g, '\\n')};${city.replace(/;/g, '\\;').replace(/\n/g, '\\n')};${region.replace(/;/g, '\\;').replace(/\n/g, '\\n')};${postalCode.replace(/;/g, '\\;').replace(/\n/g, '\\n')};`; // Country is assumed Canada based on context?
-             // If we don't have structured address data, maybe just put everything in the street field?
-             // Let's stick to the original simple replace for now, but add semicolon escape
-            const originalAdrFormatted = data.address.trim().replace(/,/g, ' ').replace(/\n/g, '\\n').replace(/;/g, '\\;'); // Escape semicolon for safety
-             vcf += `ADR;type=WORK:;;${originalAdrFormatted};;;;\n`; // Put everything in street field if unsure
-
+            const adrFormatted = data.address.trim().replace(/,/g, ' ').replace(/\n/g, '\\n');
+            vcf += `ADR;type=WORK:;;${adrFormatted};;;;\n`;
         }
-
-        // URL: Website
         if (data.website) vcf += `URL:${data.website.trim()}\n`;
-
-        // PHOTO: Logo (URI format is better)
-        // Only include if it's not the default Bizly logo
         if (data.logoUrl && !data.logoUrl.includes('Bizly_Logo_150px.webp')) {
-             // Ensure the URL is absolute or base64
-             // For now, assuming relative path works or it's already absolute
-             vcf += `PHOTO;VALUE=URI:${data.logoUrl}\n`;
-         }
-
-        // NOTE: Notes/Description
-        if (data.notes) vcf += `NOTE:${data.notes.trim().replace(/\n/g, '\\n').replace(/;/g, '\\;').replace(/,/g, '\\,')}\n`; // Escape newlines, semicolons, commas
-
-        // REV: Revision Timestamp (using ISO format)
-        vcf += `REV:${new Date().toISOString().split('.')[0]}Z\n`; // Standard ISO format up to seconds
-
+            vcf += `PHOTO;VALUE=URI:${data.logoUrl}\n`;
+        }
+        if (data.notes) vcf += `NOTE:${data.notes.trim().replace(/\n/g, '\\n')}\n`;
+        vcf += `REV:${new Date().toISOString().split('.')[0]}Z\n`;
         vcf += `END:VCARD`;
         return vcf;
     }
 
-    // Helper Function: Generate QR Code - Uses generateVCF
-    function generateAndShowQRCode(data, containerId) {
+    // Helper Function: Generate QR Code - Uses generateVCF, no direct change needed
+    function generateAndShowQRCode(data, containerId) { /* ... */
          const qrContainer = document.getElementById(containerId);
         if (!qrContainer) { console.error(`QR Container #${containerId} not found.`); return; }
         if (typeof QRCode === 'undefined') { console.error("QRCode library is not loaded."); return; }
-        // Clear previous QR code first
-        const smallText = qrContainer.querySelector('small')?.textContent || 'Scan QR to save contact:';
-        qrContainer.innerHTML = `<p><small>${smallText}</small></p>`;
-        // QRCode.js will add canvas or img inside this container
-
-        const vcfForQR = generateVCF(data); // This will now generate a vCard string
-
+        qrContainer.innerHTML = '<p><small>Scan QR to save contact:</small></p>';
+        const vcfForQR = generateVCF(data); // This will now generate a vCard using potentially Unicode data
         try {
-            // Check if the vcfForQR string is too long for QR code (common issue)
-             // Max length for standard QR code (Level M) is around 2000 characters
-             // A VCF can easily exceed this with notes, address, etc.
-             // We'll encode the VCF itself, but warn if it's very long.
-             if (vcfForQR.length > 1500) { // Threshold example
-                 console.warn("Generated VCF string is very long, QR code might be complex or fail to scan easily:", vcfForQR.length, "chars");
-                 qrContainer.innerHTML += '<p style="color: orange; font-size: 0.8em;">Warning: Contact details are extensive, QR code may be complex to scan.</p>';
-             }
-
             new QRCode(qrContainer, {
                 text: vcfForQR, // QRCode.js handles UTF-8 correctly by default
                 width: 140,
                 height: 140,
                 colorDark : "#000000",
                 colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.M // Medium correction
+                correctLevel : QRCode.CorrectLevel.M
             });
             qrContainer.style.display = 'block';
             console.log("Generated QR Code with vCard data.");
