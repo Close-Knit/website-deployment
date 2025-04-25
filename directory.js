@@ -53,7 +53,7 @@ async function fetchAndDisplayListings() { /* ... */ } // Keep entire function a
 function initializeSearch() { /* ... */ } // Keep entire function as is
 
 
-// Initialize Popup Interactivity (Updated to enforce single popup explicitly)
+// Initialize Popup Interactivity (Contains vCard logic, but data might be unparseable)
 function initializePopupInteraction() {
     const resultsList = document.getElementById('results');
     // Phone Popup Elements
@@ -76,7 +76,7 @@ function initializePopupInteraction() {
     // *** Virtual Card Popup Elements ***
     const virtualCardPopup = document.getElementById('virtualCardPopup');
     const closeVCardPopupButton = document.getElementById('closeVCardPopup');
-    let currentVCardObjectUrl = null;
+    let currentVCardObjectUrl = null; // To store blob URL for cleanup
 
     // Check core elements for both popups
     if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay || !virtualCardPopup || !closeVCardPopupButton) {
@@ -108,7 +108,7 @@ function initializePopupInteraction() {
     // --- Phone Popup Listeners ---
     if (copyPhoneButton) {
         const handleCopyClick = async () => { /* ... copy logic ... */
-             const linkElement = phoneNumberDisplay.querySelector('a');
+            const linkElement = phoneNumberDisplay.querySelector('a');
              const numberToCopy = linkElement ? linkElement.textContent : null;
              if (numberToCopy && navigator.clipboard) {
                  try {
@@ -130,15 +130,17 @@ function initializePopupInteraction() {
          };
         copyPhoneButton.addEventListener('click', handleCopyClick);
     }
-
     resultsList.addEventListener('click', function(event) {
         const revealButton = event.target.closest('.revealPhoneBtn');
 
         if (revealButton) {
             event.preventDefault();
 
-            // *** Explicitly close the VCard Popup ***
-            closeVCard();
+            // *** Close VCard Popup if it's open (This was the original problematic logic) ***
+            // We'll revisit fixing this later.
+            // if (!virtualCardPopup.classList.contains('hidden')) {
+            //      closeVCard();
+            // }
             // *************************************
 
             const numberToDisplay = revealButton.dataset.phone; // Browser decodes this automatically
@@ -169,30 +171,43 @@ function initializePopupInteraction() {
         resultsList.addEventListener('click', function(event) {
             const viewCardButton = event.target.closest('.view-vcard-btn');
 
-            if (viewCardButton && !viewCardButton.disabled) {
-                event.preventDefault();
+            if (viewCardButton) { // Removed disabled check for initial parse test
+                event.preventDefault(); // Prevent any default button action
                 console.log("View Card button clicked");
 
-                // *** Explicitly close the Phone Popup ***
-                closePhonePopup();
+                // *** Close Phone Popup if it's open (This was the original problematic logic) ***
+                // We'll revisit fixing this later.
+                // if (!phonePopup.classList.contains('hidden')) {
+                //     closePhonePopup();
+                // }
                 // ***********************************
 
-                // 1. Cleanup previous state
+
+                // 1. Cleanup previous state (QR, Blob URL)
                 const qrContainer = document.getElementById('vcard-qrcode-container');
-                if (qrContainer) { qrContainer.innerHTML = '<p><small>Scan QR to save contact:</small></p>'; qrContainer.style.display = 'none'; }
-                if (currentVCardObjectUrl) { URL.revokeObjectURL(currentVCardObjectUrl); currentVCardObjectUrl = null; console.log("Revoked previous vCard Object URL"); }
+                if (qrContainer) {
+                    // Clear previous QR code by setting innerHTML to empty string (except for the small text)
+                     qrContainer.innerHTML = '<p><small>Scan QR to save contact:</small></p>'; // Keep the text
+                    qrContainer.style.display = 'none'; // Hide QR container initially
+                }
+                if (currentVCardObjectUrl) {
+                    URL.revokeObjectURL(currentVCardObjectUrl); // Revoke old Blob URL
+                    currentVCardObjectUrl = null;
+                    console.log("Revoked previous vCard Object URL");
+                }
+
 
                 // 2. Get Data from button attribute (Decode Base64 then Parse)
                 let vCardData;
                 try {
-                    const base64EncodedData = viewCardButton.dataset.vcard;
-                    const decodedJsonString = base64ToUtf8(base64EncodedData); // Use the new helper
-                    vCardData = JSON.parse(decodedJsonString); // Parse the decoded JSON
+                    // *** ORIGINAL PARSING - Expecting potential errors ***
+                     // Browser automatically decodes basic entities like " here
+                    vCardData = JSON.parse(viewCardButton.dataset.vcard);
                     console.log("Parsed vCard Data:", vCardData);
                 } catch (e) {
-                    console.error("Failed to decode/parse vCard data from button:", e);
-                    console.error("Raw data-vcard (Base64):", viewCardButton.getAttribute('data-vcard'));
-                    alert("Error: Could not load card data.");
+                    console.error("Failed to parse vCard data from button:", e);
+                    console.error("Problematic data-vcard value:", viewCardButton.getAttribute('data-vcard')); // Log raw attribute
+                    alert("Error: Could not load card data. Data might be invalid.");
                     return; // IMPORTANT: Stop if parsing fails
                 }
                 if (!vCardData || typeof vCardData !== 'object') {
@@ -200,15 +215,15 @@ function initializePopupInteraction() {
                     return;
                 }
 
-                // 3. Populate Modal Elements (No changes needed here)
-                document.getElementById('vcard-logo').src = vCardData.logoUrl || 'images/Bizly_Logo_150px.webp';
+                // 3. Populate Modal Elements
+                document.getElementById('vcard-logo').src = vCardData.logoUrl || 'images/Bizly_Logo_150px.webp'; // Use fallback
                 document.getElementById('vcard-logo').alt = `${vCardData.name || 'Business'} Logo`;
                 document.getElementById('vcard-name').textContent = vCardData.name || 'N/A';
 
                 // Helper to set detail item visibility and content
                 const setVCardDetailItem = (elementId, value, linkPrefix = '', isLink = true) => {
                     const pElement = document.getElementById(elementId);
-                    if (!pElement) { console.warn(`Element ${elementId} not found`); return; }
+                    if (!pElement) { console.warn(`Element ${elementId} not found`); return; } // Guard clause
                     const spanElement = pElement.querySelector('span');
                     const linkElement = pElement.querySelector('a');
 
