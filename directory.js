@@ -16,6 +16,17 @@ function displayError(message) {
      if(breadcrumbContainer) breadcrumbContainer.innerHTML = '';
 }
 
+// === Helper Function: HTML Encode (Define ONCE outside main functions) ===
+function htmlEncode(str) {
+    if (typeof str !== 'string') return ''; // Handle non-strings gracefully
+    return str.replace(/&/g, '&') // Must be first
+              .replace(/'/g, ''') // Encode single quote
+              .replace(/"/g, '"') // Encode double quotes
+              .replace(/</g, '<')
+              .replace(/>/g, '>');
+}
+// ======================================================================
+
 // ======================================================================
 // Fetch and Display Listings for a Specific Community
 // ======================================================================
@@ -135,13 +146,13 @@ async function fetchAndDisplayListings() {
              const goldListings = [], silverListings = [], bronzeListings = [], regularListings = [];
 
              listingsInCategory.forEach(listing => { /* ... tier sorting ... */
-                 const isPromoted = listing.is_promoted === true;
+                  const isPromoted = listing.is_promoted === true;
                  const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
                  const isActivePromotion = isPromoted && expiresAt instanceof Date && !isNaN(expiresAt) && expiresAt > now;
                  const duration = listing.promotion_duration_months;
                  if (isActivePromotion) { if (duration === 12) goldListings.push(listing); else if (duration === 6) silverListings.push(listing); else bronzeListings.push(listing); }
                  else { regularListings.push(listing); }
-            });
+             });
              const categorySortedListings = goldListings.concat(silverListings).concat(bronzeListings).concat(regularListings);
 
              categorySortedListings.forEach(listing => {
@@ -162,17 +173,19 @@ async function fetchAndDisplayListings() {
                      else { tierClass = 'promoted-bronze'; labelTierClass = 'bronze'; }
                      listItem.classList.add(tierClass);
                      sponsoredLabelHtml = `<span class="sponsored-label ${labelTierClass}">Sponsored</span>`;
-                }
+                 }
 
                  const phoneNumber = listing.phone_number || '';
                  let phoneHtml = '';
-                 if (phoneNumber) { phoneHtml = `<button class="revealPhoneBtn" data-phone="${phoneNumber}" title="Show phone number for ${listing.name || 'this listing'}"><i class="fa-solid fa-phone"></i> Show Phone</button>`; }
-
+                 if (phoneNumber) { phoneHtml = `<button class="revealPhoneBtn" data-phone="${htmlEncode(phoneNumber)}" title="Show phone number for ${htmlEncode(listing.name || 'this listing')}"><i class="fa-solid fa-phone"></i> Show Phone</button>`; } // Encode phone number for data attribute
 
                 // --- Construct action buttons including vCard ---
-                let actionButtonsHtml = '';
                 const listingId = listing.id;
+                let vCardButtonHtml = '';
+                let promoteButtonHtml = '';
+                let websiteLinkHtml = '';
 
+                // 1. vCard Button Data and HTML
                 const vCardDataPayload = {
                     id: listingId,
                     name: listing.name || '',
@@ -184,57 +197,61 @@ async function fetchAndDisplayListings() {
                     notes: listing.notes || '',
                     logoUrl: logoFilename ? `images/logos/${logoFilename}` : 'images/Bizly_Logo_150px.webp'
                 };
+                try {
+                    const jsonString = JSON.stringify(vCardDataPayload);
+                    const attributeSafeJsonString = htmlEncode(jsonString); // Use helper function
+                    const safeTitleName = htmlEncode(listing.name || ''); // Use helper function
 
-                const jsonString = JSON.stringify(vCardDataPayload);
-
-                // *** REFINED FIX: Properly encode for HTML attribute using single quotes ***
-                function htmlEncode(str) {
-                    return str.replace(/&/g, '&') // Must be first
-                              .replace(/'/g, ''') // Encode single quote for data-vcard='...'
-                              .replace(/"/g, '"') // Encode double quotes
-                              .replace(/</g, '<')
-                              .replace(/>/g, '>');
+                    vCardButtonHtml = `<button class="button-style view-vcard-btn" data-vcard='${attributeSafeJsonString}' title="View Virtual Card for ${safeTitleName}">` +
+                                          `<i class="fa-solid fa-id-card"></i> Card` +
+                                      `</button>`;
+                } catch (jsonError) {
+                    console.error(`Error stringifying vCard data for listing ID ${listingId}:`, jsonError, vCardDataPayload);
+                    vCardButtonHtml = `<button class="button-style view-vcard-btn" disabled title="Error generating card data">` +
+                                          `<i class="fa-solid fa-id-card"></i> Card` +
+                                      `</button>`; // Show disabled button on error
                 }
-                const attributeSafeJsonString = htmlEncode(jsonString);
-                // Also encode the name for the title attribute separately
-                const safeTitleName = htmlEncode(listing.name || '');
 
-                // 1. vCard Button
-                const vCardButtonHtml = `<button class="button-style view-vcard-btn" data-vcard='${attributeSafeJsonString}' title="View Virtual Card for ${safeTitleName}">
-                                           <i class="fa-solid fa-id-card"></i> Card
-                                        </button>`;
-                actionButtonsHtml += vCardButtonHtml;
 
                 // 2. Promote Button (if applicable)
-                if (listingId && !isActivePromotion) { /* ... promote button ... */
-                     const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(listing.name || 'N/A')}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(listing.address || '')}&phone=${encodeURIComponent(listing.phone_number || '')}`;
-                    actionButtonsHtml += ` <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${safeTitleName}"><i class="fa-solid fa-rocket"></i> Promote</a>`;
+                if (listingId && !isActivePromotion) {
+                    const promoteName = htmlEncode(listing.name || 'N/A');
+                    const promoteAddress = htmlEncode(listing.address || '');
+                    const promotePhone = htmlEncode(listing.phone_number || '');
+                    const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(promoteName)}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(promoteAddress)}&phone=${encodeURIComponent(promotePhone)}`;
+                    promoteButtonHtml = ` <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${promoteName}">` +
+                                            `<i class="fa-solid fa-rocket"></i> Promote` +
+                                        `</a>`;
                 }
 
                 // 3. Website Link (if applicable)
-                let websiteLinkHtml = '';
-                if (listing.website_url && listing.website_url.trim() !== '') { /* ... website link ... */
-                     let rawUrl = listing.website_url.trim();
+                if (listing.website_url && listing.website_url.trim() !== '') {
+                    let rawUrl = listing.website_url.trim();
                     let formattedUrl = rawUrl;
                     if (!/^https?:\/\//i.test(rawUrl)) {
                         formattedUrl = `https://${rawUrl}`;
                     }
                     if (formattedUrl.startsWith('http://') || formattedUrl.startsWith('https://')) {
-                        websiteLinkHtml = `<a href="${formattedUrl}" target="_blank" title="${htmlEncode(rawUrl)}" class="website-link" rel="noopener noreferrer nofollow"><i class="fa-solid fa-globe"></i></a>`; // Encode title here too
-                        actionButtonsHtml += ` ${websiteLinkHtml}`;
+                        websiteLinkHtml = ` <a href="${formattedUrl}" target="_blank" title="${htmlEncode(rawUrl)}" class="website-link" rel="noopener noreferrer nofollow">` +
+                                              `<i class="fa-solid fa-globe"></i>` +
+                                          `</a>`;
                     } else {
                         console.warn(`Skipping invalid website URL format for listing ${listing.id}: ${rawUrl}`);
                     }
                 }
+
+                // Combine action buttons
+                const actionButtonsHtml = vCardButtonHtml + promoteButtonHtml + websiteLinkHtml;
                 // --- End Action Button Construction ---
 
 
+                 // Construct final HTML for the list item
                  listItem.innerHTML = `
                      <div class="entry-details">
-                          <span class="name">${listing.name || 'N/A'}${sponsoredLabelHtml}</span>
-                          ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
-                          ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${listing.contact_person ? `<span class="contact-person">Contact: ${listing.contact_person}</span>` : ''}
+                          <span class="name">${htmlEncode(listing.name || 'N/A')}${sponsoredLabelHtml}</span>
+                          ${listing.address ? `<span class="address">${htmlEncode(listing.address)}</span>` : ''}
+                          ${listing.notes ? `<span class="notes">${htmlEncode(listing.notes)}</span>` : ''}
+                          ${listing.contact_person ? `<span class="contact-person">Contact: ${htmlEncode(listing.contact_person)}</span>` : ''}
                           <div class="promote-button-container">${actionButtonsHtml}</div>
                      </div>
                      <div class="phone-container">
@@ -242,8 +259,8 @@ async function fetchAndDisplayListings() {
                      </div>
                  `;
                  resultsList.appendChild(listItem);
-             });
-        });
+             }); // End listing loop
+        }); // End category loop
 
     } catch (fetchError) {
         displayError(fetchError.message || "An unknown error occurred while fetching listings.");
@@ -253,9 +270,9 @@ async function fetchAndDisplayListings() {
 
 // Initialize Search Functionality (Unchanged)
 function initializeSearch() { /* ... search logic ... */
-    const searchBox = document.getElementById('searchBox'); const resultsList = document.getElementById('results'); if (!searchBox || !resultsList) { console.warn("Search elements not found."); return; }
+     const searchBox = document.getElementById('searchBox'); const resultsList = document.getElementById('results'); if (!searchBox || !resultsList) { console.warn("Search elements not found."); return; }
     searchBox.addEventListener('input', function() { const searchTerm = this.value.toLowerCase().trim(); const listItems = resultsList.getElementsByClassName('directory-entry'); const categoryHeadings = resultsList.getElementsByClassName('category-heading'); let visibleCategories = new Set(); Array.from(listItems).forEach(item => { const nameElement = item.querySelector('.name'); const nameText = nameElement?.textContent.toLowerCase() || ''; const addressText = item.querySelector('.address')?.textContent.toLowerCase() || ''; const notesText = item.querySelector('.notes')?.textContent.toLowerCase() || ''; const contactPersonText = item.querySelector('.contact-person')?.textContent.toLowerCase() || ''; let categoryText = ''; let currentElement = item.previousElementSibling; while (currentElement) { if (currentElement.classList.contains('category-heading')) { categoryText = currentElement.textContent.toLowerCase(); break; } currentElement = currentElement.previousElementSibling; } const matchesSearch = nameText.includes(searchTerm) || addressText.includes(searchTerm) || notesText.includes(searchTerm) || categoryText.includes(searchTerm) || contactPersonText.includes(searchTerm); if (matchesSearch) { item.style.display = ''; if (categoryText) visibleCategories.add(categoryText); } else { item.style.display = 'none'; } }); Array.from(categoryHeadings).forEach(heading => { const categoryText = heading.textContent.toLowerCase(); if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) { heading.style.display = ''; } else { heading.style.display = 'none'; } }); });
- }
+}
 
 
 // Initialize Popup Interactivity (Unchanged from previous working version)
@@ -272,11 +289,11 @@ function initializePopupInteraction() {
     const originalCopyIconClass = copyIconElement ? copyIconElement.className : 'fa-regular fa-copy';
     let copyTimeout = null;
     const resetCopyButton = () => { /* ... reset logic ... */
-         if (copyTextElement) copyTextElement.textContent = originalCopyText;
+        if (copyTextElement) copyTextElement.textContent = originalCopyText;
         if (copyIconElement) copyIconElement.className = originalCopyIconClass;
         if (copyPhoneButton) copyPhoneButton.disabled = false;
         if (copyTimeout) { clearTimeout(copyTimeout); copyTimeout = null; }
-    };
+     };
 
     // *** Virtual Card Popup Elements ***
     const virtualCardPopup = document.getElementById('virtualCardPopup');
@@ -295,7 +312,7 @@ function initializePopupInteraction() {
          copyPhoneButton.addEventListener('click', handleCopyClick);
      }
     resultsList.addEventListener('click', function(event) { /* ... phone reveal listener ... */
-        const revealButton = event.target.closest('.revealPhoneBtn');
+         const revealButton = event.target.closest('.revealPhoneBtn');
         if (revealButton) { /* ... phone reveal logic ... */ }
     });
     closePopupButton.addEventListener('click', function() { /* ... close phone listener ... */ });
@@ -310,7 +327,7 @@ function initializePopupInteraction() {
         resultsList.addEventListener('click', function(event) {
             const viewCardButton = event.target.closest('.view-vcard-btn');
 
-            if (viewCardButton) {
+            if (viewCardButton && !viewCardButton.disabled) { // Check if button is not disabled
                 event.preventDefault();
                 console.log("View Card button clicked");
 
@@ -322,15 +339,14 @@ function initializePopupInteraction() {
                 // 2. Get Data from button attribute
                 let vCardData;
                 try {
-                    // Use dataset - browser handles HTML entity decoding automatically
                     const rawData = viewCardButton.dataset.vcard;
-                    vCardData = JSON.parse(rawData);
+                    vCardData = JSON.parse(rawData); // Should work now
                     console.log("Parsed vCard Data:", vCardData);
                 } catch (e) {
                     console.error("Failed to parse vCard data from button:", e);
-                    console.error("Problematic data-vcard value (check encoding):", viewCardButton.getAttribute('data-vcard'));
+                    console.error("Raw data-vcard attribute:", viewCardButton.getAttribute('data-vcard'));
                     alert("Error: Could not load card data. Data might be invalid.");
-                    return;
+                    return; // Stop processing if data is bad
                 }
                 if (!vCardData || typeof vCardData !== 'object') { alert("Error: Invalid card data format."); return; }
 
@@ -339,7 +355,7 @@ function initializePopupInteraction() {
                 document.getElementById('vcard-logo').alt = `${vCardData.name || 'Business'} Logo`;
                 document.getElementById('vcard-name').textContent = vCardData.name || 'N/A';
                 const setVCardDetailItem = (elementId, value, linkPrefix = '', isLink = true) => { /* ... helper ... */
-                     const pElement = document.getElementById(elementId);
+                    const pElement = document.getElementById(elementId);
                     if (!pElement) { console.warn(`Element ${elementId} not found`); return; }
                     const spanElement = pElement.querySelector('span');
                     const linkElement = pElement.querySelector('a');
@@ -364,7 +380,7 @@ function initializePopupInteraction() {
                     } else {
                         pElement.style.display = 'none';
                     }
-                };
+                 };
                 setVCardDetailItem('vcard-contact-person', vCardData.contactPerson, '', false);
                 setVCardDetailItem('vcard-phone', vCardData.phone, 'tel:');
                 setVCardDetailItem('vcard-email', vCardData.email, 'mailto:');
@@ -382,12 +398,12 @@ function initializePopupInteraction() {
                     const filename = (vCardData.name || 'contact').replace(/[^a-z0-9]/gi, '_').toLowerCase();
                     downloadLink.download = `${filename}.vcf`;
                     console.log("Generated vCard Object URL:", currentVCardObjectUrl);
-                 }
+                }
 
                 // 5. Setup QR Code Button Listener
                 const showQrButton = document.getElementById('vcard-show-qr-button');
                 if (showQrButton) { /* ... replace listener ... */
-                    const newShowQrButton = showQrButton.cloneNode(true);
+                     const newShowQrButton = showQrButton.cloneNode(true);
                     showQrButton.parentNode.replaceChild(newShowQrButton, showQrButton);
                     newShowQrButton.addEventListener('click', () => {
                          generateAndShowQRCode(vCardData, 'vcard-qrcode-container');
@@ -407,7 +423,7 @@ function initializePopupInteraction() {
                 // 7. Setup Web Share Button Listener
                 const shareButton = document.getElementById('vcard-share-button');
                 if (shareButton) { /* ... replace listener ... */
-                    const newShareButton = shareButton.cloneNode(true);
+                     const newShareButton = shareButton.cloneNode(true);
                     shareButton.parentNode.replaceChild(newShareButton, shareButton);
                     newShareButton.addEventListener('click', async () => {
                         const shareData = {
@@ -439,7 +455,7 @@ function initializePopupInteraction() {
 
         // --- Listener for Closing Virtual Card Popup ---
         const closeVCard = () => { /* ... close logic ... */
-             virtualCardPopup.classList.add('hidden');
+            virtualCardPopup.classList.add('hidden');
             if (currentVCardObjectUrl) {
                 URL.revokeObjectURL(currentVCardObjectUrl);
                 currentVCardObjectUrl = null;
@@ -453,7 +469,7 @@ function initializePopupInteraction() {
             if (event.target === virtualCardPopup) {
                 closeVCard();
             }
-         });
+        });
 
     } else {
         console.warn("Could not initialize Virtual Card popup listeners - essential elements missing.");
@@ -488,9 +504,9 @@ function initializePopupInteraction() {
         vcf += `REV:${new Date().toISOString().split('.')[0]}Z\n`;
         vcf += `END:VCARD`;
         return vcf;
-    }
+     }
     function generateAndShowQRCode(data, containerId) { /* ... generateAndShowQRCode function ... */
-        const qrContainer = document.getElementById(containerId);
+         const qrContainer = document.getElementById(containerId);
         if (!qrContainer) { console.error(`QR Container #${containerId} not found.`); return; }
         if (typeof QRCode === 'undefined') { console.error("QRCode library is not loaded."); return; }
         qrContainer.innerHTML = '<p><small>Scan QR to save contact:</small></p>';
