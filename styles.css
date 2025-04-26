@@ -57,10 +57,26 @@ a:hover, a:focus { text-decoration: underline; }
 .action-buttons { text-align: center; margin-top: 15px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
 
 /* --- Button Style Harmonization (Keep as is) --- */
-.button-style { display: inline-block; padding: 5px 10px; font-size: 0.9em; line-height: 1.5; vertical-align: middle; cursor: pointer; background-color: #ffffff; color: #333; border: 1px solid #adb5bd; border-radius: 4px; text-decoration: none; transition: background-color 0.2s ease, border-color 0.2s ease; white-space: nowrap; margin: 0; }
+.button-style {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    line-height: 1.5;
+    vertical-align: middle;
+    cursor: pointer;
+    background-color: #ffffff;
+    color: #333;
+    border: 1px solid #adb5bd;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap;
+    margin: 0;
+    box-sizing: border-box; /* <<< ENSURE PRESENT for consistent sizing */
+}
 .button-style:hover { background-color: #f8f9fa; border-color: #adb5bd; color: #333; text-decoration: none; }
 .button-style i { margin-right: 5px; vertical-align: middle; }
-.revealPhoneBtn { display: inline-block; padding: 5px 10px; font-size: 0.9em; line-height: 1.5; vertical-align: middle; cursor: pointer; background-color: #e9ecef; color: #212529; border: 1px solid #ced4da; border-radius: 4px; transition: background-color 0.2s ease; white-space: nowrap; margin: 0; }
+.revealPhoneBtn { display: inline-block; padding: 5px 10px; font-size: 0.9em; line-height: 1.5; vertical-align: middle; cursor: pointer; background-color: #e9ecef; color: #212529; border: 1px solid #ced4da; border-radius: 4px; transition: background-color 0.2s ease; white-space: nowrap; margin: 0; box-sizing: border-box; /* Add box-sizing */ }
 .revealPhoneBtn i { margin-right: 5px; vertical-align: middle; }
 .revealPhoneBtn:hover { background-color: #dee2e6; border-color: #adb5bd; }
 a.button-style:visited { color: #333; background-color: #ffffff; }
@@ -378,6 +394,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     color: #333;
     transition: background-color 0.2s ease, border-color 0.2s ease;
     white-space: nowrap; /* Prevent button text wrapping */
+    /* box-sizing: border-box; Will inherit from .button-style */
 }
  .vcard-button:hover {
      background-color: #e9ecef;
@@ -392,8 +409,16 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 /* *** Apply side-by-side layout on larger screens *** */
 @media (min-width: 480px) { /* Adjust breakpoint as needed */
      .vcard-button {
-        flex-basis: calc(50% - 5px); /* Adjust basis for 2 buttons, considering the gap */
-        max-width: calc(50% - 5px); /* max-width should match flex-basis */
+        /* Explicitly set flex properties for rigid sizing */
+        flex-grow: 0;         /* <<< CHANGE: Don't allow growing */
+        flex-shrink: 0;       /* <<< CHANGE: Don't allow shrinking */
+        flex-basis: calc(50% - 5px); /* Set the ideal width (50% minus half the 10px gap) */
+
+        /* Keep max-width for safety, although flex-basis should control it */
+        max-width: calc(50% - 5px);
+
+        /* Ensure padding/border are included in the calculated width */
+        /* box-sizing: border-box; Inherits from .button-style */
     }
 }
 
