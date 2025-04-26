@@ -55,12 +55,10 @@
 
     <!-- Action Buttons Container -->
     <div class="action-buttons">
-        <!-- === MODIFIED: Print button changed to Share button === -->
         <button id="shareButton" class="button-style" title="Share this directory page">
-            <i class="fa-solid fa-share-nodes"></i> <!-- Changed Icon -->
-            <span class="share-text">Share Page</span> <!-- Changed Text -->
+            <i class="fa-solid fa-share-nodes"></i>
+            <span class="share-text">Share Page</span>
         </button>
-        <!-- === END MODIFICATION === -->
         <a href="#" id="suggestChangeLink" class="button-style" title="Suggest an addition or change">
              <i class="fa-solid fa-plus-circle"></i>
              <span>Suggest Change</span>
@@ -85,7 +83,9 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script> <!-- <<< ADDED QR Code Library -->
+    <!-- *** ADDED QR Code Library *** -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <!-- ***************************** -->
     <script src="directory.js" defer></script>
     <script src="common.js" defer></script>
 
@@ -95,13 +95,10 @@
         <span id="closePopup" class="close-button" title="Close">×</span>
         <h4>Phone Number:</h4>
         <p id="phoneNumber" class="popup-phone-number">...</p>
-        <!-- === ADDED: Copy Phone Button === -->
         <button id="copyPhoneBtn" class="copy-button" title="Copy phone number">
             <i class="fa-regular fa-copy"></i> <span class="copy-text">Copy</span>
         </button>
-        <!-- === END ADDITION === -->
         <p class="popup-notice">This pop-up is an Anti-Spam feature. Tell your friends you saw this listing on Bizly.ca!</p>
-        <!-- Ad Container -->
         <div id="adContainer" class="popup-ad-container">
              <ins class="adsbygoogle"
                   style="display:block"
@@ -122,7 +119,7 @@
         <i class="fa-solid fa-arrow-up"></i>
     </button>
 
-    <!-- Start: Virtual Card Popup -->
+    <!-- *** ADDED: Virtual Card Popup Structure *** -->
     <div id="virtualCardPopup" class="popup hidden">
         <div class="popup-content vcard-content"> <!-- Added vcard-content class -->
             <span id="closeVCardPopup" class="close-button" title="Close">×</span>
@@ -138,7 +135,7 @@
                  <p id="vcard-email" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-envelope fa-fw"></i> <a href="#"><span></span></a></p>
                  <p id="vcard-website" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-globe fa-fw"></i> <a href="#" target="_blank" rel="noopener noreferrer"><span></span></a></p>
                  <p id="vcard-address" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-location-dot fa-fw"></i> <span></span></p>
-                 <p id="vcard-notes" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-clipboard fa-fw"></i> <span></span></p> <!-- Added Notes Field -->
+                 <p id="vcard-notes" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-clipboard fa-fw"></i> <span></span></p>
             </div>
 
             <div class="vcard-actions">
@@ -164,6 +161,7 @@
         </div>
     </div>
     <!-- End: Virtual Card Popup -->
+    <!-- ***************************************** -->
 
 </body>
 </html>

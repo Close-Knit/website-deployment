@@ -135,7 +135,6 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 .phone-container { text-align: right; flex-shrink: 0; }
 /* START: Promote Button Container Style Update */
 .promote-button-container {
-    /* margin-top: 8px; Removed fixed margin */
     text-align: left;
     display: flex;
     align-items: center;
@@ -171,7 +170,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 .form-group input[type="text"],
 .form-group input[type="tel"],
 .form-group input[type="email"],
-.form-group input[type="url"], /* <<< ADDED input[type="url"] here */
+.form-group input[type="url"],
 .form-group textarea,
 .form-group select {
     width: 100%;
@@ -265,7 +264,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     text-align: left;
     /* === Paper Texture Background === */
     background-color: #fdfbf5; /* Light cream fallback */
-    background-image: url('images/textures/paper_texture.jpg'); /* <<< CORRECTED EXTENSION */
+    background-image: url('images/textures/paper_texture.jpg'); /* <<< PATH TO YOUR TEXTURE */
     background-repeat: repeat; /* Tile the texture */
     /* =============================== */
     border-radius: 8px;
@@ -369,10 +368,8 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 }
 
 .vcard-button {
-    /* --- MODIFIED --- */
-    flex: 1 1 100%; /* Ensure it takes full width */
-    max-width: 100%; /* Ensure it takes full width */
-    /* ------------- */
+    flex: 1 1 100%; /* Default to full width for mobile */
+    max-width: 100%;
     padding: 9px 12px;
     font-size: 0.9em;
     text-align: center;
@@ -390,6 +387,14 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 
 .vcard-button i {
      margin-right: 6px;
+}
+
+/* *** Apply side-by-side layout on larger screens *** */
+@media (min-width: 480px) { /* Adjust breakpoint as needed */
+     .vcard-button {
+        flex-basis: calc(50% - 5px); /* Adjust basis for 2 buttons, considering the gap */
+        max-width: calc(50% - 5px); /* max-width should match flex-basis */
+    }
 }
 
 .vcard-qrcode-container {
@@ -415,7 +420,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 @media print {
     html { scroll-behavior: auto; }
     body { padding: 10px; font-size: 10pt; color: #000; }
-    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton, .promote-button-container .promote-button, .promote-button-container .view-vcard-btn, .sponsored-label, .website-link, .revealPhoneBtn, #phonePopup, #virtualCardPopup /* Hide popups and triggers */,
+    h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton, .promote-button-container .promote-button, .promote-button-container .view-vcard-btn, .sponsored-label, .website-link, .revealPhoneBtn, #phonePopup, #virtualCardPopup /* Hide popups and triggers */,
     .contact-person /* Hide contact person in print */ { display: none !important; }
     #results li.promoted-gold,
     #results li.promoted-silver,
@@ -460,10 +465,8 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     .name { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; /* Allow wrap for long names/links */ line-height: normal; }
     .name span { display: inline; margin-right: 5px; } /* Ensure name part stays inline */
     .name .sponsored-label { flex-shrink: 0; margin-left: auto; white-space: nowrap; /* Keep label itself nowrap */ }
-    /* .name .website-link { margin-left: 8px; } Removed from here */
     .phone-container { text-align: right; width: 100%; margin-top: 0; order: 2; white-space: normal; }
     .promote-button-container { margin-top: 8px; text-align: left; order: 3; justify-content: flex-start; /* Align buttons left on mobile */}
-    /* Ensure alignment on mobile */
     .website-link { font-size: 1em; } /* Adjust icon size if needed on mobile */
     .promote-button { /* Ensure button size is consistent */ }
     .contact-person { font-size: 0.85em; } /* Adjust size on mobile if needed */
@@ -504,11 +507,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     }
     .vcard-name { font-size: 1.4em; }
     .vcard-detail-item { font-size: 0.9em; }
-    /* These are now handled by the base rule */
-    /* .vcard-button {
-        flex-basis: 100%;
-        max-width: 100%;
-    } */
+    /* vCard button width is handled by base and min-width media query */
     .vcard-qrcode-container canvas,
     .vcard-qrcode-container img {
         width: 120px !important; /* Adjust QR code size */
