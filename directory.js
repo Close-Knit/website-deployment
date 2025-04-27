@@ -212,7 +212,7 @@ async function fetchAndDisplayListings() {
     if (breadcrumbContainer) {
         breadcrumbContainer.innerHTML = `<ol class="breadcrumb"><li class="breadcrumb-item"><a href="index.html">Home</a></li><li class="breadcrumb-item"><a href="province_page.html?province=${encodeURIComponent(decodedProvinceName)}">${decodedProvinceName}</a></li><li class="breadcrumb-item active" aria-current="page">${decodedCommunityName}</li></ol>`;
     } else { console.warn("Breadcrumb container not found."); }
-    if (communityNameElement) { communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">Loading Telephone Directory...</span>`; }
+    if (communityNameElement) { communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">Loading Business Directory...</span>`; }
 
 
     // ***** CALL WEATHER FUNCTION *****
@@ -288,7 +288,7 @@ async function fetchAndDisplayListings() {
 
         // Update subtitle with listing count
         const listingCount = listings?.length || 0;
-        const subTitleText = `Telephone Directory (${listingCount} listings)`;
+        const subTitleText = `Business Directory (${listingCount} listings)`;
         if (communityNameElement) { communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">${subTitleText}</span>`; }
         if (listingCount === 0) {
              console.log("DEBUG: No listings found for this community ID, exiting render.");
