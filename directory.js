@@ -14,6 +14,10 @@ function displayError(message) {
      if(logoElement) logoElement.style.display = 'none';
      const breadcrumbContainer = document.getElementById('breadcrumb-container');
      if(breadcrumbContainer) breadcrumbContainer.innerHTML = '';
+
+     // Also hide weather element on major error
+     const tempElement = document.getElementById('community-temp');
+     if (tempElement) { tempElement.style.display = 'none'; }
 }
 
 // === Helper Function: UTF-8 to Base64 Encoding/Decoding ===
@@ -46,6 +50,125 @@ function base64ToUtf8(base64) {
 // *** Global check for QR Code library ***
 console.log("DEBUG: Checking QRCode library globally:", typeof QRCode);
 // *****************************************
+
+// === START: Weather Functionality ===
+
+async function fetchAndDisplayWeather(communityName, provinceName) {
+    const tempElement = document.getElementById('community-temp');
+    if (!tempElement) {
+        console.warn("Weather display element (#community-temp) not found.");
+        return; // Exit if the HTML element isn't there
+    }
+
+    tempElement.textContent = "--°C"; // Reset or initial state
+    tempElement.title = `Fetching weather for ${communityName}...`; // Initial tooltip
+
+    // 1. Geocode: Get Lat/Lon from Community/Province Name
+    let lat, lon;
+    try {
+        const geocodeQuery = `${encodeURIComponent(communityName)}, ${encodeURIComponent(provinceName)}`;
+        // IMPORTANT: Add a unique User-Agent for Nominatim policy - Using updated email
+        const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${geocodeQuery}`;
+        console.log("Geocoding URL:", geocodeUrl);
+
+        const geocodeResponse = await fetch(geocodeUrl, {
+            method: 'GET',
+            headers: {
+                'User-Agent': 'Bizly.ca Directory/1.0 (Contact: bizly.ca@proton.me)' // UPDATED EMAIL
+            }
+        });
+
+        if (!geocodeResponse.ok) {
+            throw new Error(`Geocoding HTTP error! Status: ${geocodeResponse.status}`);
+        }
+
+        const geocodeData = await geocodeResponse.json();
+        console.log("Geocoding Response:", geocodeData);
+
+        if (!geocodeData || geocodeData.length === 0 || !geocodeData[0].lat || !geocodeData[0].lon) {
+            // Try geocoding just the community name as a fallback for less specific locations
+            console.warn(`Geocoding failed for "${communityName}, ${provinceName}". Trying "${communityName}" alone.`);
+            const fallbackQuery = `${encodeURIComponent(communityName)}`;
+            const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${fallbackQuery}`;
+            const fallbackResponse = await fetch(fallbackUrl, {
+                 method: 'GET',
+                 headers: { 'User-Agent': 'Bizly.ca Directory/1.0 (Contact: bizly.ca@proton.me)' } // UPDATED EMAIL
+            });
+             if (!fallbackResponse.ok) {
+                 throw new Error(`Fallback geocoding HTTP error! Status: ${fallbackResponse.status}`);
+             }
+             const fallbackData = await fallbackResponse.json();
+             console.log("Fallback Geocoding Response:", fallbackData);
+             if (!fallbackData || fallbackData.length === 0 || !fallbackData[0].lat || !fallbackData[0].lon) {
+                throw new Error("Location not found or invalid geocoding response (primary and fallback failed).");
+             }
+             lat = parseFloat(fallbackData[0].lat);
+             lon = parseFloat(fallbackData[0].lon);
+        } else {
+            lat = parseFloat(geocodeData[0].lat);
+            lon = parseFloat(geocodeData[0].lon);
+        }
+
+        console.log(`Geocoded Coordinates: Lat=${lat}, Lon=${lon}`);
+
+    } catch (error) {
+        console.error("Geocoding failed:", error);
+        tempElement.textContent = "N/A"; // Indicate failure
+        tempElement.title = `Could not find coordinates for ${communityName}. ${error.message}`;
+        return; // Stop if geocoding fails
+    }
+
+    // 2. Fetch Weather from Open-Meteo
+    try {
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current_weather=true`;
+        console.log("Attempting Weather Fetch URL:", weatherUrl); // Log the CORRECT URL
+
+        const weatherResponse = await fetch(weatherUrl);
+
+        if (!weatherResponse.ok) {
+             const errorText = await weatherResponse.text();
+             console.error("Weather API Response Error Text:", errorText);
+             throw new Error(`Weather API HTTP error! Status: ${weatherResponse.status}`);
+        }
+
+        const weatherData = await weatherResponse.json();
+        console.log("Weather API Response Data:", weatherData); // Keep this log
+
+        // ***** ADDED DEBUG LOGS *****
+        console.log("Checking for current_weather object:", weatherData.current_weather);
+        if (weatherData.current_weather) {
+            console.log("Checking for temperature within current_weather:", weatherData.current_weather.temperature);
+        }
+        // ***************************
+
+        // 3. Extract Temperature (Specific to Open-Meteo)
+        let temperature = null;
+        // Keep the original check for now, the logs above will tell us why it fails
+        if (weatherData && weatherData.current_weather && weatherData.current_weather.temperature !== undefined) {
+            temperature = weatherData.current_weather.temperature;
+        } else {
+             console.warn("Temperature data not found using weatherData.current_weather.temperature path."); // Modified warning
+        }
+
+        // 4. Display Temperature or N/A
+        if (temperature !== null && !isNaN(parseFloat(temperature))) {
+            // Display the temperature (round it)
+            tempElement.textContent = `${Math.round(parseFloat(temperature))}°C`;
+             tempElement.title = `Current temperature in ${communityName}`; // Update tooltip
+        } else {
+             tempElement.textContent = "N/A";
+             tempElement.title = `Temperature data unavailable for ${communityName}`;
+             // The previous console.warn covers why it failed if temp is null/NaN
+        }
+
+    } catch (error) {
+        console.error("Weather fetching failed:", error);
+        tempElement.textContent = "N/A";
+        tempElement.title = `Could not fetch weather data for ${communityName}. ${error.message}`;
+    }
+}
+
+// === END: Weather Functionality ===
 
 
 // ======================================================================
@@ -83,13 +206,21 @@ async function fetchAndDisplayListings() {
     // Set titles/headers
     const baseTitle = `${decodedCommunityName}, ${decodedProvinceName}`;
     if (pageTitle) pageTitle.textContent = `${baseTitle} Directory`;
-    if (logoElement) logoElement.style.display = 'none';
+    if (logoElement) logoElement.style.display = 'none'; // Keep hidden until src is set
 
     // Build Breadcrumbs
     if (breadcrumbContainer) {
         breadcrumbContainer.innerHTML = `<ol class="breadcrumb"><li class="breadcrumb-item"><a href="index.html">Home</a></li><li class="breadcrumb-item"><a href="province_page.html?province=${encodeURIComponent(decodedProvinceName)}">${decodedProvinceName}</a></li><li class="breadcrumb-item active" aria-current="page">${decodedCommunityName}</li></ol>`;
     } else { console.warn("Breadcrumb container not found."); }
     if (communityNameElement) { communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">Loading Telephone Directory...</span>`; }
+
+
+    // ***** CALL WEATHER FUNCTION *****
+    // Call the weather function - it runs asynchronously in the background
+    // It will update the #community-temp element when it gets data
+    fetchAndDisplayWeather(decodedCommunityName, decodedProvinceName);
+    // ********************************
+
 
     const tableName = decodedProvinceName.replace(/ /g, '_');
     let communityId = null;
@@ -101,22 +232,30 @@ async function fetchAndDisplayListings() {
             .from('communities')
             .select('id, logo_filename')
             .eq('community_name', decodedCommunityName)
+            // .eq('province_name', decodedProvinceName) // Add province check if community names aren't unique across provinces
             .limit(1)
-            .maybeSingle();
+            .maybeSingle(); // Use maybeSingle to handle 0 or 1 result gracefully
 
         if (communityError) { throw new Error(`Error fetching community data: ${communityError.message}`); }
         if (!communityData) { throw new Error(`Community "${decodedCommunityName}" not found in the communities table.`); }
         communityId = communityData.id;
         logoFilename = communityData.logo_filename;
 
-        if (logoElement && logoFilename) { logoElement.src = `images/logos/${logoFilename}`; logoElement.alt = `${decodedCommunityName} Logo`; logoElement.style.display = 'block'; }
-        else if (logoElement) { logoElement.style.display = 'none'; }
+        // Set Logo Source (after potentially getting the filename)
+        if (logoElement && logoFilename) {
+            logoElement.src = `images/logos/${logoFilename}`;
+            logoElement.alt = `${decodedCommunityName} Logo`;
+            logoElement.style.display = 'block'; // Show the logo now
+        } else if (logoElement) {
+            logoElement.style.display = 'none'; // Ensure it remains hidden if no logo
+        }
 
+        // Update Suggest Change Link
         const suggestChangeLink = document.getElementById('suggestChangeLink');
         if (suggestChangeLink && communityId) {
             suggestChangeLink.href = `suggest_change.html?cid=${communityId}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}`;
         } else if (suggestChangeLink) {
-             suggestChangeLink.style.display = 'none';
+             suggestChangeLink.style.display = 'none'; // Hide if no community ID
              console.warn("Suggest Change link hidden as community ID was not found.");
         }
 
@@ -145,16 +284,16 @@ async function fetchAndDisplayListings() {
 
         console.log(`DEBUG: Fetched ${listings?.length ?? 0} listings from DB.`, listings); // Log fetched data
 
-        resultsList.innerHTML = ''; // Clear loading
+        resultsList.innerHTML = ''; // Clear loading message
 
-        // Update subtitle
+        // Update subtitle with listing count
         const listingCount = listings?.length || 0;
         const subTitleText = `Telephone Directory (${listingCount} listings)`;
         if (communityNameElement) { communityNameElement.innerHTML = `${baseTitle}<br><span class="directory-subtitle">${subTitleText}</span>`; }
         if (listingCount === 0) {
              console.log("DEBUG: No listings found for this community ID, exiting render.");
              resultsList.innerHTML = `<li>No listings found for ${decodedCommunityName}.</li>`;
-             return;
+             return; // Stop if no listings
          }
 
         // --- Group and Sort Listings by Category and Tier ---
@@ -176,7 +315,7 @@ async function fetchAndDisplayListings() {
              const listingsInCategory = groupedListings[category];
              const goldListings = [], silverListings = [], bronzeListings = [], regularListings = [];
 
-             listingsInCategory.forEach(listing => { /* ... tier sorting ... */
+             listingsInCategory.forEach(listing => {
                  const isPromoted = listing.is_promoted === true;
                  const expiresAt = listing.promotion_expires_at ? new Date(listing.promotion_expires_at) : null;
                  const isActivePromotion = isPromoted && expiresAt instanceof Date && !isNaN(expiresAt) && expiresAt > now;
@@ -184,6 +323,7 @@ async function fetchAndDisplayListings() {
                  if (isActivePromotion) { if (duration === 12) goldListings.push(listing); else if (duration === 6) silverListings.push(listing); else bronzeListings.push(listing); }
                  else { regularListings.push(listing); }
              });
+             // Combine sorted promoted tiers with regular listings
              const categorySortedListings = goldListings.concat(silverListings).concat(bronzeListings).concat(regularListings);
 
              console.log(`DEBUG: Found ${categorySortedListings.length} listings in category "${category}". Starting listing loop.`);
@@ -200,7 +340,7 @@ async function fetchAndDisplayListings() {
                  let tierClass = '';
                  let sponsoredLabelHtml = '';
                  let labelTierClass = '';
-                 if (isActivePromotion) { /* ... tier label ... */
+                 if (isActivePromotion) {
                      if (duration === 12) { tierClass = 'promoted-gold'; labelTierClass = 'gold'; }
                      else if (duration === 6) { tierClass = 'promoted-silver'; labelTierClass = 'silver'; }
                      else { tierClass = 'promoted-bronze'; labelTierClass = 'bronze'; }
@@ -217,7 +357,7 @@ async function fetchAndDisplayListings() {
                 const listingId = listing.id;
                 let actionButtonsHtml = '';
 
-                // ===== START: APOSTROPHE REMOVAL FOR VCARD PAYLOAD =====
+                // Gather ALL data needed for the card modal - Use CLEANED values for VCF/QR, ORIGINAL for display
                 const originalName = listing.name || '';
                 const originalAddress = listing.address || '';
                 const originalNotes = listing.notes || '';
@@ -226,32 +366,26 @@ async function fetchAndDisplayListings() {
                 const originalEmail = listing.email || '';       // Keep original format
                 const originalWebsite = listing.website_url || ''; // Keep original format
 
-                const cleanedName = originalName.replace(/['’]/g, ''); // Catches ' and ’
-                const cleanedAddress = originalAddress.replace(/['’]/g, ''); // Catches ' and ’
-                const cleanedNotes = originalNotes.replace(/['’]/g, ''); // Catches ' and ’
-                const cleanedContactPerson = originalContactPerson.replace(/['’]/g, ''); // Catches ' and ’
-                // ===== END: APOSTROPHE REMOVAL FOR VCARD PAYLOAD =====
+                const cleanedName = originalName.replace(/['’]/g, '');
+                const cleanedAddress = originalAddress.replace(/['’]/g, '');
+                const cleanedNotes = originalNotes.replace(/['’]/g, '');
+                const cleanedContactPerson = originalContactPerson.replace(/['’]/g, '');
 
-
-                // Gather ALL data needed for the card modal - USE CLEANED VALUES
                 const vCardDataPayload = {
                     id: listingId,
-                    name: cleanedName,           // Use cleaned name
+                    name: cleanedName,           // Use cleaned name for VCF/QR
                     phone: originalPhone,        // Use original phone
                     email: originalEmail,        // Use original email
                     website: originalWebsite,    // Use original website
-                    address: cleanedAddress,       // Use cleaned address
-                    contactPerson: cleanedContactPerson, // Use cleaned contact person
-                    notes: cleanedNotes,           // Use cleaned notes
+                    address: cleanedAddress,       // Use cleaned address for VCF/QR
+                    contactPerson: cleanedContactPerson, // Use cleaned contact person for VCF/QR
+                    notes: cleanedNotes,           // Use cleaned notes for VCF/QR
                     logoUrl: logoFilename ? `images/logos/${logoFilename}` : 'images/Bizly_Logo_150px.webp'
                  };
                 try {
                     const jsonString = JSON.stringify(vCardDataPayload);
-                    // *** USE UTF-8 + BASE64 ENCODING ***
-                    const base64EncodedData = utf8ToBase64(jsonString);
-
-                    // Escape name for title attribute only (Use ORIGINAL name for title)
-                    const safeTitleName = (originalName).replace(/"/g, '"'); // Title uses original name
+                    const base64EncodedData = utf8ToBase64(jsonString); // Encode payload
+                    const safeTitleName = (originalName).replace(/"/g, '"'); // Title uses original name, escape quotes
 
                     actionButtonsHtml += `<button class="button-style view-vcard-btn" data-vcard='${base64EncodedData}' title="View Virtual Card for ${safeTitleName}">` +
                                           `<i class="fa-solid fa-id-card"></i> Card` +
@@ -265,9 +399,9 @@ async function fetchAndDisplayListings() {
 
                 // 2. Promote Button (if applicable) - Use ORIGINAL name for title/URL
                 if (listingId && !isActivePromotion) {
-                    const promoteName = (originalName).replace(/"/g, '"'); // Use original name
-                    const promoteAddress = (listing.address || '').replace(/"/g, '"'); // Address/phone don't usually have apostrophes
-                    const promotePhone = (listing.phone_number || '').replace(/"/g, '"');
+                    const promoteName = (originalName).replace(/"/g, '"'); // Use original name, escape quotes
+                    const promoteAddress = (originalAddress).replace(/"/g, '"');
+                    const promotePhone = (originalPhone).replace(/"/g, '"');
                     const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(promoteName)}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(promoteAddress)}&phone=${encodeURIComponent(promotePhone)}`;
                     actionButtonsHtml += ` <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${promoteName}"><i class="fa-solid fa-rocket"></i> Promote</a>`;
                 }
@@ -279,21 +413,21 @@ async function fetchAndDisplayListings() {
                     let formattedUrl = rawUrl;
                     if (!/^https?:\/\//i.test(rawUrl)) { formattedUrl = `https://${rawUrl}`; }
                     if (formattedUrl.startsWith('http://') || formattedUrl.startsWith('https://')) {
-                         const safeRawUrl = rawUrl.replace(/"/g, '"');
+                         const safeRawUrl = rawUrl.replace(/"/g, '"'); // Escape quotes for title
                         websiteLinkHtml = ` <a href="${formattedUrl}" target="_blank" title="${safeRawUrl}" class="website-link" rel="noopener noreferrer nofollow"><i class="fa-solid fa-globe"></i></a>`;
-                        actionButtonsHtml += ` ${websiteLinkHtml}`;
+                        actionButtonsHtml += ` ${websiteLinkHtml}`; // Append to the action buttons
                     } else { console.warn(`Skipping invalid website URL format for listing ${listing.id}: ${rawUrl}`); }
                 }
                 // --- End Action Button Construction ---
 
 
-                 // Use TEMPLATE LITERALS - Use ORIGINAL values for display & REMOVE COMMENTS
+                 // Use TEMPLATE LITERALS - Use ORIGINAL values for display
                  listItem.innerHTML = `
                      <div class="entry-details">
                           <span class="name">${originalName}${sponsoredLabelHtml}</span>
-                          ${listing.address ? `<span class="address">${listing.address}</span>` : ''}
-                          ${listing.notes ? `<span class="notes">${listing.notes}</span>` : ''}
-                          ${listing.contact_person ? `<span class="contact-person">Contact: ${listing.contact_person}</span>` : ''}
+                          ${originalAddress ? `<span class="address">${originalAddress}</span>` : ''}
+                          ${originalNotes ? `<span class="notes">${originalNotes}</span>` : ''}
+                          ${originalContactPerson ? `<span class="contact-person">Contact: ${originalContactPerson}</span>` : ''}
                           <div class="promote-button-container">${actionButtonsHtml}</div>
                      </div>
                      <div class="phone-container">
@@ -315,7 +449,7 @@ async function fetchAndDisplayListings() {
 } // End fetchAndDisplayListings
 
 
-// Initialize Search Functionality (Unchanged)
+// Initialize Search Functionality (Unchanged - Assuming it's correct)
 function initializeSearch() {
     const searchBox = document.getElementById('searchBox');
     const resultsList = document.getElementById('results');
@@ -370,8 +504,7 @@ function initializeSearch() {
                     item.style.display = 'none';
                 }
             } else {
-                 // Handle other potential list items if necessary, e.g., loading/error messages
-                 // For now, assume only category-heading and directory-entry exist after load
+                 // Handle other potential list items if necessary (e.g., loading/error messages)
             }
         });
 
@@ -390,60 +523,32 @@ function initializeSearch() {
                 noResultsMessage.textContent = `No listings found matching "${searchBox.value}".`;
                 noResultsMessage.style.display = 'block';
             } else {
-                // Create message if it doesn't exist
                 let tempMessage = document.createElement('li');
                 tempMessage.id = 'no-search-results';
                 tempMessage.textContent = `No listings found matching "${searchBox.value}".`;
                 tempMessage.style.fontStyle = 'italic';
                 tempMessage.style.marginTop = '15px';
                 tempMessage.style.textAlign = 'center';
-                tempMessage.style.color = '#6c757d'; // Softer color
+                tempMessage.style.color = '#6c757d';
                 resultsList.appendChild(tempMessage);
-                 noResultsMessage = tempMessage; // Assign the created element
+                 noResultsMessage = tempMessage;
             }
-             // Also hide all category headings if no entries are visible
-             listItems.forEach(item => {
-                 if (item.classList.contains('category-heading')) {
-                     item.style.display = 'none';
-                 }
+             listItems.forEach(item => { // Hide all category headings if no entries are visible
+                 if (item.classList.contains('category-heading')) { item.style.display = 'none'; }
              });
         } else if (noResultsMessage) {
             noResultsMessage.style.display = 'none'; // Hide message if there are results or search is empty
              // Ensure category headings are visible if search is cleared/matches exist
-             if (!searchTerm) {
-                 listItems.forEach(item => {
-                     if (item.classList.contains('category-heading')) {
-                          // Check if this category *actually* has visible entries (should be true if !searchTerm)
-                          const entriesInCategory = Array.from(item.parentNode.querySelectorAll('.directory-entry'))
-                                .filter(entry => entry.closest('li.category-heading') === item); // Basic check if they are "under" it
-                          const hasVisibleEntries = entriesInCategory.some(entry => entry.style.display !== 'none');
-                          if (hasVisibleEntries) { // Only show heading if it has content visible
-                             item.style.display = 'block';
-                          }
+             listItems.forEach(item => {
+                 if (item.classList.contains('category-heading')) {
+                     let nextSibling = item.nextElementSibling; let categoryHasVisible = false;
+                     while(nextSibling && !nextSibling.classList.contains('category-heading')) {
+                         if (nextSibling.classList.contains('directory-entry') && nextSibling.style.display !== 'none') { categoryHasVisible = true; break; }
+                         nextSibling = nextSibling.nextElementSibling;
                      }
-                 });
-             } else {
-                 // If searching and results *are* found, ensure the relevant category headings are visible
-                 listItems.forEach(item => {
-                     if (item.classList.contains('category-heading')) {
-                         // Check subsequent sibling entries until the next heading
-                         let nextSibling = item.nextElementSibling;
-                         let categoryHasVisible = false;
-                         while(nextSibling && !nextSibling.classList.contains('category-heading')) {
-                             if (nextSibling.classList.contains('directory-entry') && nextSibling.style.display !== 'none') {
-                                 categoryHasVisible = true;
-                                 break;
-                             }
-                             nextSibling = nextSibling.nextElementSibling;
-                         }
-                         if (categoryHasVisible) {
-                             item.style.display = 'block';
-                         } else {
-                              item.style.display = 'none'; // Hide if no matches in its section
-                         }
-                     }
-                 });
-             }
+                     item.style.display = categoryHasVisible ? 'block' : 'none'; // Show heading only if it has visible entries below it
+                 }
+             });
         }
     });
  } // End Initialize Search Functionality
@@ -546,9 +651,6 @@ function initializePopupInteraction() {
                  // Attempt to load AdSense ad inside the popup
                  const adContainer = phonePopup.querySelector('#adContainer .adsbygoogle');
                  if (adContainer && window.adsbygoogle) {
-                     // Clear previous ad content if any (important for SPA-like behavior)
-                     // adContainer.innerHTML = ''; // Might not be needed if push handles replacement
-                     // Re-push the ad request
                      try {
                         console.log("Pushing AdSense request for popup ad slot:", adContainer.getAttribute('data-ad-slot'));
                          (adsbygoogle = window.adsbygoogle || []).push({});
@@ -596,80 +698,56 @@ function initializePopupInteraction() {
             let decodedJsonString = "";
             try {
                 const base64EncodedData = viewCardButton.dataset.vcard;
-                if (!base64EncodedData) {
-                    throw new Error("Button is missing the data-vcard attribute.");
-                }
+                if (!base64EncodedData) { throw new Error("Button is missing the data-vcard attribute."); }
                 decodedJsonString = base64ToUtf8(base64EncodedData); // Use the helper
-                if (!decodedJsonString) {
-                    // base64ToUtf8 returns "" on error, throw specific error here
-                    throw new Error("Failed to decode Base64 data.");
-                }
-                console.log("Decoded JSON String (before parse):", decodedJsonString); // DIAGNOSTIC LOG
+                if (!decodedJsonString) { throw new Error("Failed to decode Base64 data."); }
+                console.log("Decoded JSON String (before parse):", decodedJsonString);
                 vCardData = JSON.parse(decodedJsonString); // Parse the decoded JSON
                 console.log("Parsed vCard Data:", vCardData);
             } catch (e) {
                 console.error("Failed to decode/parse vCard data from button:", e);
-                // Check if the error might be due to invalid JSON *after* decoding
                 if (e instanceof SyntaxError && decodedJsonString) {
                      console.error("Potential JSON Syntax Error in decoded data. Decoded string was:", decodedJsonString);
                      alert("Error: Could not load card data due to invalid format after decoding.");
-                } else {
-                     alert(`Error: Could not load card data. ${e.message}`);
-                }
+                } else { alert(`Error: Could not load card data. ${e.message}`); }
                 return;
             }
             if (!vCardData || typeof vCardData !== 'object') { alert("Error: Invalid card data format."); return; }
 
-            // 3. Populate Modal Elements (Corrected Logic)
+            // 3. Populate Modal Elements (Using helper for safety)
             document.getElementById('vcard-logo').src = vCardData.logoUrl || 'images/Bizly_Logo_150px.webp';
             document.getElementById('vcard-logo').alt = `${vCardData.name || 'Business'} Logo`;
             document.getElementById('vcard-name').textContent = vCardData.name || 'N/A';
+
             const setVCardDetailItem = (elementId, value, linkPrefix = '', isLink = true) => {
                  const pElement = document.getElementById(elementId);
                  if (!pElement) { console.warn(`Element ${elementId} not found`); return; }
                  const spanElement = pElement.querySelector('span');
                  const linkElement = pElement.querySelector('a');
+                 pElement.style.display = 'none'; // Hide by default
 
                  if (value && value.trim() !== '') {
                      const trimmedValue = value.trim();
-                     if (spanElement) {
-                         spanElement.textContent = trimmedValue;
-                     } else {
-                         pElement.textContent = trimmedValue; // Fallback if span is missing structure
-                         console.warn(`Span element missing inside ${elementId}, setting text on <p>`);
-                     }
+                     if (spanElement) { spanElement.textContent = trimmedValue; }
+                     else { console.warn(`Span element missing inside ${elementId}`); }
+
                      if (isLink && linkElement) {
                          let hrefValue = trimmedValue;
-                         // Prepend prefix if needed (tel:, mailto:)
-                         if (linkPrefix && !hrefValue.startsWith(linkPrefix) && !hrefValue.startsWith('http')) { // Avoid double prefixing http
-                              hrefValue = linkPrefix + hrefValue;
-                         }
-                         // Ensure website URLs have https:// if missing protocol
-                         else if (elementId === 'vcard-website' && !hrefValue.startsWith('http://') && !hrefValue.startsWith('https://')) {
-                             hrefValue = 'https://' + hrefValue;
-                         }
+                         if (linkPrefix && !hrefValue.startsWith(linkPrefix) && !hrefValue.startsWith('http')) { hrefValue = linkPrefix + hrefValue; }
+                         else if (elementId === 'vcard-website' && !hrefValue.startsWith('http://') && !hrefValue.startsWith('https://')) { hrefValue = 'https://' + hrefValue; }
                          linkElement.href = hrefValue;
 
-                         // Ensure link contains the span (or text if span missing)
-                         if (spanElement && !linkElement.contains(spanElement)) {
-                             linkElement.innerHTML = ''; // Clear link
-                             linkElement.appendChild(spanElement); // Put span inside link
-                         } else if (!spanElement) {
-                              linkElement.textContent = trimmedValue; // Put text directly in link as fallback
-                         }
-                         linkElement.style.display = 'inline'; // Make link visible
-                     } else if (linkElement) {
-                         linkElement.style.display = 'none'; // Hide link element if not applicable
-                     }
-                     pElement.style.display = 'flex'; // Show the whole item
-                 } else {
-                     pElement.style.display = 'none'; // Hide the item if value is empty
+                         if (spanElement && !linkElement.contains(spanElement)) { linkElement.innerHTML = ''; linkElement.appendChild(spanElement); }
+                         else if (!spanElement) { linkElement.textContent = trimmedValue; }
+                         linkElement.style.display = 'inline';
+                     } else if (linkElement) { linkElement.style.display = 'none'; }
+                     pElement.style.display = 'flex'; // Show the item
                  }
              };
             setVCardDetailItem('vcard-contact-person', vCardData.contactPerson, '', false);
             setVCardDetailItem('vcard-phone', vCardData.phone, 'tel:');
             setVCardDetailItem('vcard-email', vCardData.email, 'mailto:');
-            setVCardDetailItem('vcard-website', vCardData.website, '', true); // No prefix needed, handled internally
+            setVCardDetailItem('vcard-website', vCardData.website, '', true);
             setVCardDetailItem('vcard-address', vCardData.address, '', false);
             setVCardDetailItem('vcard-notes', vCardData.notes, '', false);
 
@@ -680,7 +758,6 @@ function initializePopupInteraction() {
             const downloadLink = document.getElementById('vcard-download-link');
             if (downloadLink) {
                  downloadLink.href = currentVCardObjectUrl;
-                 // Generate a safe filename (e.g., replace spaces, limit length)
                  const safeName = (vCardData.name || 'contact').replace(/[^a-z0-9]/gi, '_').toLowerCase();
                  downloadLink.download = `${safeName}.vcf`;
              } else { console.warn("vCard download link element not found."); }
@@ -701,8 +778,7 @@ function initializePopupInteraction() {
             if (smsLink) {
                  let smsBody = `Contact Info for ${vCardData.name || 'listing'}:`;
                  if (vCardData.phone) smsBody += `\nPhone: ${vCardData.phone}`;
-                 if (vCardData.website) smsBody += `\nWebsite: ${vCardData.website}`; // Maybe add website?
-                 // Add address? Email? Keep it concise for SMS.
+                 if (vCardData.website) smsBody += `\nWebsite: ${vCardData.website}`;
                  smsLink.href = `sms:?body=${encodeURIComponent(smsBody)}`;
              } else { console.warn("SMS link element not found."); }
 
@@ -715,13 +791,12 @@ function initializePopupInteraction() {
                      const shareData = {
                          title: `Contact: ${vCardData.name || 'Business'}`,
                          text: `Contact info for ${vCardData.name}:\nPhone: ${vCardData.phone || 'N/A'}\nEmail: ${vCardData.email || 'N/A'}\nWebsite: ${vCardData.website || 'N/A'}`,
-                         // url: vCardData.website || window.location.href, // Optional: Link to website or current page
                          files: [new File([blob], `${(vCardData.name || 'contact').replace(/[^a-z0-9]/gi, '_').toLowerCase()}.vcf`, { type: 'text/vcard' })]
                      };
                      if (navigator.canShare && navigator.canShare({ files: shareData.files })) {
                           try { await navigator.share(shareData); console.log('vCard shared successfully!'); }
                           catch (err) { if (err.name !== 'AbortError') console.error('Error sharing vCard:', err); }
-                      } else if (navigator.share) { // Fallback share without file if files not supported
+                      } else if (navigator.share) {
                            try { await navigator.share({ title: shareData.title, text: shareData.text, url: vCardData.website || window.location.href }); }
                            catch (err) { if (err.name !== 'AbortError') console.error('Error sharing text:', err); }
                       } else { alert('Web Share API not supported on your browser/device.'); }
@@ -739,7 +814,7 @@ function initializePopupInteraction() {
     // --- Copy Phone Number Logic ---
     if (copyPhoneButton && phoneNumberDisplay) {
         copyPhoneButton.addEventListener('click', async () => {
-            const phoneText = phoneNumberDisplay.textContent; // Get text from display
+            const phoneText = phoneNumberDisplay.textContent;
             if (phoneText && phoneText !== '...' && navigator.clipboard) {
                 try {
                     await navigator.clipboard.writeText(phoneText);
@@ -747,7 +822,6 @@ function initializePopupInteraction() {
                     if (copyTextElement) copyTextElement.textContent = 'Copied!';
                     if (copyIconElement) copyIconElement.className = 'fa-solid fa-check';
                     copyPhoneButton.disabled = true;
-
                     copyTimeout = setTimeout(resetCopyButton, 2000);
                 } catch (err) {
                     console.error('Failed to copy phone number:', err);
@@ -761,43 +835,16 @@ function initializePopupInteraction() {
     }
 
 
-    // --- Close Listeners for Popups (Need null checks) ---
-    if (closeVCardPopupButton) {
-        console.log("DEBUG: Attaching click listener to vCard close button");
-        closeVCardPopupButton.addEventListener('click', closeVCard);
-    } else {
-         console.error("Could not attach listener to vCard close button - element not found.");
-    }
-    if (virtualCardPopup) {
-         console.log("DEBUG: Attaching click listener to vCard popup background");
-        virtualCardPopup.addEventListener('click', function(event) {
-            // Close only if clicked directly on the background, not content inside
-            if (event.target === virtualCardPopup) {
-                closeVCard();
-            }
-        });
-    } else {
-         console.error("Could not attach click-outside listener to vCard popup - element not found.");
-    }
-    if (closePopupButton) { // Phone close button
-        console.log("DEBUG: Attaching click listener to phone close button");
-        closePopupButton.addEventListener('click', closePhonePopup);
-    } else {
-         console.error("Could not attach listener to phone close button - element not found.");
-    }
-    if (phonePopup) { // Phone click outside
-         console.log("DEBUG: Attaching click listener to phone popup background");
-        phonePopup.addEventListener('click', function(event) {
-            if (event.target === phonePopup) {
-                closePhonePopup();
-            }
-        });
-     } else {
-         console.error("Could not attach click-outside listener to phone popup - element not found.");
-     }
-
-     // Close popups on ESC key press
-     document.addEventListener('keydown', (event) => {
+    // --- Close Listeners for Popups ---
+    [closeVCardPopupButton, closePopupButton].forEach(button => {
+        if (button) { button.addEventListener('click', button === closeVCardPopupButton ? closeVCard : closePhonePopup); }
+        else { console.error(`Close button for ${button === closeVCardPopupButton ? 'vCard' : 'Phone'} popup not found.`); }
+    });
+    [virtualCardPopup, phonePopup].forEach(popup => {
+         if (popup) { popup.addEventListener('click', function(event) { if (event.target === popup) { popup === virtualCardPopup ? closeVCard() : closePhonePopup(); } }); }
+         else { console.error(`${popup === virtualCardPopup ? 'vCard' : 'Phone'} popup element not found for click-outside listener.`); }
+    });
+     document.addEventListener('keydown', (event) => { // ESC key closes popups
          if (event.key === "Escape") {
               if (virtualCardPopup && !virtualCardPopup.classList.contains('hidden')) { closeVCard(); }
               else if (phonePopup && !phonePopup.classList.contains('hidden')) { closePhonePopup(); }
@@ -812,66 +859,27 @@ function initializePopupInteraction() {
 
 // Function to generate VCF string
 function generateVCF(data) {
-    // vCard version 3.0 is widely compatible
     let vcf = `BEGIN:VCARD\nVERSION:3.0\n`;
-
-    // Name (Required) - FN (Formatted Name) and N (Structured Name)
-    // Use the cleaned name from the payload
     const name = data.name || '';
-    vcf += `FN:${name}\n`;
-    // Basic N structure: Last;First;Middle;Prefix;Suffix
-    // We only have a combined name, so put it in the 'First' slot for simplicity
-    // or just use FN which is often sufficient. Let's stick with FN only for simplicity unless N is needed.
-    // vcf += `N:;${name};;;\n`; // Example if structure was needed
-
-    // Organization (Could be same as name if it's a business)
-    vcf += `ORG:${name}\n`;
-
-    // Phone Number (Add TEL type based on context if available, WORK is common default)
-    if (data.phone) {
-        vcf += `TEL;TYPE=WORK,VOICE:${data.phone}\n`;
-    }
-
-    // Email
-    if (data.email) {
-        vcf += `EMAIL;TYPE=PREF,INTERNET:${data.email}\n`;
-    }
-
-    // Website
-    if (data.website) {
-        vcf += `URL:${data.website}\n`;
-    }
-
-    // Address (Add ADR type, WORK is common default)
-    // Use the cleaned address from the payload
+    vcf += `FN:${name}\n`; // Formatted Name
+    vcf += `ORG:${name}\n`; // Organization (assuming business name)
+    if (data.phone) { vcf += `TEL;TYPE=WORK,VOICE:${data.phone}\n`; }
+    if (data.email) { vcf += `EMAIL;TYPE=PREF,INTERNET:${data.email}\n`; }
+    if (data.website) { vcf += `URL:${data.website}\n`; }
     if (data.address) {
-        // ADR structure: PO Box;Extended Address;Street;Locality (City);Region (State/Province);Postal Code;Country
-        // We only have a combined address string. Put it in the 'Street' part.
-        // Escape commas, semicolons, backslashes, and newlines within the address field.
         const escapedAddress = data.address.replace(/\\/g, '\\\\').replace(/,/g, '\\,').replace(/;/g, '\\;').replace(/\n/g, '\\n');
-        vcf += `ADR;TYPE=WORK:;;${escapedAddress};;;;\n`;
+        vcf += `ADR;TYPE=WORK:;;${escapedAddress};;;;\n`; // Address in Street field
     }
-
-    // Contact Person (Use NOTE field as standard vCard doesn't have a simple 'Contact Person' field)
-    // Use the cleaned contact person from the payload
+    let noteContent = '';
     if (data.contactPerson) {
-         const escapedContact = data.contactPerson.replace(/\\/g, '\\\\').replace(/,/g, '\\,').replace(/;/g, '\\;').replace(/\n/g, '\\n');
-        vcf += `NOTE:Contact Person: ${escapedContact}\\n`; // Add to NOTE
+        noteContent += `Contact Person: ${data.contactPerson.replace(/\\/g, '\\\\').replace(/,/g, '\\,').replace(/;/g, '\\;').replace(/\n/g, '\\n')}`;
     }
-
-    // Notes (Append to NOTE field, ensuring newline separation if contact person was also added)
-    // Use the cleaned notes from the payload
     if (data.notes) {
-         const escapedNotes = data.notes.replace(/\\/g, '\\\\').replace(/,/g, '\\,').replace(/;/g, '\\;').replace(/\n/g, '\\n');
-        if (data.contactPerson) { // Already started a NOTE
-            vcf += `Listing Notes: ${escapedNotes}\\n`;
-        } else { // Start a new NOTE
-            vcf += `NOTE:Listing Notes: ${escapedNotes}\\n`;
-        }
+        if (noteContent) noteContent += '\\n'; // Add newline if contact was present
+        noteContent += `Listing Notes: ${data.notes.replace(/\\/g, '\\\\').replace(/,/g, '\\,').replace(/;/g, '\\;').replace(/\n/g, '\\n')}`;
     }
-    // Add timestamp of generation
-    vcf += `REV:${new Date().toISOString()}\n`;
-
+    if (noteContent) { vcf += `NOTE:${noteContent}\n`; }
+    vcf += `REV:${new Date().toISOString()}\n`; // Revision timestamp
     vcf += `END:VCARD`;
     return vcf;
 }
@@ -880,49 +888,38 @@ function generateVCF(data) {
 function generateAndShowQRCode(data, containerId) {
      const qrContainer = document.getElementById(containerId);
      console.log(`DEBUG: generateAndShowQRCode called. Container ID: ${containerId}, Found container:`, qrContainer);
-
     if (!qrContainer) { console.error(`QR Container #${containerId} not found.`); return; }
 
-    // Check for QRCode library
     if (typeof QRCode === 'undefined' || typeof QRCode !== 'function') {
         console.error("QRCode library is not loaded or QRCode is not a constructor function.");
         qrContainer.innerHTML = `<p><small>Scan QR to save contact:</small></p><p style="color: red;">Error: QR Code library failed to load.</p>`;
-        qrContainer.style.display = 'block'; // Show the error message
+        qrContainer.style.display = 'block';
         return;
     }
 
-    // Clear previous QR code first
     const smallText = qrContainer.querySelector('small')?.textContent || 'Scan QR to save contact:';
-    qrContainer.innerHTML = `<p><small>${smallText}</small></p>`; // Keep text, remove old QR
+    qrContainer.innerHTML = `<p><small>${smallText}</small></p>`; // Clear old QR
 
-    // Generate MECARD string (Simpler format for QR, widely supported)
-    // Use the cleaned name from the VCard data payload
     let qrCodeString = `MECARD:`;
-    if (data.name) qrCodeString += `N:${data.name};`; // Use the cleaned name
+    if (data.name) qrCodeString += `N:${data.name};`; // Cleaned name for QR
     if (data.phone) qrCodeString += `TEL:${data.phone};`;
     if (data.email) qrCodeString += `EMAIL:${data.email};`;
     if (data.website) qrCodeString += `URL:${data.website};`;
-    // Note: MECARD doesn't have standard fields for Address or detailed Notes beyond ORG.
-    // If ORG is desired, add it: qrCodeString += `ORG:${data.name};`;
-    qrCodeString += `;`; // Terminator is important
+    // Optional: Add address to NICKNAME or ORG if needed, MECARD is limited
+    // if (data.address) qrCodeString += `ADR:${data.address};`; // ADR is technically supported but less common in simple readers
+    qrCodeString += `;`; // Terminator
 
     console.log("DEBUG: MECARD string for QR:", qrCodeString);
-
     try {
         console.log("DEBUG: Attempting to create new QRCode instance...");
-        new QRCode(qrContainer, { // This instance attaches the QR code to the container
-            text: qrCodeString,
-            width: 140,
-            height: 140,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.M // Medium error correction
+        new QRCode(qrContainer, {
+            text: qrCodeString, width: 140, height: 140, colorDark : "#000000",
+            colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M
         });
         qrContainer.style.display = 'block';
         console.log("DEBUG: Successfully created QRCode instance and displayed container.");
     } catch(e) {
          console.error("QRCode generation failed INSIDE TRY/CATCH:", e);
-         // Display error within the container
          qrContainer.innerHTML = `<p><small>${smallText}</small></p><p style="color: red;">Error generating QR code.</p>`;
          qrContainer.style.display = 'block';
     }
@@ -930,10 +927,10 @@ function generateAndShowQRCode(data, containerId) {
 // === END: Helper Functions ===
 
 
-// Main Execution
+// Main Execution: Fetch listings, then initialize search and popups
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired for directory page.");
-    fetchAndDisplayListings();
+    fetchAndDisplayListings(); // This now also triggers fetchAndDisplayWeather internally
     initializeSearch();
     initializePopupInteraction();
 });

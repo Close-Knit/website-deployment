@@ -50,8 +50,8 @@ a:hover, a:focus { text-decoration: underline; }
 /* Styles for Community Directory Page (community.html) */
 /* ====================================================================== */
 .community-header { text-align: center; padding-top: 40px; margin-bottom: 25px; }
-#logo { display: block; margin: 0 auto 10px auto; max-width: 150px; height: auto; }
-#community-name { margin-top: 0; margin-bottom: 0; text-align: center; line-height: 1.4; }
+#logo { display: block; margin: 0 auto 10px auto; max-width: 150px; height: auto; } /* Original logo style */
+#community-name { margin-top: 0; margin-bottom: 0; text-align: center; line-height: 1.4; } /* Original community name style */
 .search-container { text-align: center; margin-bottom: 25px; }
 .search-container input#searchBox { padding: 10px 12px; width: 90%; max-width: 350px; box-sizing: border-box; border: 1px solid #ced4da; border-radius: 4px; font-size: 1em; }
 .action-buttons { text-align: center; margin-top: 15px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
@@ -479,8 +479,8 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     .region-column h2 { margin: -10px -10px 10px -10px; padding: 8px 10px; }
     /* ... community page mobile ... */
     .community-header { margin-bottom: 20px; padding-top: 0; }
-    #logo { max-width: 100px; margin-bottom: 8px; }
-    #community-name { font-size: 1.5em; line-height: 1.3; }
+    /* #logo { max-width: 100px; margin-bottom: 8px; } */ /* Removed specific #logo rule here, handled by new styles */
+    /* #community-name { font-size: 1.5em; line-height: 1.3; } */ /* Removed specific #community-name rule here, handled by new styles */
     .directory-subtitle { font-size: 0.8em; }
     #results li.directory-entry { flex-direction: column; align-items: stretch; gap: 8px 0; padding-top: 10px; padding-bottom: 10px; }
     #results li.promoted-gold,
@@ -539,4 +539,68 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
         height: 120px !important;
     }
      /* END: vCard Mobile Adjustment */
+}
+
+/* ====================================================================== */
+/* Styles for Logo and Temperature Display (REVISED)                      */
+/* ====================================================================== */
+
+#logo-weather-container {
+    display: flex;          /* Arrange logo and temp side-by-side */
+    align-items: center;    /* Vertically align them */
+    justify-content: center;/* Center the pair horizontally within the header */
+    gap: 15px;              /* Space between logo and temp */
+    margin-bottom: 10px;    /* Space below the pair, above the H1 */
+    min-height: 50px;       /* Ensure container has some height even if logo fails */
+}
+
+#logo {
+    /* Let original styles (.community-header #logo { max-width: 150px; height: auto; }) control size */
+    /* Just ensure it behaves well in flex */
+    display: block;         /* Treat as block for alignment */
+    margin: 0;              /* Reset margins for flex alignment */
+    /* REMOVED max-height and object-fit */
+    width: auto;            /* Ensure it doesn't stretch unexpectedly */
+    max-width: 150px;       /* Re-apply max-width here just in case other rules conflict */
+    height: auto;           /* Re-apply height auto */
+}
+
+.weather-temp { /* Style the temperature span */
+    font-size: 2.8em;       /* Slightly larger font size - ADJUST AS NEEDED */
+    font-weight: bold;
+    color: #555;            /* Adjust color to fit theme */
+    line-height: 1;         /* Keep line height tight */
+    white-space: nowrap;    /* Prevent wrapping */
+    /* Ensure it aligns nicely */
+    margin: 0;
+    padding: 0;
+}
+
+/* Ensure community name is still centered below */
+#community-name {
+   /* Existing styles (text-align: center etc.) should still work */
+   /* Adjust margin-top slightly if the new container added too much space */
+   margin-top: 5px; /* Adjust as needed */
+   /* Ensure width doesn't cause wrapping issues */
+   width: 100%;
+   box-sizing: border-box;
+}
+
+/* Responsive adjustments for logo/temp */
+@media (max-width: 600px) {
+    #logo {
+        /* Let mobile max-width take effect (from original mobile rules) */
+         max-width: 100px; /* Match original mobile rule */
+    }
+    .weather-temp {
+         font-size: 2.2em; /* Slightly larger mobile temp font - ADJUST AS NEEDED */
+    }
+    #logo-weather-container {
+        gap: 10px; /* Less gap on mobile */
+        margin-bottom: 5px;
+    }
+    #community-name {
+         /* Adjust font size if needed on mobile, matching existing h1 rules */
+         font-size: 1.5em; /* Example: match existing h1 rule */
+    }
 }
