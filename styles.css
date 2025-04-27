@@ -446,7 +446,8 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     html { scroll-behavior: auto; }
     body { padding: 10px; font-size: 10pt; color: #000; }
     h1, #site-logo-link, #logo, .community-header, .search-container, .action-buttons, .notice, #searchBox, label[for="searchBox"], .form-back-link, #suggestion-form, .view-all-button, .view-all-button-container, .breadcrumb-nav, #backToTopBtn, #shareButton, .promote-button-container .promote-button, .promote-button-container .view-vcard-btn, .sponsored-label, .website-link, .revealPhoneBtn, #phonePopup, #virtualCardPopup /* Hide popups and triggers */,
-    .contact-person /* Hide contact person in print */ { display: none !important; }
+    .contact-person, /* Hide contact person in print */
+    #logo-weather-container /* Hide weather container in print */ { display: none !important; }
     #results li.promoted-gold,
     #results li.promoted-silver,
     #results li.promoted-bronze { background-color: transparent !important; border: none !important; padding: 12px 10px !important; box-shadow: none !important; border-bottom: 1px solid #ccc !important; }
@@ -542,65 +543,128 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 }
 
 /* ====================================================================== */
-/* Styles for Logo and Temperature Display (REVISED)                      */
+/* Styles for Separate Logo and Weather Box Display                     */
 /* ====================================================================== */
 
-#logo-weather-container {
-    display: flex;          /* Arrange logo and temp side-by-side */
-    align-items: center;    /* Vertically align them */
-    justify-content: center;/* Center the pair horizontally within the header */
-    gap: 15px;              /* Space between logo and temp */
-    margin-bottom: 10px;    /* Space below the pair, above the H1 */
-    min-height: 50px;       /* Ensure container has some height even if logo fails */
+/* Parent header still centers */
+.community-header {
+    text-align: center;
+    padding-top: 40px;
+    margin-bottom: 25px;
 }
 
+/* New wrapper for the side-by-side logo and weather box */
+#logo-and-weather-wrapper {
+    display: inline-flex; /* Make the wrapper only as wide as its content */
+    align-items: center;  /* Vertically align the logo and weather box */
+    justify-content: center; /* Center items if they have space (less relevant for inline-flex) */
+    gap: 15px;              /* Space between logo and weather box */
+    margin-bottom: 10px;    /* Space below the pair */
+}
+
+/* Styles for the Logo Box (#logo is the image itself) */
 #logo {
-    /* Let original styles (.community-header #logo { max-width: 150px; height: auto; }) control size */
-    /* Just ensure it behaves well in flex */
-    display: block;         /* Treat as block for alignment */
-    margin: 0;              /* Reset margins for flex alignment */
-    /* REMOVED max-height and object-fit */
-    width: auto;            /* Ensure it doesn't stretch unexpectedly */
-    max-width: 150px;       /* Re-apply max-width here just in case other rules conflict */
-    height: auto;           /* Re-apply height auto */
+    display: block;         /* Treat as block for sizing */
+    max-width: 150px;       /* Original max width */
+    height: auto;           /* Maintain aspect ratio */
+    margin: 0;              /* Remove extra margins */
+    border: 1px solid #eee; /* Optional: Add a light border to define its box */
+    border-radius: 8px;     /* Optional: Match weather box corners */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Optional: subtle shadow */
+    /* No background, no filter needed here */
 }
 
-.weather-temp { /* Style the temperature span */
-    font-size: 2.8em;       /* Slightly larger font size - ADJUST AS NEEDED */
+/* Styles for the dedicated Weather Box */
+#weather-box {
+    display: flex;           /* Use flex to center the temperature text inside */
+    align-items: flex-start;     /* Aligns text to the top */
+    justify-content: center; /* Center text horizontally */
+    position: relative;      /* Needed for overlay */
+    overflow: hidden;        /* Keep overlay contained */
+    box-sizing: border-box;  /* Include padding/border in size */
+
+    /* --- Sizing to match logo --- */
+    /* Method 1: Use fixed size (adjust height as needed) */
+     /* width: 150px; */
+     /* height: 150px; */ /* Or match expected logo height */
+
+    /* Method 2: Use max-width and aspect-ratio (more flexible) */
+    width: 150px;           /* Set a width matching logo's max-width */
+    max-width: 150px;       /* Explicit max-width */
+    aspect-ratio: 1 / 1;    /* Make it square (adjust ratio if desired, e.g., 4/3) */
+    /* min-height: 100px; */ /* Alternative: use min-height if aspect-ratio isn't suitable */
+
+
+    padding: 10px;           /* Padding inside the box */
+    border-radius: 8px;      /* Rounded corners */
+
+    /* Background Image Properties */
+    background-image: none; /* Set via JS */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 0.5s ease-in-out;
+}
+
+/* Overlay for the Weather Box */
+#weather-box::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.30); /* Adjust darkness */
+    border-radius: inherit; /* Match parent corners */
+    z-index: 1; /* Behind the text */
+}
+
+/* Temperature Text Styling (inside #weather-box) */
+.weather-temp {
+    position: relative; /* Position above overlay */
+    z-index: 2;         /* Position above overlay */
+    font-size: 2.5em;   /* Adjust size as needed for the box */
     font-weight: bold;
-    color: #555;            /* Adjust color to fit theme */
-    line-height: 1;         /* Keep line height tight */
-    white-space: nowrap;    /* Prevent wrapping */
-    /* Ensure it aligns nicely */
+    color: #ffffff;     /* White text */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); /* Strong shadow */
+    line-height: 1;
+    white-space: nowrap;
     margin: 0;
     padding: 0;
+    text-align: center; /* Ensure centered if flex fails */
 }
 
-/* Ensure community name is still centered below */
+/* Community Name below the wrapper */
 #community-name {
-   /* Existing styles (text-align: center etc.) should still work */
-   /* Adjust margin-top slightly if the new container added too much space */
    margin-top: 5px; /* Adjust as needed */
-   /* Ensure width doesn't cause wrapping issues */
    width: 100%;
    box-sizing: border-box;
+   text-align: center; /* Ensure still centered */
 }
 
-/* Responsive adjustments for logo/temp */
+/* --- Responsive Adjustments --- */
 @media (max-width: 600px) {
+     #logo-and-weather-wrapper {
+         gap: 10px; /* Less gap */
+         /* Allow flex items to wrap if needed, although unlikely */
+         /* flex-wrap: wrap; */
+     }
+
     #logo {
-        /* Let mobile max-width take effect (from original mobile rules) */
-         max-width: 100px; /* Match original mobile rule */
+         max-width: 100px; /* Smaller logo */
     }
+
+    #weather-box {
+        width: 100px;        /* Match smaller logo width */
+        max-width: 100px;
+        padding: 8px;
+        /* aspect-ratio still 1/1 */
+         /* Adjust min-height if not using aspect-ratio */
+         /* min-height: 80px; */
+    }
+
     .weather-temp {
-         font-size: 2.2em; /* Slightly larger mobile temp font - ADJUST AS NEEDED */
+         font-size: 1.8em; /* Smaller font for smaller box */
     }
-    #logo-weather-container {
-        gap: 10px; /* Less gap on mobile */
-        margin-bottom: 5px;
-    }
+
     #community-name {
-         /* Adjust font size if needed on mobile, matching existing h1 rules */
-         font-size: 1.5em; /* Example: match existing h1 rule */
+         font-size: 1.5em;
     }
 }

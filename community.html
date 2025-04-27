@@ -43,15 +43,20 @@
     <!-- END: Beta Indicator -->
 
     <!-- Wrapper for Community Logo, Weather, and Heading -->
-    <div class="community-header">
-        <!-- New container for logo and temp -->
-        <div id="logo-weather-container">
-            <img id="logo" src="" alt="Community Logo" style="display: none;">
-            <span id="community-temp" class="weather-temp">--°C</span> <!-- Added Temp Span -->
+<div class="community-header">
+    <!-- NEW: Wrapper to hold logo and weather box side-by-side -->
+    <div id="logo-and-weather-wrapper">
+        <!-- Box 1: Logo -->
+        <img id="logo" src="" alt="Community Logo" style="display: none;">
+
+        <!-- Box 2: Weather (Temp + Background) -->
+        <div id="weather-box">
+            <span id="community-temp" class="weather-temp">--°C</span>
         </div>
-        <!-- Community name remains below -->
-        <h1 id="community-name">Community Directory</h1>
     </div>
+    <!-- Community name remains below -->
+    <h1 id="community-name">Community Directory</h1>
+</div>
 
     <!-- Search Container -->
     <div class="search-container">
