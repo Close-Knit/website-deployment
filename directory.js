@@ -1,7 +1,7 @@
 // Assumes supabaseClient is globally available from common.js
 
 // ======================================================================
-// Helper to display error messages
+// Helper to display error messages (unchanged)
 // ======================================================================
 function displayError(message) {
     console.error("Directory Error:", message);
@@ -19,7 +19,7 @@ function displayError(message) {
      const tempElement = document.getElementById('community-temp');
      if (tempElement) { tempElement.style.display = 'none'; }
      // Hide background container on major error too
-     const containerElement = document.getElementById('logo-weather-container');
+     const containerElement = document.getElementById('logo-and-weather-wrapper'); // Corrected ID
      if (containerElement) { containerElement.style.display = 'none'; }
 }
 
@@ -49,10 +49,6 @@ function base64ToUtf8(base64) {
     }
 }
 // ======================================================================
-
-// *** Global check for QR Code library ***
-console.log("DEBUG: Checking QRCode library globally:", typeof QRCode);
-// *****************************************
 
 // === START: Weather Functionality ===
 
@@ -366,7 +362,7 @@ async function fetchAndDisplayListings() {
                  const duration = listing.promotion_duration_months;
                  if (isActivePromotion) { if (duration === 12) goldListings.push(listing); else if (duration === 6) silverListings.push(listing); else bronzeListings.push(listing); }
                  else { regularListings.push(listing); }
-             });
+            });
              const categorySortedListings = goldListings.concat(silverListings).concat(bronzeListings).concat(regularListings);
 
              console.log(`DEBUG: Found ${categorySortedListings.length} listings in category "${category}". Starting listing loop.`);
@@ -398,6 +394,7 @@ async function fetchAndDisplayListings() {
                 // --- Construct action buttons including vCard ---
                 const listingId = listing.id;
                 let actionButtonsHtml = '';
+                // Use original data for display text later in innerHTML template literal
                 const originalName = listing.name || '';
                 const originalAddress = listing.address || '';
                 const originalNotes = listing.notes || '';
@@ -405,51 +402,67 @@ async function fetchAndDisplayListings() {
                 const originalPhone = listing.phone_number || '';
                 const originalEmail = listing.email || '';
                 const originalWebsite = listing.website_url || '';
-                const cleanedName = originalName.replace(/['’]/g, '');
-                const cleanedAddress = originalAddress.replace(/['’]/g, '');
-                const cleanedNotes = originalNotes.replace(/['’]/g, '');
-                const cleanedContactPerson = originalContactPerson.replace(/['’]/g, '');
 
-                const vCardDataPayload = { id: listingId, name: cleanedName, phone: originalPhone, email: originalEmail, website: originalWebsite, address: cleanedAddress, contactPerson: cleanedContactPerson, notes: cleanedNotes, logoUrl: logoFilename ? `images/logos/${logoFilename}` : 'images/Bizly_Logo_150px.webp' };
+
+                // 1. vCard Button Data and HTML
+                const vCardDataPayload = {
+                    id: listingId, name: originalName, phone: originalPhone, email: originalEmail, website: originalWebsite, address: originalAddress, contactPerson: originalContactPerson, notes: originalNotes, logoUrl: logoFilename ? `images/logos/${logoFilename}` : 'images/Bizly_Logo_150px.webp'
+                 };
                 try {
                     const jsonString = JSON.stringify(vCardDataPayload);
-                    const base64EncodedData = utf8ToBase64(jsonString);
-                    const safeTitleName = (originalName).replace(/"/g, '"');
+                    // *** USING BASE64 ENCODING ***
+                    const base64EncodedData = utf8ToBase64(jsonString); // Use the helper function
+
+                    // Escape name for title attribute only
+                    const safeTitleName = originalName.replace(/"/g, '"'); // Escape double quotes for title
+
+                    // Embed the Base64 string directly in data-vcard. Use single quotes for attribute.
                     actionButtonsHtml += `<button class="button-style view-vcard-btn" data-vcard='${base64EncodedData}' title="View Virtual Card for ${safeTitleName}"><i class="fa-solid fa-id-card"></i> Card</button>`;
                 } catch (e) {
                     console.error(`Error processing vCard data for listing ID ${listingId}:`, e, vCardDataPayload);
-                    actionButtonsHtml += `<button class="button-style view-vcard-btn" disabled title="Error generating card data"><i class="fa-solid fa-id-card"></i> Card</button>`;
-                }
-                if (listingId && !isActivePromotion) {
-                    const promoteName = (originalName).replace(/"/g, '"');
-                    const promoteAddress = (originalAddress).replace(/"/g, '"');
-                    const promotePhone = (originalPhone).replace(/"/g, '"');
-                    const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(promoteName)}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(promoteAddress)}&phone=${encodeURIComponent(promotePhone)}`;
-                    actionButtonsHtml += ` <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${promoteName}"><i class="fa-solid fa-rocket"></i> Promote</a>`;
-                }
-                if (listing.website_url && listing.website_url.trim() !== '') {
-                    let rawUrl = listing.website_url.trim(); let formattedUrl = rawUrl; if (!/^https?:\/\//i.test(rawUrl)) { formattedUrl = `https://${rawUrl}`; }
-                    if (formattedUrl.startsWith('http://') || formattedUrl.startsWith('https://')) { const safeRawUrl = rawUrl.replace(/"/g, '"'); actionButtonsHtml += ` <a href="${formattedUrl}" target="_blank" title="${safeRawUrl}" class="website-link" rel="noopener noreferrer nofollow"><i class="fa-solid fa-globe"></i></a>`; }
-                    else { console.warn(`Skipping invalid website URL format for listing ${listing.id}: ${rawUrl}`); }
+                     actionButtonsHtml += `<button class="button-style view-vcard-btn" disabled title="Error generating card data"><i class="fa-solid fa-id-card"></i> Card</button>`;
                 }
 
+
+                // 2. Promote Button (if applicable)
+                if (listingId && !isActivePromotion) {
+                    const promoteName = originalName.replace(/"/g, '"'); // Escape for title
+                    const promoteUrl = `promote.html?lid=${encodeURIComponent(listingId)}&cid=${encodeURIComponent(communityId)}&prov=${encodeURIComponent(decodedProvinceName)}&comm=${encodeURIComponent(decodedCommunityName)}&name=${encodeURIComponent(originalName || 'N/A')}&table=${encodeURIComponent(tableName)}&address=${encodeURIComponent(originalAddress || '')}&phone=${encodeURIComponent(originalPhone || '')}`;
+                    actionButtonsHtml += ` <a href="${promoteUrl}" class="button-style promote-button" title="Promote this listing: ${promoteName}"><i class="fa-solid fa-rocket"></i> Promote</a>`;
+                }
+
+                // 3. Website Link (if applicable) - Use website_url
+                let websiteLinkHtml = '';
+                if (originalWebsite && originalWebsite.trim() !== '') {
+                    let rawUrl = originalWebsite.trim();
+                    let formattedUrl = rawUrl;
+                    if (!/^https?:\/\//i.test(rawUrl)) { formattedUrl = `https://${rawUrl}`; }
+                    if (formattedUrl.startsWith('http://') || formattedUrl.startsWith('https://')) {
+                         const safeRawUrl = rawUrl.replace(/"/g, '"'); // Escape for title attribute
+                        websiteLinkHtml = ` <a href="${formattedUrl}" target="_blank" title="${safeRawUrl}" class="website-link" rel="noopener noreferrer nofollow"><i class="fa-solid fa-globe"></i></a>`;
+                        actionButtonsHtml += ` ${websiteLinkHtml}`;
+                    } else { console.warn(`Skipping invalid website URL format for listing ${listing.id}: ${rawUrl}`); }
+                }
+                // --- End Action Button Construction ---
+
+
+                 // Construct final HTML for the list item using template literals
+                 // Display original data in text content (browser handles this)
                  listItem.innerHTML = `
                      <div class="entry-details">
-                          <span class="name">${originalName}${sponsoredLabelHtml}</span>
+                          <span class="name">${originalName || 'N/A'}${sponsoredLabelHtml}</span>
                           ${originalAddress ? `<span class="address">${originalAddress}</span>` : ''}
                           ${originalNotes ? `<span class="notes">${originalNotes}</span>` : ''}
                           ${originalContactPerson ? `<span class="contact-person">Contact: ${originalContactPerson}</span>` : ''}
                           <div class="promote-button-container">${actionButtonsHtml}</div>
                      </div>
-                     <div class="phone-container">${phoneHtml}</div>
+                     <div class="phone-container">
+                          ${phoneHtml}
+                     </div>
                  `;
                  resultsList.appendChild(listItem);
              }); // End listing loop
-
-             console.log(`DEBUG: Finished processing listings for category "${category}".`);
-
         }); // End category loop
-        console.log("DEBUG: Finished looping through all categories.");
 
     } catch (fetchError) {
         displayError(fetchError.message || "An unknown error occurred while fetching listings.");
@@ -457,127 +470,399 @@ async function fetchAndDisplayListings() {
 } // End fetchAndDisplayListings
 
 
-// Initialize Search Functionality
-function initializeSearch() {
-    const searchBox = document.getElementById('searchBox');
-    const resultsList = document.getElementById('results');
-    if (!searchBox || !resultsList) { console.warn("Search box or results list not found, search functionality disabled."); return; }
-
-    searchBox.addEventListener('input', function() {
-        const searchTerm = searchBox.value.toLowerCase().trim();
-        const listItems = resultsList.querySelectorAll('li'); // Includes category headings and entries
-        let anyVisibleInCategory = false;
-        let currentCategoryHeading = null;
-        let noResultsMessage = document.getElementById('no-search-results');
-
-        // Remove existing no-results message before filtering
-        if (noResultsMessage) { noResultsMessage.remove(); noResultsMessage = null;}
-
-        listItems.forEach(item => {
-            if (item.classList.contains('category-heading')) {
-                if (currentCategoryHeading && !anyVisibleInCategory) { currentCategoryHeading.style.display = 'none'; }
-                currentCategoryHeading = item;
-                anyVisibleInCategory = false;
-                currentCategoryHeading.style.display = 'block'; // Show heading initially
-            } else if (item.classList.contains('directory-entry')) {
-                const nameElement = item.querySelector('.name');
-                const addressElement = item.querySelector('.address');
-                const notesElement = item.querySelector('.notes');
-                const contactElement = item.querySelector('.contact-person');
-                const nameText = nameElement ? nameElement.textContent.toLowerCase() : '';
-                const addressText = addressElement ? addressElement.textContent.toLowerCase() : '';
-                const notesText = notesElement ? notesElement.textContent.toLowerCase() : '';
-                const contactText = contactElement ? contactElement.textContent.toLowerCase() : '';
-                const categoryText = currentCategoryHeading ? currentCategoryHeading.textContent.toLowerCase() : '';
-                const isMatch = nameText.includes(searchTerm) || addressText.includes(searchTerm) || notesText.includes(searchTerm) || contactText.includes(searchTerm) || categoryText.includes(searchTerm);
-
-                if (isMatch || !searchTerm) { // Show if match OR search term is empty
-                    item.style.display = 'flex';
-                    anyVisibleInCategory = true;
-                } else {
-                    item.style.display = 'none';
-                }
-            }
-        });
-
-        // Final check for the last category heading
-        if (currentCategoryHeading && !anyVisibleInCategory) {
-            currentCategoryHeading.style.display = 'none';
-        }
-
-        // Show "no results" message ONLY if searching and nothing is visible
-        const allEntries = resultsList.querySelectorAll('.directory-entry');
-        const anyVisibleEntry = Array.from(allEntries).some(entry => entry.style.display !== 'none');
-        if (!anyVisibleEntry && searchTerm) {
-            if (!noResultsMessage) { // Check if it still exists after potential removal
-                let tempMessage = document.createElement('li');
-                tempMessage.id = 'no-search-results';
-                tempMessage.textContent = `No listings found matching "${searchBox.value}".`;
-                tempMessage.style.fontStyle = 'italic'; tempMessage.style.marginTop = '15px'; tempMessage.style.textAlign = 'center'; tempMessage.style.color = '#6c757d';
-                resultsList.appendChild(tempMessage);
-            }
-            // Hide all category headings again if absolutely no entries match the search
-            listItems.forEach(item => { if (item.classList.contains('category-heading')) { item.style.display = 'none'; }});
-        }
-    });
- } // End Initialize Search Functionality
+// Initialize Search Functionality (Unchanged)
+function initializeSearch() { /* ... search logic ... */
+     const searchBox = document.getElementById('searchBox'); const resultsList = document.getElementById('results'); if (!searchBox || !resultsList) { console.warn("Search elements not found."); return; }
+    searchBox.addEventListener('input', function() { const searchTerm = this.value.toLowerCase().trim(); const listItems = resultsList.getElementsByClassName('directory-entry'); const categoryHeadings = resultsList.getElementsByClassName('category-heading'); let visibleCategories = new Set(); Array.from(listItems).forEach(item => { const nameElement = item.querySelector('.name'); const nameText = nameElement?.textContent.toLowerCase() || ''; const addressText = item.querySelector('.address')?.textContent.toLowerCase() || ''; const notesText = item.querySelector('.notes')?.textContent.toLowerCase() || ''; const contactPersonText = item.querySelector('.contact-person')?.textContent.toLowerCase() || ''; // Corrected to use contact_person
+        let categoryText = ''; let currentElement = item.previousElementSibling; while (currentElement) { if (currentElement.classList.contains('category-heading')) { categoryText = currentElement.textContent.toLowerCase(); break; } currentElement = currentElement.previousElementSibling; } const matchesSearch = nameText.includes(searchTerm) || addressText.includes(searchTerm) || notesText.includes(searchTerm) || categoryText.includes(searchTerm) || contactPersonText.includes(searchTerm); if (matchesSearch) { item.style.display = ''; if (categoryText) visibleCategories.add(categoryText); } else { item.style.display = 'none'; } }); Array.from(categoryHeadings).forEach(heading => { const categoryText = heading.textContent.toLowerCase(); if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) { heading.style.display = ''; } else { heading.style.display = 'none'; } }); });
+ }
 
 
-// Initialize Popup Interactivity
+// Initialize Popup Interactivity (Includes Base64, but not single-popup or QR fix)
 function initializePopupInteraction() {
     const resultsList = document.getElementById('results');
+    // Phone Popup Elements
     const phonePopup = document.getElementById('phonePopup');
     const closePopupButton = document.getElementById('closePopup');
     const phoneNumberDisplay = document.getElementById('phoneNumber');
     const copyPhoneButton = document.getElementById('copyPhoneBtn');
+    const copyTextElement = copyPhoneButton?.querySelector('.copy-text');
+    const copyIconElement = copyPhoneButton?.querySelector('i');
+    const originalCopyText = copyTextElement ? copyTextElement.textContent : 'Copy';
+    const originalCopyIconClass = copyIconElement ? copyIconElement.className : 'fa-regular fa-copy';
+    let copyTimeout = null;
+    const resetCopyButton = () => {
+        if (copyTextElement) copyTextElement.textContent = originalCopyText;
+        if (copyIconElement) copyIconElement.className = originalCopyIconClass;
+        if (copyPhoneButton) copyPhoneButton.disabled = false;
+        if (copyTimeout) { clearTimeout(copyTimeout); copyTimeout = null; }
+    };
+
+    // *** Virtual Card Popup Elements ***
     const virtualCardPopup = document.getElementById('virtualCardPopup');
     const closeVCardPopupButton = document.getElementById('closeVCardPopup');
-    if (!resultsList) { console.error("Cannot initialize popups: Results list container (#results) not found."); return; }
-    let currentVCardObjectUrl = null; let copyTimeout = null;
-    const copyTextElement = copyPhoneButton?.querySelector('.copy-text'); const copyIconElement = copyPhoneButton?.querySelector('i');
-    const originalCopyText = copyTextElement ? copyTextElement.textContent : 'Copy'; const originalCopyIconClass = copyIconElement ? copyIconElement.className : 'fa-regular fa-copy';
-    const resetCopyButton = () => { if (copyTextElement) copyTextElement.textContent = originalCopyText; if (copyIconElement) copyIconElement.className = originalCopyIconClass; if (copyPhoneButton) copyPhoneButton.disabled = false; if (copyTimeout) { clearTimeout(copyTimeout); copyTimeout = null; } };
-    const closeVCard = () => { if (virtualCardPopup && !virtualCardPopup.classList.contains('hidden')) { virtualCardPopup.classList.add('hidden'); if (currentVCardObjectUrl) { URL.revokeObjectURL(currentVCardObjectUrl); currentVCardObjectUrl = null; } const qrContainer = document.getElementById('vcard-qrcode-container'); if (qrContainer) { const smallText = qrContainer.querySelector('small')?.textContent || 'Scan QR:'; qrContainer.innerHTML = `<p><small>${smallText}</small></p>`; qrContainer.style.display = 'none'; } } };
-    const closePhonePopup = () => { if (phonePopup && !phonePopup.classList.contains('hidden')) { phonePopup.classList.add('hidden'); resetCopyButton(); } };
+    let currentVCardObjectUrl = null; // To store blob URL for cleanup
 
+    // Check core elements for both popups
+    if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay || !virtualCardPopup || !closeVCardPopupButton) {
+        console.error("Core popup elements missing (Phone or vCard). Popups might not work.");
+        return;
+    }
+    if (!copyPhoneButton || !copyTextElement || !copyIconElement) {
+        console.warn("Copy button elements missing.");
+    }
+
+    // --- Common close function for VCard popup ---
+    const closeVCard = () => {
+        virtualCardPopup.classList.add('hidden');
+        if (currentVCardObjectUrl) {
+            URL.revokeObjectURL(currentVCardObjectUrl);
+            currentVCardObjectUrl = null;
+            console.log("Revoked vCard Object URL on close");
+        }
+        const qrContainer = document.getElementById('vcard-qrcode-container');
+        if (qrContainer) { // Added null check
+            const smallText = qrContainer.querySelector('small')?.textContent || 'Scan QR to save contact:';
+            qrContainer.innerHTML = `<p><small>${smallText}</small></p>`;
+             const qrCanvas = qrContainer.querySelector('canvas');
+             if(qrCanvas) qrCanvas.remove();
+             const qrImg = qrContainer.querySelector('img');
+             if(qrImg) qrImg.remove();
+             qrContainer.style.display = 'none'; // Hide QR container initially
+        }
+    };
+
+    // --- Common close function for Phone popup ---
+    const closePhonePopup = () => {
+         phonePopup.classList.add('hidden');
+         resetCopyButton();
+    };
+
+    // --- Phone Popup Listeners ---
+    if (copyPhoneButton) {
+        const handleCopyClick = async () => { /* ... copy logic ... */
+            const linkElement = phoneNumberDisplay.querySelector('a');
+             const numberToCopy = linkElement ? linkElement.textContent : null;
+             if (numberToCopy && navigator.clipboard) {
+                 try {
+                     await navigator.clipboard.writeText(numberToCopy);
+                     if (copyTextElement) copyTextElement.textContent = 'Copied!';
+                     if (copyIconElement) copyIconElement.className = 'fa-solid fa-check';
+                     copyPhoneButton.disabled = true;
+                     if (copyTimeout) clearTimeout(copyTimeout);
+                     copyTimeout = setTimeout(resetCopyButton, 2000);
+                 } catch (err) {
+                     console.error('Failed to copy phone number:', err);
+                     alert("Could not copy number.");
+                     resetCopyButton();
+                 }
+             } else {
+                 if (!navigator.clipboard) alert("Copying not supported by browser.");
+                 resetCopyButton();
+             }
+         };
+        copyPhoneButton.addEventListener('click', handleCopyClick);
+    }
     resultsList.addEventListener('click', function(event) {
         const revealButton = event.target.closest('.revealPhoneBtn');
-        const viewCardButton = event.target.closest('.view-vcard-btn');
-        if (revealButton) { // Phone button logic
-            event.preventDefault(); if (!phonePopup || !phoneNumberDisplay) return; closeVCard();
-            const numberToDisplay = revealButton.dataset.phone;
-            if (numberToDisplay) { phoneNumberDisplay.innerHTML = `<a href="tel:${numberToDisplay}">${numberToDisplay}</a>`; resetCopyButton(); phonePopup.classList.remove('hidden'); const adContainer = phonePopup.querySelector('#adContainer .adsbygoogle'); if (adContainer && window.adsbygoogle) { try { (adsbygoogle = window.adsbygoogle || []).push({}); adContainer.setAttribute('data-adsbygoogle-status', 'requested'); } catch (e) { console.error("Error pushing popup ad:", e); } } }
-        } else if (viewCardButton && !viewCardButton.disabled) { // vCard button logic
-            event.preventDefault(); if (!virtualCardPopup) return; closePhonePopup();
-            const qrContainer = document.getElementById('vcard-qrcode-container'); if (qrContainer) { const smallText = qrContainer.querySelector('small')?.textContent || 'Scan QR:'; qrContainer.innerHTML = `<p><small>${smallText}</small></p>`; qrContainer.style.display = 'none'; } if (currentVCardObjectUrl) { URL.revokeObjectURL(currentVCardObjectUrl); currentVCardObjectUrl = null; }
-            let vCardData; let decodedJsonString = ""; try { const base64EncodedData = viewCardButton.dataset.vcard; if (!base64EncodedData) throw new Error("Missing data-vcard."); decodedJsonString = base64ToUtf8(base64EncodedData); if (!decodedJsonString) throw new Error("Failed decode."); vCardData = JSON.parse(decodedJsonString); } catch (e) { console.error("vCard data error:", e); return; } if (!vCardData || typeof vCardData !== 'object') return;
-            document.getElementById('vcard-logo').src = vCardData.logoUrl || 'images/Bizly_Logo_150px.webp'; document.getElementById('vcard-logo').alt = `${vCardData.name || 'Business'} Logo`; document.getElementById('vcard-name').textContent = vCardData.name || 'N/A';
-            const setVCardDetailItem = (id, val, prefix = '', isLink = true) => { const p = document.getElementById(id); if (!p) return; const span = p.querySelector('span'); const a = p.querySelector('a'); p.style.display = 'none'; if (val && val.trim() !== '') { const trimVal = val.trim(); if (span) span.textContent = trimVal; if (isLink && a) { let href = trimVal; if (prefix && !href.startsWith(prefix) && !href.startsWith('http')) href = prefix + href; else if (id === 'vcard-website' && !href.startsWith('http')) href = 'https://' + href; a.href = href; if (span && !a.contains(span)) { a.innerHTML = ''; a.appendChild(span); } else if (!span) { a.textContent = trimVal; } a.style.display = 'inline'; } else if (a) a.style.display = 'none'; p.style.display = 'flex'; } };
-            setVCardDetailItem('vcard-contact-person', vCardData.contactPerson, '', false); setVCardDetailItem('vcard-phone', vCardData.phone, 'tel:'); setVCardDetailItem('vcard-email', vCardData.email, 'mailto:'); setVCardDetailItem('vcard-website', vCardData.website, '', true); setVCardDetailItem('vcard-address', vCardData.address, '', false); setVCardDetailItem('vcard-notes', vCardData.notes, '', false);
-            const vcfString = generateVCF(vCardData); const blob = new Blob([vcfString], { type: 'text/vcard;charset=utf-8' }); currentVCardObjectUrl = URL.createObjectURL(blob); const downloadLink = document.getElementById('vcard-download-link'); if (downloadLink) { downloadLink.href = currentVCardObjectUrl; const safeName = (vCardData.name || 'contact').replace(/[^a-z0-9]/gi, '_').toLowerCase(); downloadLink.download = `${safeName}.vcf`; }
-            const showQrButton = document.getElementById('vcard-show-qr-button'); if (showQrButton) { const newBtn = showQrButton.cloneNode(true); showQrButton.parentNode.replaceChild(newBtn, showQrButton); newBtn.addEventListener('click', () => generateAndShowQRCode(vCardData, 'vcard-qrcode-container')); }
-            const smsLink = document.getElementById('vcard-sms-link'); if (smsLink) { let smsBody = `Info for ${vCardData.name || 'listing'}:`; if (vCardData.phone) smsBody += `\nPhone: ${vCardData.phone}`; if (vCardData.website) smsBody += `\nWebsite: ${vCardData.website}`; smsLink.href = `sms:?body=${encodeURIComponent(smsBody)}`; }
-            const shareButton = document.getElementById('vcard-share-button'); if (shareButton) { const newBtn = shareButton.cloneNode(true); shareButton.parentNode.replaceChild(newBtn, shareButton); newBtn.addEventListener('click', async () => { const shareData = { title: `Contact: ${vCardData.name}`, text: `Info...\nPhone: ${vCardData.phone || 'N/A'}`, files: [new File([blob], `${(vCardData.name || 'c').replace(/[^a-z0-9]/gi, '_')}.vcf`, { type: 'text/vcard' })] }; if (navigator.canShare && navigator.canShare({ files: shareData.files })) { try { await navigator.share(shareData); } catch (err) { if (err.name !== 'AbortError') console.error('Share fail:', err); } } else if (navigator.share) { try { await navigator.share({ title: shareData.title, text: shareData.text, url: vCardData.website || window.location.href }); } catch (err) { if (err.name !== 'AbortError') console.error('Share text fail:', err); } } }); }
-            virtualCardPopup.classList.remove('hidden');
+
+        if (revealButton) {
+            event.preventDefault();
+
+            // *** Original logic - will not close vCard ***
+            // if (!virtualCardPopup.classList.contains('hidden')) {
+            //      closeVCard();
+            // }
+            // *************************************
+
+            const numberToDisplay = revealButton.dataset.phone; // Browser decodes this automatically
+            if (numberToDisplay) {
+                phoneNumberDisplay.innerHTML = `<a href="tel:${numberToDisplay}">${numberToDisplay}</a>`;
+                resetCopyButton();
+                phonePopup.classList.remove('hidden');
+            } else {
+                console.warn("Reveal button missing phone data.");
+            }
         }
     });
-    if (copyPhoneButton && phoneNumberDisplay) { copyPhoneButton.addEventListener('click', async () => { const txt = phoneNumberDisplay.textContent; if (txt && txt !== '...' && navigator.clipboard) { try { await navigator.clipboard.writeText(txt); if (copyTextElement) copyTextElement.textContent = 'Copied!'; if (copyIconElement) copyIconElement.className = 'fa-solid fa-check'; copyPhoneButton.disabled = true; copyTimeout = setTimeout(resetCopyButton, 2000); } catch (err) { resetCopyButton(); } } }); }
-    [closeVCardPopupButton, closePopupButton].forEach(btn => { if (btn) { btn.addEventListener('click', btn === closeVCardPopupButton ? closeVCard : closePhonePopup); } });
-    [virtualCardPopup, phonePopup].forEach(popup => { if (popup) { popup.addEventListener('click', (e) => { if (e.target === popup) { popup === virtualCardPopup ? closeVCard() : closePhonePopup(); } }); } });
-    document.addEventListener('keydown', (e) => { if (e.key === "Escape") { if (virtualCardPopup && !virtualCardPopup.classList.contains('hidden')) closeVCard(); else if (phonePopup && !phonePopup.classList.contains('hidden')) closePhonePopup(); } });
+
+    // --- Close Listeners ---
+    closePopupButton.addEventListener('click', closePhonePopup);
+    phonePopup.addEventListener('click', function(event) {
+        if (event.target === phonePopup) {
+            closePhonePopup();
+        }
+    });
+    // --- End Phone Popup Listeners ---
+
+
+    // === START: Virtual Card Popup Listeners ===
+    if (virtualCardPopup && closeVCardPopupButton) {
+
+        // --- Listener for View Card Buttons ---
+        resultsList.addEventListener('click', function(event) {
+            const viewCardButton = event.target.closest('.view-vcard-btn');
+
+            if (viewCardButton && !viewCardButton.disabled) { // Check if button is not disabled
+                event.preventDefault();
+                console.log("View Card button clicked");
+
+                // *** Original logic - will not close phone popup ***
+                // if (!phonePopup.classList.contains('hidden')) {
+                //     closePhonePopup();
+                // }
+                // ***********************************
+
+                // 1. Cleanup previous state (QR, Blob URL)
+                const qrContainer = document.getElementById('vcard-qrcode-container');
+                 if (qrContainer) {
+                     const smallText = qrContainer.querySelector('small')?.textContent || 'Scan QR to save contact:';
+                     qrContainer.innerHTML = `<p><small>${smallText}</small></p>`;
+                      const qrCanvas = qrContainer.querySelector('canvas'); if(qrCanvas) qrCanvas.remove();
+                      const qrImg = qrContainer.querySelector('img'); if(qrImg) qrImg.remove();
+                     qrContainer.style.display = 'none';
+                 }
+                 if (currentVCardObjectUrl) { URL.revokeObjectURL(currentVCardObjectUrl); currentVCardObjectUrl = null; console.log("Revoked previous vCard Object URL"); }
+
+
+                // 2. Get Data from button attribute (Decode Base64 then Parse)
+                let vCardData;
+                try {
+                    const base64EncodedData = viewCardButton.dataset.vcard;
+                    const decodedJsonString = base64ToUtf8(base64EncodedData); // Use the helper
+                    vCardData = JSON.parse(decodedJsonString); // Parse the decoded JSON
+                    console.log("Parsed vCard Data:", vCardData);
+                } catch (e) {
+                    console.error("Failed to decode/parse vCard data from button:", e);
+                    console.error("Raw data-vcard (Base64):", viewCardButton.getAttribute('data-vcard'));
+                    alert("Error: Could not load card data.");
+                    return; // Stop if parsing fails
+                }
+                if (!vCardData || typeof vCardData !== 'object') {
+                    alert("Error: Invalid card data format.");
+                    return;
+                }
+
+                // 3. Populate Modal Elements
+                document.getElementById('vcard-logo').src = vCardData.logoUrl || 'images/Bizly_Logo_150px.webp';
+                document.getElementById('vcard-logo').alt = `${vCardData.name || 'Business'} Logo`;
+                document.getElementById('vcard-name').textContent = vCardData.name || 'N/A';
+
+                // Helper to set detail item visibility and content
+                const setVCardDetailItem = (elementId, value, linkPrefix = '', isLink = true) => {
+                    const pElement = document.getElementById(elementId);
+                    if (!pElement) { console.warn(`Element ${elementId} not found`); return; }
+                    const spanElement = pElement.querySelector('span');
+                    const linkElement = pElement.querySelector('a');
+
+                    if (value && value.trim() !== '') {
+                        const trimmedValue = value.trim();
+                        if (spanElement) spanElement.textContent = trimmedValue;
+                        if (isLink && linkElement) {
+                            let hrefValue = trimmedValue;
+                            if (linkPrefix && !hrefValue.startsWith(linkPrefix)) {
+                                hrefValue = linkPrefix + hrefValue;
+                            }
+                            else if (elementId === 'vcard-website' && !hrefValue.startsWith('http://') && !hrefValue.startsWith('https://')) {
+                                hrefValue = 'https://' + hrefValue;
+                            }
+                            linkElement.href = hrefValue;
+                            linkElement.style.display = 'inline';
+                        } else if (!isLink && linkElement) {
+                             linkElement.style.display = 'none';
+                        }
+                        pElement.style.display = 'flex';
+                    } else {
+                        pElement.style.display = 'none';
+                    }
+                };
+
+                setVCardDetailItem('vcard-contact-person', vCardData.contactPerson, '', false);
+                setVCardDetailItem('vcard-phone', vCardData.phone, 'tel:');
+                setVCardDetailItem('vcard-email', vCardData.email, 'mailto:');
+                setVCardDetailItem('vcard-website', vCardData.website, '', true); // Corrected data source
+                setVCardDetailItem('vcard-address', vCardData.address, '', false);
+                setVCardDetailItem('vcard-notes', vCardData.notes, '', false); // Display notes
+
+
+                // 4. Generate vCard & Set Download Link
+                const vcfString = generateVCF(vCardData); // generateVCF is defined below
+                const blob = new Blob([vcfString], { type: 'text/vcard;charset=utf-8' });
+                currentVCardObjectUrl = URL.createObjectURL(blob); // Store for cleanup
+                const downloadLink = document.getElementById('vcard-download-link');
+                if (downloadLink) {
+                    downloadLink.href = currentVCardObjectUrl;
+                    const filename = (vCardData.name || 'contact').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    downloadLink.download = `${filename}.vcf`;
+                    console.log("Generated vCard Object URL:", currentVCardObjectUrl);
+                }
+
+                // 5. Setup QR Code Button Listener
+                const showQrButton = document.getElementById('vcard-show-qr-button');
+                if (showQrButton) {
+                    const newShowQrButton = showQrButton.cloneNode(true); // Clone to remove listeners
+                    showQrButton.parentNode.replaceChild(newShowQrButton, showQrButton);
+                    newShowQrButton.addEventListener('click', () => {
+                        // generateAndShowQRCode is defined below
+                         generateAndShowQRCode(vCardData, 'vcard-qrcode-container');
+                    });
+                }
+
+                // 6. Setup SMS Link
+                const smsLink = document.getElementById('vcard-sms-link');
+                if (smsLink) {
+                    let smsBody = `Check out ${vCardData.name || 'this business'} on Bizly:`;
+                    if (vCardData.phone) smsBody += `\nPhone: ${vCardData.phone}`;
+                    if (vCardData.website) smsBody += `\nWebsite: ${vCardData.website}`;
+                    if (vCardData.address) smsBody += `\nAddress: ${vCardData.address.replace(/\n/g, ', ')}`;
+                    smsLink.href = `sms:?body=${encodeURIComponent(smsBody)}`;
+                }
+
+                // 7. Setup Web Share Button Listener
+                const shareButton = document.getElementById('vcard-share-button');
+                if (shareButton) {
+                    const newShareButton = shareButton.cloneNode(true);
+                    shareButton.parentNode.replaceChild(newShareButton, shareButton);
+                    newShareButton.addEventListener('click', async () => {
+                        const shareData = {
+                            title: `${vCardData.name || 'Business Contact'} via Bizly`,
+                            text: `Contact Info for ${vCardData.name || 'Business'}:\nPhone: ${vCardData.phone || 'N/A'}\nEmail: ${vCardData.email || 'N/A'}\nWebsite: ${vCardData.website || 'N/A'}\nAddress: ${vCardData.address || 'N/A'}`,
+                        };
+                        try {
+                            if (navigator.share) {
+                                await navigator.share(shareData);
+                                console.log('Shared successfully');
+                            } else {
+                                alert('Web Share not supported on this browser/device.');
+                            }
+                        } catch (err) {
+                            if (err.name !== 'AbortError') {
+                                console.error('Share failed:', err);
+                                alert('Sharing failed.');
+                            }
+                        }
+                    });
+                }
+
+
+                // 8. Show Modal
+                virtualCardPopup.classList.remove('hidden');
+                console.log("Virtual Card Popup should be visible");
+
+            } // End if (viewCardButton)
+        }); // End resultsList click listener for vCard
+
+        // --- Close Listeners for VCard popup ---
+        closeVCardPopupButton.addEventListener('click', closeVCard);
+        virtualCardPopup.addEventListener('click', function(event) { // Click outside to close
+            if (event.target === virtualCardPopup) {
+                closeVCard();
+            }
+        });
+
+    } else {
+        console.warn("Could not initialize Virtual Card popup listeners - essential elements missing.");
+    }
+    // === END: Virtual Card Popup Listeners ===
+
+
+    // === START: Helper Functions (vCard, QR) ===
+    // Helper Function: Generate vCard String (vCard 3.0) - Includes escapes
+    function generateVCF(data) {
+        let vcf = `BEGIN:VCARD\nVERSION:3.0\n`;
+        vcf += `FN:${(data.name || '').trim()}\n`;
+        if (data.contactPerson && data.contactPerson.trim() !== '') {
+            const nameParts = data.contactPerson.trim().split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+            vcf += `N:${lastName};${firstName};;;\n`;
+        } else {
+             vcf += `N:${(data.name || '').trim()};;;;\n`;
+        }
+        if (data.name) vcf += `ORG:${data.name.trim()}\n`;
+        if (data.phone) vcf += `TEL;type=WORK,VOICE:${data.phone.trim()}\n`;
+        if (data.email) vcf += `EMAIL;TYPE=PREF,INTERNET:${data.email.trim()}\n`;
+        if (data.address) {
+            const fullAddressFormatted = data.address.trim().replace(/\\/g,'\\\\').replace(/,/g,'\\,').replace(/;/g,'\\;').replace(/\n/g,'\\n');
+            vcf += `ADR;type=WORK:;;${fullAddressFormatted};;;;\n`;
+        }
+        if (data.website) vcf += `URL:${data.website.trim()}\n`;
+        if (data.logoUrl && !data.logoUrl.includes('Bizly_Logo_150px.webp')) {
+            vcf += `PHOTO;VALUE=URI:${data.logoUrl}\n`;
+        }
+        if (data.notes) vcf += `NOTE:${data.notes.trim().replace(/\\/g,'\\\\').replace(/,/g,'\\,').replace(/;/g,'\\;').replace(/\n/g,'\\n')}\n`;
+        vcf += `REV:${new Date().toISOString().split('.')[0]}Z\n`;
+        vcf += `END:VCARD`;
+        return vcf;
+    }
+
+    // Helper Function: Generate QR Code - *** USING MECARD FORMAT ***
+function generateAndShowQRCode(data, containerId) {
+    const qrContainer = document.getElementById(containerId);
+   if (!qrContainer) { console.error(`QR Container #${containerId} not found.`); return; }
+   if (typeof QRCode === 'undefined') { console.error("QRCode library is not loaded."); qrContainer.innerHTML = `<p><small>QR:</small></p><p style="color:red;">QR lib error.</p>`; qrContainer.style.display='block'; return;}
+   // Clear previous QR code first
+   const smallText = qrContainer.querySelector('small')?.textContent || 'Scan QR to save contact:';
+   qrContainer.innerHTML = `<p><small>${smallText}</small></p>`;
+
+   // Helper function to escape MECARD special characters (\ ; , :)
+   function escapeMecardValue(value) {
+       if (typeof value !== 'string') return '';
+       return value.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/:/g, '\\:');
+   }
+
+   // Build MECARD string
+   let mecardString = 'MECARD:';
+   let mecardName = '';
+   if (data.contactPerson) {
+       const nameParts = data.contactPerson.trim().split(' ');
+       const firstName = nameParts[0] || '';
+       const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+       mecardName = `${lastName},${firstName}`;
+   } else if (data.name) {
+       mecardName = data.name;
+   }
+   if (mecardName) mecardString += `N:${escapeMecardValue(mecardName)};`;
+   if (data.name && data.contactPerson) { // Add ORG only if contact person was used for N
+        mecardString += `ORG:${escapeMecardValue(data.name)};`;
+   }
+   if (data.phone) mecardString += `TEL:${escapeMecardValue(data.phone)};`;
+   if (data.email) mecardString += `EMAIL:${escapeMecardValue(data.email)};`;
+   if (data.website) mecardString += `URL:${escapeMecardValue(data.website)};`;
+   if (data.address) {
+       const mecardAddress = data.address.trim().replace(/\n/g, ', ');
+        mecardString += `ADR:${escapeMecardValue(mecardAddress)};`;
+   }
+   mecardString += ';'; // End marker
+
+   console.log("Generating QR with MECARD String:", mecardString);
+
+   try {
+       new QRCode(qrContainer, {
+           text: mecardString, // Use the MECARD string
+           width: 140,
+           height: 140,
+           colorDark : "#000000",
+           colorLight : "#ffffff",
+           correctLevel : QRCode.CorrectLevel.M
+       });
+       qrContainer.style.display = 'block';
+       console.log("Generated QR Code with MECARD data.");
+   } catch(e) {
+        console.error("QRCode generation failed:", e);
+        qrContainer.innerHTML += '<p style="color: red;">Error generating QR code.</p>';
+        qrContainer.style.display = 'block';
+   }
+}
+    // === END: Helper Functions ===
+
 } // End initializePopupInteraction
-
-
-// === START: Helper Functions (vCard, QR) ===
-function generateVCF(data) { let v = `BEGIN:VCARD\nVERSION:3.0\n`; const n = data.name||''; v+=`FN:${n}\nORG:${n}\n`; if(data.phone)v+=`TEL;TYPE=WORK,VOICE:${data.phone}\n`; if(data.email)v+=`EMAIL;TYPE=PREF,INTERNET:${data.email}\n`; if(data.website)v+=`URL:${data.website}\n`; if(data.address){const e=data.address.replace(/\\/g,'\\\\').replace(/,/g,'\\,').replace(/;/g,'\\;').replace(/\n/g,'\\n');v+=`ADR;TYPE=WORK:;;${e};;;;\n`;} let nc=''; if(data.contactPerson){nc+=`Contact Person: ${data.contactPerson.replace(/\\/g,'\\\\').replace(/,/g,'\\,').replace(/;/g,'\\;').replace(/\n/g,'\\n')}`;} if(data.notes){if(nc)nc+='\\n';nc+=`Listing Notes: ${data.notes.replace(/\\/g,'\\\\').replace(/,/g,'\\,').replace(/;/g,'\\;').replace(/\n/g,'\\n')}`;} if(nc)v+=`NOTE:${nc}\n`; v+=`REV:${new Date().toISOString()}\nEND:VCARD`; return v; }
-function generateAndShowQRCode(data, containerId) { const c=document.getElementById(containerId); if(!c)return; if(typeof QRCode==='undefined'){c.innerHTML=`<p><small>QR:</small></p><p style="color:red;">QR lib error.</p>`; c.style.display='block'; return;} const s=c.querySelector('small')?.textContent||'Scan QR:'; c.innerHTML=`<p><small>${s}</small></p>`; let q=`MECARD:`; if(data.name)q+=`N:${data.name};`; if(data.phone)q+=`TEL:${data.phone};`; if(data.email)q+=`EMAIL:${data.email};`; if(data.website)q+=`URL:${data.website};`; q+=`;`; try { new QRCode(c,{text:q,width:140,height:140,colorDark:"#000",colorLight:"#fff",correctLevel:QRCode.CorrectLevel.M}); c.style.display='block';}catch(e){console.error("QR fail:",e); c.innerHTML=`<p><small>${s}</small></p><p style="color:red;">QR gen error.</p>`; c.style.display='block';}}
-// === END: Helper Functions ===
 
 
 // Main Execution: Fetch listings, then initialize search and popups
 document.addEventListener('DOMContentLoaded', () => {
     console.log("[DEBUG] DOMContentLoaded fired for directory page.");
-    fetchAndDisplayListings(); // This now also triggers fetchAndDisplayWeather internally
+    fetchAndDisplayListings();
     initializeSearch();
     initializePopupInteraction();
 });
