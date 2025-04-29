@@ -796,65 +796,58 @@ function initializePopupInteraction() {
         return vcf;
     }
 
-    // Helper Function: Generate QR Code - *** USING MECARD FORMAT (Revised) ***
+   // START OF REPLACEMENT for generateAndShowQRCode function
+// Helper Function: Generate QR Code - *** USING qrious LIBRARY + MECARD FORMAT ***
 function generateAndShowQRCode(data, containerId) {
     const qrContainer = document.getElementById(containerId);
    if (!qrContainer) {
        console.error(`QR Container #${containerId} not found.`);
        return;
    }
-   if (typeof QRCode === 'undefined') {
-       console.error("QRCode library is not loaded.");
+   // Check for the qrious library function
+   if (typeof QRious === 'undefined') {
+       console.error("QRious library is not loaded.");
        qrContainer.innerHTML = `<p><small>QR:</small></p><p style="color:red;">QR lib error.</p>`;
        qrContainer.style.display='block';
        return;
    }
-   // Clear previous QR code first
+   // Clear previous QR code first (qrious generates a <canvas>)
    const smallText = qrContainer.querySelector('small')?.textContent || 'Scan QR to save contact:';
-   qrContainer.innerHTML = `<p><small>${smallText}</small></p>`; // Reset container
+   qrContainer.innerHTML = `<p><small>${smallText}</small></p>`; // Reset container content
 
-   // Helper function to escape MECARD special characters: \, ;, ,, :
+   // Helper function to escape MECARD special characters (\ ; , :) - unchanged
    function escapeMecardValue(value) {
        if (typeof value !== 'string') return '';
-       // Escape backslash first, then others
-       return value.replace(/\\/g, '\\\\')
-                   .replace(/;/g, '\\;')
-                   .replace(/,/g, '\\,')
-                   .replace(/:/g, '\\:');
+       return value.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/:/g, '\\:');
    }
 
-   // Build MECARD string - Ensure fields exist before adding
-   let mecardFields = []; // Store fields in an array first
-   let nameField = '';
+   // Build MECARD string - unchanged
+   let mecardString = 'MECARD:';
+   let mecardName = '';
    if (data.contactPerson) {
        const nameParts = data.contactPerson.trim().split(' ');
        const firstName = nameParts[0] || '';
        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-       nameField = `${lastName},${firstName}`;
+       mecardName = `${lastName},${firstName}`;
    } else if (data.name) {
-       nameField = data.name;
+       mecardName = data.name;
    }
-   if (nameField) mecardFields.push(`N:${escapeMecardValue(nameField)}`);
-
-   // Add ORG only if contact person provided a different N field
-   if (data.name && data.contactPerson) {
-        mecardFields.push(`ORG:${escapeMecardValue(data.name)}`);
+   if (mecardName) mecardString += `N:${escapeMecardValue(mecardName)};`;
+   if (data.name && data.contactPerson) { // Add ORG only if contact person was used for N
+        mecardString += `ORG:${escapeMecardValue(data.name)};`;
    }
-
-   if (data.phone) mecardFields.push(`TEL:${escapeMecardValue(data.phone)}`);
-   if (data.email) mecardFields.push(`EMAIL:${escapeMecardValue(data.email)}`);
-   if (data.website) mecardFields.push(`URL:${escapeMecardValue(data.website)}`);
+   if (data.phone) mecardString += `TEL:${escapeMecardValue(data.phone)};`;
+   if (data.email) mecardString += `EMAIL:${escapeMecardValue(data.email)};`;
+   if (data.website) mecardString += `URL:${escapeMecardValue(data.website)};`;
    if (data.address) {
-       const mecardAddress = data.address.trim().replace(/\n/g, ', '); // Replace newlines
-        mecardFields.push(`ADR:${escapeMecardValue(mecardAddress)}`);
+       const mecardAddress = data.address.trim().replace(/\n/g, ', ');
+        mecardString += `ADR:${escapeMecardValue(mecardAddress)};`;
    }
-
-   // Construct final string
-   const mecardString = 'MECARD:' + mecardFields.join(';') + ';;'; // Join with ; and add double ;; at the end
+   mecardString += ';;'; // End marker - standard MECARD uses double semicolon
 
    console.log("Generating QR with MECARD String:", mecardString);
 
-   // Check if MECARD string is empty after header (shouldn't happen if name exists)
+   // Check if MECARD string is essentially empty
    if (mecardString === 'MECARD:;;') {
         console.error("MECARD string is empty, cannot generate QR code.");
         qrContainer.innerHTML += '<p style="color: red;">Error: No data for QR code.</p>';
@@ -863,22 +856,33 @@ function generateAndShowQRCode(data, containerId) {
    }
 
    try {
-       new QRCode(qrContainer, {
-           text: mecardString, // Use the MECARD string
-           width: 140,
-           height: 140,
-           colorDark : "#000000",
-           colorLight : "#ffffff",
-           correctLevel : QRCode.CorrectLevel.M
+       // *** USE qrious library ***
+       // qrious usually generates a <canvas> element
+       const qr = new QRious({
+         element: qrContainer.appendChild(document.createElement('canvas')), // Create and append canvas directly
+         value: mecardString, // The text to encode
+         size: 140,         // Desired size in pixels
+         level: 'M',        // Error correction level (L, M, Q, H)
+         padding: 5,        // Padding around the QR code (similar to old setup)
+         background: '#ffffff', // White background
+         foreground: '#000000'  // Black foreground
        });
+       // qrious appends the canvas automatically if element is provided
+
        qrContainer.style.display = 'block';
-       console.log("Generated QR Code with MECARD data.");
+       console.log("Generated QR Code with qrious and MECARD data.");
+
    } catch(e) {
-        console.error("QRCode generation failed:", e);
-        qrContainer.innerHTML += '<p style="color: red;">Error generating QR code.</p>';
+        console.error("qrious QR generation failed:", e);
+        // Display error within the container
+        const errorP = document.createElement('p');
+        errorP.textContent = 'Error generating QR code.';
+        errorP.style.color = 'red';
+        qrContainer.appendChild(errorP);
         qrContainer.style.display = 'block';
    }
 }
+// END OF REPLACEMENT for generateAndShowQRCode function
     // === END: Helper Functions ===
 
 } // End initializePopupInteraction
