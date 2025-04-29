@@ -796,46 +796,71 @@ function initializePopupInteraction() {
         return vcf;
     }
 
-    // Helper Function: Generate QR Code - *** USING MECARD FORMAT ***
+    // Helper Function: Generate QR Code - *** USING MECARD FORMAT (Revised) ***
 function generateAndShowQRCode(data, containerId) {
     const qrContainer = document.getElementById(containerId);
-   if (!qrContainer) { console.error(`QR Container #${containerId} not found.`); return; }
-   if (typeof QRCode === 'undefined') { console.error("QRCode library is not loaded."); qrContainer.innerHTML = `<p><small>QR:</small></p><p style="color:red;">QR lib error.</p>`; qrContainer.style.display='block'; return;}
+   if (!qrContainer) {
+       console.error(`QR Container #${containerId} not found.`);
+       return;
+   }
+   if (typeof QRCode === 'undefined') {
+       console.error("QRCode library is not loaded.");
+       qrContainer.innerHTML = `<p><small>QR:</small></p><p style="color:red;">QR lib error.</p>`;
+       qrContainer.style.display='block';
+       return;
+   }
    // Clear previous QR code first
    const smallText = qrContainer.querySelector('small')?.textContent || 'Scan QR to save contact:';
-   qrContainer.innerHTML = `<p><small>${smallText}</small></p>`;
+   qrContainer.innerHTML = `<p><small>${smallText}</small></p>`; // Reset container
 
-   // Helper function to escape MECARD special characters (\ ; , :)
+   // Helper function to escape MECARD special characters: \, ;, ,, :
    function escapeMecardValue(value) {
        if (typeof value !== 'string') return '';
-       return value.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/:/g, '\\:');
+       // Escape backslash first, then others
+       return value.replace(/\\/g, '\\\\')
+                   .replace(/;/g, '\\;')
+                   .replace(/,/g, '\\,')
+                   .replace(/:/g, '\\:');
    }
 
-   // Build MECARD string
-   let mecardString = 'MECARD:';
-   let mecardName = '';
+   // Build MECARD string - Ensure fields exist before adding
+   let mecardFields = []; // Store fields in an array first
+   let nameField = '';
    if (data.contactPerson) {
        const nameParts = data.contactPerson.trim().split(' ');
        const firstName = nameParts[0] || '';
        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-       mecardName = `${lastName},${firstName}`;
+       nameField = `${lastName},${firstName}`;
    } else if (data.name) {
-       mecardName = data.name;
+       nameField = data.name;
    }
-   if (mecardName) mecardString += `N:${escapeMecardValue(mecardName)};`;
-   if (data.name && data.contactPerson) { // Add ORG only if contact person was used for N
-        mecardString += `ORG:${escapeMecardValue(data.name)};`;
+   if (nameField) mecardFields.push(`N:${escapeMecardValue(nameField)}`);
+
+   // Add ORG only if contact person provided a different N field
+   if (data.name && data.contactPerson) {
+        mecardFields.push(`ORG:${escapeMecardValue(data.name)}`);
    }
-   if (data.phone) mecardString += `TEL:${escapeMecardValue(data.phone)};`;
-   if (data.email) mecardString += `EMAIL:${escapeMecardValue(data.email)};`;
-   if (data.website) mecardString += `URL:${escapeMecardValue(data.website)};`;
+
+   if (data.phone) mecardFields.push(`TEL:${escapeMecardValue(data.phone)}`);
+   if (data.email) mecardFields.push(`EMAIL:${escapeMecardValue(data.email)}`);
+   if (data.website) mecardFields.push(`URL:${escapeMecardValue(data.website)}`);
    if (data.address) {
-       const mecardAddress = data.address.trim().replace(/\n/g, ', ');
-        mecardString += `ADR:${escapeMecardValue(mecardAddress)};`;
+       const mecardAddress = data.address.trim().replace(/\n/g, ', '); // Replace newlines
+        mecardFields.push(`ADR:${escapeMecardValue(mecardAddress)}`);
    }
-   mecardString += ';'; // End marker
+
+   // Construct final string
+   const mecardString = 'MECARD:' + mecardFields.join(';') + ';;'; // Join with ; and add double ;; at the end
 
    console.log("Generating QR with MECARD String:", mecardString);
+
+   // Check if MECARD string is empty after header (shouldn't happen if name exists)
+   if (mecardString === 'MECARD:;;') {
+        console.error("MECARD string is empty, cannot generate QR code.");
+        qrContainer.innerHTML += '<p style="color: red;">Error: No data for QR code.</p>';
+        qrContainer.style.display = 'block';
+        return;
+   }
 
    try {
        new QRCode(qrContainer, {
