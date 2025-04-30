@@ -442,9 +442,9 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 .vcard-qrcode-container img { /* Or img if library generates that */
     display: block;         /* Ensure it behaves like a block */
     margin: 5px auto 0 auto;/* Center it horizontally, add top margin */
-    background-color: white;/* Ensure QR code bg is white */
-    padding: 5px;           /* Small padding around QR */
-    border: 1px solid #eee;
+    background-color: transparent;/* Ensure QR code bg is transparent */
+    padding: 0px;           /* Small padding around QR */
+    border: none;
     box-sizing: border-box; /* Include padding/border in size */
     /* --- FIX: Ensure QR code scales down to fit --- */
     max-width: 100%;        /* Don't exceed container width */
