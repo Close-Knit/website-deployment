@@ -430,8 +430,8 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 }
 
 .vcard-qrcode-container {
-    display: flex;
-    flex-direction: column;
+    display: center;
+    flex-direction: center;
     align-items: center;
     width: 100%
     box-sizing: border-box;
