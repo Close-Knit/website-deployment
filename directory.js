@@ -856,17 +856,16 @@ function generateAndShowQRCode(data, containerId) {
    }
 
    try {
-       // *** USE qrious library ***
-       // qrious usually generates a <canvas> element
+       // Use qrious library
        const qr = new QRious({
-         element: qrContainer.appendChild(document.createElement('canvas')), // Create and append canvas directly
-         value: mecardString, // The text to encode
-         size: 160,         // Desired size in pixels
-         level: 'M',        // Error correction level (L, M, Q, H)
-         padding: 5,        // Padding around the QR code (similar to old setup)
-         background: '#ffffff', // White background
-         foreground: '#000000'  // Black foreground
-       });
+        element: qrContainer.appendChild(document.createElement('canvas')),
+        value: mecardString,
+        size: 140,         // <<< Set to match expected desktop size (like live site)
+        level: 'M',
+        padding: 5,        // This is QRious internal padding, keep small
+        background: '#ffffff', // Background for the QR pattern itself
+        foreground: '#000000'
+      });
        // qrious appends the canvas automatically if element is provided
 
        qrContainer.style.display = 'block';
