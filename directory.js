@@ -861,7 +861,7 @@ function generateAndShowQRCode(data, containerId) {
        const qr = new QRious({
          element: qrContainer.appendChild(document.createElement('canvas')), // Create and append canvas directly
          value: mecardString, // The text to encode
-         size: 140,         // Desired size in pixels
+         size: 120,         // Desired size in pixels
          level: 'M',        // Error correction level (L, M, Q, H)
          padding: 5,        // Padding around the QR code (similar to old setup)
          background: '#ffffff', // White background
