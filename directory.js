@@ -856,9 +856,12 @@ function generateAndShowQRCode(data, containerId) {
    }
 
    try {
+       // Create a canvas element with proper styling
+       const canvas = document.createElement('canvas');
+
        // Use qrious library
-       const qr = new QRious({
-        element: qrContainer.appendChild(document.createElement('canvas')),
+       new QRious({
+        element: canvas,
         value: mecardString,
         size: 200,         // Increased size for better visibility and consistency
         level: 'M',
@@ -866,7 +869,14 @@ function generateAndShowQRCode(data, containerId) {
         background: '#ffffff', // Background for the QR pattern itself
         foreground: '#000000'
       });
-       // qrious appends the canvas automatically if element is provided
+
+       // Apply additional styling to ensure proper centering
+       canvas.style.display = 'block';
+       canvas.style.margin = '0 auto';
+       canvas.style.maxWidth = '100%';
+
+       // Append the canvas to the container
+       qrContainer.appendChild(canvas);
 
        qrContainer.style.display = 'block';
        console.log("Generated QR Code with qrious and MECARD data.");

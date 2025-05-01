@@ -441,8 +441,12 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white */
     border: 1px dashed #ccc;
     border-radius: 5px;
+    display: flex;             /* Use flexbox for better centering */
+    flex-direction: column;    /* Stack items vertically */
+    align-items: center;       /* Center items horizontally */
+    justify-content: center;   /* Center items vertically */
 }
-.vcard-qrcode-container p { margin: 0 0 8px 0; font-weight: bold; color: #40382d; }
+.vcard-qrcode-container p { margin: 0 0 8px 0; font-weight: bold; color: #40382d; width: 100%; }
 .vcard-qrcode-container canvas, /* Target canvas */
 .vcard-qrcode-container img { /* Or img if library generates that */
     display: block;            /* Block display for proper sizing */
@@ -454,6 +458,10 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     width: 200px;              /* Fixed width to match JS size */
     height: 200px;             /* Fixed height to match width */
     object-fit: contain;       /* Ensure content is contained properly */
+    max-width: 100%;           /* Ensure it doesn't overflow container */
+    position: relative;        /* Establish positioning context */
+    left: 0;                   /* Reset any default positioning */
+    right: 0;                  /* Ensure centered horizontally */
 }
 
 
@@ -558,11 +566,15 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     /* vCard button width is handled by base and min-width media query */
 
     /* Mobile QR code sizing */
+    .vcard-qrcode-container {
+        padding: 10px; /* Slightly smaller padding on mobile */
+    }
     .vcard-qrcode-container canvas,
     .vcard-qrcode-container img {
         width: 160px; /* Slightly smaller on mobile but still substantial */
         height: 160px; /* Keep square aspect ratio */
         padding: 8px; /* Slightly smaller padding on mobile */
+        max-width: 100%; /* Ensure it scales properly */
     }
     /* End mobile QR code sizing */
      /* END: vCard Mobile Adjustment */
