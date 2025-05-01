@@ -228,6 +228,17 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 /* ====================================================================== */
 .hidden { display: none !important; }
 .popup { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 350px; background-color: #ffffff; border: 1px solid #adb5bd; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); z-index: 1000; padding: 20px; box-sizing: border-box; }
+/* Modal Overlay to block interactions when popup is open */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999; /* Just below popups */
+    cursor: not-allowed;
+}
 .popup-content { position: relative; text-align: center; }
 .close-button { position: absolute; top: -5px; right: -5px; font-size: 2.2em; font-weight: bold; color: #dc3545; background: transparent; border-radius: 0; padding: 0; line-height: 0.8; cursor: pointer; transition: color 0.2s ease; border: none; }
 .close-button:hover { color: #a71d2a; }

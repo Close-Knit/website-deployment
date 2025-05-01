@@ -501,11 +501,15 @@ function initializePopupInteraction() {
     // *** Virtual Card Popup Elements ***
     const virtualCardPopup = document.getElementById('virtualCardPopup');
     const closeVCardPopupButton = document.getElementById('closeVCardPopup');
+    const modalOverlay = document.getElementById('modalOverlay');
     let currentVCardObjectUrl = null; // To store blob URL for cleanup
 
+    // Track popup state
+    let isPopupOpen = false;
+
     // Check core elements for both popups
-    if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay || !virtualCardPopup || !closeVCardPopupButton) {
-        console.error("Core popup elements missing (Phone or vCard). Popups might not work.");
+    if (!resultsList || !phonePopup || !closePopupButton || !phoneNumberDisplay || !virtualCardPopup || !closeVCardPopupButton || !modalOverlay) {
+        console.error("Core popup elements missing (Phone, vCard, or overlay). Popups might not work.");
         return;
     }
     if (!copyPhoneButton || !copyTextElement || !copyIconElement) {
@@ -515,6 +519,9 @@ function initializePopupInteraction() {
     // --- Common close function for VCard popup ---
     const closeVCard = () => {
         virtualCardPopup.classList.add('hidden');
+        modalOverlay.classList.add('hidden');
+        isPopupOpen = false;
+
         if (currentVCardObjectUrl) {
             URL.revokeObjectURL(currentVCardObjectUrl);
             currentVCardObjectUrl = null;
@@ -535,6 +542,8 @@ function initializePopupInteraction() {
     // --- Common close function for Phone popup ---
     const closePhonePopup = () => {
          phonePopup.classList.add('hidden');
+         modalOverlay.classList.add('hidden');
+         isPopupOpen = false;
          resetCopyButton();
     };
 
@@ -569,17 +578,23 @@ function initializePopupInteraction() {
         if (revealButton) {
             event.preventDefault();
 
-            // *** Original logic - will not close vCard ***
-            // if (!virtualCardPopup.classList.contains('hidden')) {
-            //      closeVCard();
-            // }
-            // *************************************
+            // If any popup is already open, close it first
+            if (isPopupOpen) {
+                if (!virtualCardPopup.classList.contains('hidden')) {
+                    closeVCard();
+                }
+                if (!phonePopup.classList.contains('hidden')) {
+                    closePhonePopup();
+                }
+            }
 
             const numberToDisplay = revealButton.dataset.phone; // Browser decodes this automatically
             if (numberToDisplay) {
                 phoneNumberDisplay.innerHTML = `<a href="tel:${numberToDisplay}">${numberToDisplay}</a>`;
                 resetCopyButton();
                 phonePopup.classList.remove('hidden');
+                modalOverlay.classList.remove('hidden');
+                isPopupOpen = true;
             } else {
                 console.warn("Reveal button missing phone data.");
             }
@@ -591,6 +606,16 @@ function initializePopupInteraction() {
     phonePopup.addEventListener('click', function(event) {
         if (event.target === phonePopup) {
             closePhonePopup();
+        }
+    });
+
+    // Modal overlay click listener (closes any open popup)
+    modalOverlay.addEventListener('click', function() {
+        if (!phonePopup.classList.contains('hidden')) {
+            closePhonePopup();
+        }
+        if (!virtualCardPopup.classList.contains('hidden')) {
+            closeVCard();
         }
     });
     // --- End Phone Popup Listeners ---
@@ -607,11 +632,15 @@ function initializePopupInteraction() {
                 event.preventDefault();
                 console.log("View Card button clicked");
 
-                // *** Original logic - will not close phone popup ***
-                // if (!phonePopup.classList.contains('hidden')) {
-                //     closePhonePopup();
-                // }
-                // ***********************************
+                // If any popup is already open, close it first
+                if (isPopupOpen) {
+                    if (!virtualCardPopup.classList.contains('hidden')) {
+                        closeVCard();
+                    }
+                    if (!phonePopup.classList.contains('hidden')) {
+                        closePhonePopup();
+                    }
+                }
 
                 // 1. Cleanup previous state (QR, Blob URL)
                 const qrContainer = document.getElementById('vcard-qrcode-container');
@@ -747,6 +776,8 @@ function initializePopupInteraction() {
 
                 // 8. Show Modal
                 virtualCardPopup.classList.remove('hidden');
+                modalOverlay.classList.remove('hidden');
+                isPopupOpen = true;
                 console.log("Virtual Card Popup should be visible");
 
             } // End if (viewCardButton)
