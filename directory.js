@@ -860,9 +860,9 @@ function generateAndShowQRCode(data, containerId) {
        const qr = new QRious({
         element: qrContainer.appendChild(document.createElement('canvas')),
         value: mecardString,
-        size: 140,         // <<< Set to match expected desktop size (like live site)
+        size: 200,         // Increased size for better visibility and consistency
         level: 'M',
-        padding: 5,        // This is QRious internal padding, keep small
+        padding: 0,        // Remove internal padding - we'll handle this with CSS
         background: '#ffffff', // Background for the QR pattern itself
         foreground: '#000000'
       });

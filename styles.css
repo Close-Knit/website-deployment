@@ -445,12 +445,15 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 .vcard-qrcode-container p { margin: 0 0 8px 0; font-weight: bold; color: #40382d; }
 .vcard-qrcode-container canvas, /* Target canvas */
 .vcard-qrcode-container img { /* Or img if library generates that */
-    display: block;            /* Reverted: Needed for margin:auto */
-    margin: 0 auto;            /* Reverted: Horizontal centering */
-    background-color: white;   /* Reverted: White bg for the element */
-    padding: 5px;              /* Reverted: Padding around QR pattern */
-    border: 1px solid #eee;    /* Reverted: Border around QR element */
-    /* Ensure max-width, height:auto, transparent bg, etc. are REMOVED */
+    display: block;            /* Block display for proper sizing */
+    margin: 0 auto;            /* Horizontal centering */
+    background-color: white;   /* White background */
+    padding: 10px;             /* Consistent padding around QR code */
+    border: 1px solid #eee;    /* Light border */
+    box-sizing: border-box;    /* Include padding in size calculations */
+    width: 200px;              /* Fixed width to match JS size */
+    height: 200px;             /* Fixed height to match width */
+    object-fit: contain;       /* Ensure content is contained properly */
 }
 
 
@@ -554,13 +557,14 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     .vcard-detail-item { font-size: 0.9em; }
     /* vCard button width is handled by base and min-width media query */
 
-    /* START OF REPLACEMENT for mobile QR canvas/img rules */
+    /* Mobile QR code sizing */
     .vcard-qrcode-container canvas,
     .vcard-qrcode-container img {
-        width: 120px !important; /* Force smaller size on mobile */
-        height: 120px !important;/* Force smaller size on mobile */
+        width: 160px; /* Slightly smaller on mobile but still substantial */
+        height: 160px; /* Keep square aspect ratio */
+        padding: 8px; /* Slightly smaller padding on mobile */
     }
-/* END OF REPLACEMENT */
+    /* End mobile QR code sizing */
      /* END: vCard Mobile Adjustment */
 }
 
