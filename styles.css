@@ -70,8 +70,8 @@ a:hover, a:focus { text-decoration: underline; }
 .search-container input#searchBox {
     padding: 10px 12px;
     flex: 1;
-    min-width: 200px;
-    max-width: 350px;
+    min-width: 180px;
+    max-width: 300px;
     box-sizing: border-box;
     border: 1px solid #ced4da;
     border-radius: 4px;
@@ -114,9 +114,18 @@ a:hover, a:focus { text-decoration: underline; }
 .search-button i {
     margin-right: 5px;
 }
-.action-buttons { text-align: center; margin-top: 15px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
+.action-buttons {
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
 
-/* --- Button Style Harmonization (Keep as is) --- */
+/* --- Button Style Harmonization with Green Shade for Action Buttons --- */
 .button-style {
     display: inline-block;
     padding: 5px 10px;
@@ -129,12 +138,32 @@ a:hover, a:focus { text-decoration: underline; }
     border: 1px solid #adb5bd;
     border-radius: 4px;
     text-decoration: none;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    transition: all 0.2s ease;
     white-space: nowrap;
     margin: 0;
     box-sizing: border-box; /* <<< ENSURE PRESENT for consistent sizing */
 }
-.button-style:hover { background-color: #f8f9fa; border-color: #adb5bd; color: #333; text-decoration: none; }
+
+.button-style:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+    color: #333;
+    text-decoration: none;
+}
+
+/* Green shade for share and suggest change buttons */
+#shareButton, #suggestChangeLink {
+    background-color: #f0f7f0;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+#shareButton:hover, #suggestChangeLink:hover {
+    background-color: #e2f3e5;
+    border-color: #b1dfbb;
+    color: #0f401a;
+    box-shadow: 0 1px 3px rgba(21, 87, 36, 0.1);
+}
 .button-style i { margin-right: 5px; vertical-align: middle; }
 .revealPhoneBtn { display: inline-block; padding: 5px 10px; font-size: 0.9em; line-height: 1.5; vertical-align: middle; cursor: pointer; background-color: #e9ecef; color: #212529; border: 1px solid #ced4da; border-radius: 4px; transition: background-color 0.2s ease; white-space: nowrap; margin: 0; box-sizing: border-box; /* Add box-sizing */ }
 .revealPhoneBtn i { margin-right: 5px; vertical-align: middle; }
@@ -325,14 +354,56 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 .province-community-item-container { display: flex; justify-content: space-between; align-items: baseline; line-height: 1.4; }
 .province-community-item-container .community-link { flex-grow: 1; margin-right: 5px; text-align: left; }
 
-/* Breadcrumb Styles (Unchanged) */
-.breadcrumb-nav { padding: 10px 0; margin-bottom: 20px; text-align: center; }
-.breadcrumb { display: inline-flex; flex-wrap: wrap; padding: 0.5rem 1rem; margin: 0; list-style: none; background-color: #e9ecef; border-radius: 0.25rem; }
-.breadcrumb-item { display: flex; align-items: center; }
-.breadcrumb-item + .breadcrumb-item::before { content: ">"; display: inline-block; padding: 0 0.6rem; color: #6c757d; pointer-events: none; }
-.breadcrumb-item a { color: #007bff; text-decoration: none; }
-.breadcrumb-item a:hover { text-decoration: underline; }
-.breadcrumb-item.active { color: #495057; font-weight: bold; pointer-events: none; }
+/* Modern Breadcrumb Styles */
+.breadcrumb-nav {
+    padding: 10px 0;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.breadcrumb {
+    display: inline-flex;
+    flex-wrap: wrap;
+    padding: 0.6rem 1.2rem;
+    margin: 0;
+    list-style: none;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.95em;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    display: inline-block;
+    padding: 0 0.7rem;
+    color: #adb5bd;
+    pointer-events: none;
+    font-weight: 300;
+}
+
+.breadcrumb-item a {
+    color: #0d6efd;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: #0a58ca;
+    text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+    color: #495057;
+    font-weight: 600;
+    pointer-events: none;
+}
 
 /* Back to Top Styles (Unchanged) */
 #backToTopBtn { display: none; position: fixed; bottom: 20px; right: 25px; z-index: 999; border: none; outline: none; background-color: rgba(108, 117, 125, 0.7); color: white; cursor: pointer; padding: 10px 12px; border-radius: 5px; font-size: 1.1em; opacity: 0; transition: opacity 0.3s ease-in-out, background-color 0.2s ease; }
@@ -622,7 +693,13 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     .community-list-item { padding: 6px 10px; }
     .province-community-item-container { display: flex; }
     .breadcrumb-nav { text-align: left; margin-bottom: 15px; padding: 5px 0; }
-    .breadcrumb { display: flex; padding: 0.4rem 0.8rem; }
+    .breadcrumb {
+        display: flex;
+        padding: 0.5rem 0.8rem;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .breadcrumb-item { font-size: 0.9em; }
     .breadcrumb-item + .breadcrumb-item::before { padding: 0 0.4rem; }
     #backToTopBtn { bottom: 15px; right: 15px; padding: 8px 10px; font-size: 1em; }
     .copy-button { padding: 2px 6px; font-size: 0.85em; }
@@ -700,24 +777,14 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 
 /* Styles for the dedicated Weather Box */
 #weather-box {
-    display: flex;           /* Use flex to center the temperature text inside */
-    align-items: flex-start;     /* Aligns text to the top */
-    justify-content: center; /* Center text horizontally */
-    position: relative;      /* Needed for overlay */
+    position: relative;      /* Needed for overlay and absolute positioning of temperature */
     overflow: hidden;        /* Keep overlay contained */
     box-sizing: border-box;  /* Include padding/border in size */
 
     /* --- Sizing to match logo --- */
-    /* Method 1: Use fixed size (adjust height as needed) */
-     /* width: 150px; */
-     /* height: 150px; */ /* Or match expected logo height */
-
-    /* Method 2: Use max-width and aspect-ratio (more flexible) */
     width: 150px;           /* Set a width matching logo's max-width */
     max-width: 150px;       /* Explicit max-width */
-    aspect-ratio: 1 / 1;    /* Make it square (adjust ratio if desired, e.g., 4/3) */
-    /* min-height: 100px; */ /* Alternative: use min-height if aspect-ratio isn't suitable */
-
+    aspect-ratio: 1 / 1;    /* Make it square */
 
     padding: 10px;           /* Padding inside the box */
     border-radius: 8px;      /* Rounded corners */
@@ -742,9 +809,9 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 
 /* Temperature Text Styling (inside #weather-box) */
 .weather-temp {
-    position: relative; /* Position above overlay */
+    position: absolute; /* Position absolutely within the weather box */
     z-index: 2;         /* Position above overlay */
-    font-size: 2.5em;   /* Adjust size as needed for the box */
+    font-size: 2.3em;   /* Slightly smaller font size */
     font-weight: bold;
     color: #ffffff;     /* White text */
     text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 5px rgba(0, 0, 0, 0.5); /* Enhanced shadow for better readability */
@@ -753,6 +820,9 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     margin: 0;
     padding: 0;
     text-align: center; /* Ensure centered if flex fails */
+    bottom: 10px;       /* Position at bottom */
+    left: 0;            /* Stretch across full width */
+    right: 0;           /* Stretch across full width */
 }
 
 /* Community Name below the wrapper */
@@ -785,7 +855,8 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     }
 
     .weather-temp {
-         font-size: 1.8em; /* Smaller font for smaller box */
+         font-size: 1.7em; /* Smaller font for smaller box */
+         bottom: 8px;      /* Adjust bottom position for mobile */
     }
 
     #community-name {
