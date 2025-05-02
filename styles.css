@@ -80,13 +80,39 @@ a:hover, a:focus { text-decoration: underline; }
 .search-container select#categoryFilter {
     padding: 10px 12px;
     flex: 0 0 auto;
-    min-width: 180px;
+    width: 150px;
+    min-width: 150px;
     box-sizing: border-box;
     border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 1em;
     background-color: #fff;
     cursor: pointer;
+    transition: width 0.3s ease;
+}
+
+.search-container select#categoryFilter:focus,
+.search-container select#categoryFilter:hover {
+    width: 200px;
+}
+
+.search-button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-button:hover {
+    background-color: #0056b3;
+}
+
+.search-button i {
+    margin-right: 5px;
 }
 .action-buttons { text-align: center; margin-top: 15px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; }
 
@@ -552,10 +578,17 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     /* Search inputs mobile styling */
     .search-inputs { flex-direction: column; align-items: center; }
     .search-container input#searchBox,
-    .search-container select#categoryFilter {
+    .search-container select#categoryFilter,
+    .search-button {
         width: 100%;
         max-width: 100%;
         min-width: unset;
+        margin-bottom: 8px;
+    }
+
+    .search-container select#categoryFilter:focus,
+    .search-container select#categoryFilter:hover {
+        width: 100%; /* Keep full width on mobile even when focused */
     }
     /* #logo { max-width: 100px; margin-bottom: 8px; } */ /* Removed specific #logo rule here, handled by new styles */
     /* #community-name { font-size: 1.5em; line-height: 1.3; } */ /* Removed specific #community-name rule here, handled by new styles */

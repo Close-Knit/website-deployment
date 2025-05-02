@@ -470,16 +470,20 @@ async function fetchAndDisplayListings() {
 } // End fetchAndDisplayListings
 
 
-// Initialize Search Functionality with Category Filter
+// Initialize Search Functionality with Category Filter and Search Button
 function initializeSearch() {
     const searchBox = document.getElementById('searchBox');
     const categoryFilter = document.getElementById('categoryFilter');
+    const searchButton = document.getElementById('searchButton');
     const resultsList = document.getElementById('results');
 
     if (!searchBox || !resultsList) {
         console.warn("Search elements not found.");
         return;
     }
+
+    // Store the original state of listings for resetting
+    let originalListingsState = [];
 
     // Populate category dropdown from existing category headings
     function populateCategoryDropdown() {
@@ -575,11 +579,57 @@ function initializeSearch() {
         });
     }
 
-    // Add event listeners
-    searchBox.addEventListener('input', filterListings);
+    // Save original state of listings once they're loaded
+    function saveOriginalState() {
+        const listItems = resultsList.getElementsByClassName('directory-entry');
+        const categoryHeadings = resultsList.getElementsByClassName('category-heading');
 
-    if (categoryFilter) {
-        categoryFilter.addEventListener('change', filterListings);
+        // Save original display state
+        originalListingsState = {
+            items: Array.from(listItems).map(item => ({
+                element: item,
+                display: item.style.display || ''
+            })),
+            headings: Array.from(categoryHeadings).map(heading => ({
+                element: heading,
+                display: heading.style.display || ''
+            }))
+        };
+    }
+
+    // Reset listings to original state
+    function resetListings() {
+        if (originalListingsState.items) {
+            originalListingsState.items.forEach(item => {
+                item.element.style.display = item.display;
+            });
+
+            originalListingsState.headings.forEach(heading => {
+                heading.element.style.display = heading.display;
+            });
+        }
+    }
+
+    // Handle search button click
+    function handleSearch() {
+        // Reset to original state first
+        resetListings();
+
+        // Then apply filters
+        filterListings();
+    }
+
+    // Add event listeners for Enter key in search box
+    searchBox.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            handleSearch();
+        }
+    });
+
+    // Add event listener for search button
+    if (searchButton) {
+        searchButton.addEventListener('click', handleSearch);
     }
 
     // Initialize dropdown after listings are loaded
@@ -590,6 +640,7 @@ function initializeSearch() {
                 // Check if any category headings exist
                 if (resultsList.getElementsByClassName('category-heading').length > 0) {
                     populateCategoryDropdown();
+                    saveOriginalState(); // Save original state once listings are loaded
                     observer.disconnect(); // Stop observing once categories are populated
                     break;
                 }
