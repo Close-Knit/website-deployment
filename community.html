@@ -94,7 +94,7 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- *** ADDED QR Code Library *** -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <!-- ***************************** -->
     <script src="directory.js" defer></script>
     <script src="common.js" defer></script>
@@ -128,6 +128,9 @@
     <button id="backToTopBtn" title="Go to top">
         <i class="fa-solid fa-arrow-up"></i>
     </button>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="modal-overlay hidden"></div>
 
     <!-- *** ADDED: Virtual Card Popup Structure *** -->
     <div id="virtualCardPopup" class="popup hidden">
