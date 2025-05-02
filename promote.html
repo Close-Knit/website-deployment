@@ -13,29 +13,248 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174" crossorigin="anonymous"></script>
 
     <style>
-        /* Styles from previous step */
-        .promote-container { max-width: 700px; margin: 30px auto; padding: 25px 30px; border: 1px solid #dee2e6; border-radius: 8px; background-color: #f5f1e6; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; }
-        .listing-preview-container { border: 1px dashed #adb5bd; padding: 15px; margin-bottom: 20px; background-color: #fff; text-align: left; }
-        .listing-preview-container h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.1em; color: #495057; text-align: center; }
-        .listing-preview-container ul { list-style: none; padding: 0; margin: 0; }
-        .listing-preview-container .directory-entry { margin-bottom: 0 !important; border-bottom: none !important; }
-        #listing-preview-item { /* Style the preview li directly if needed */ }
-        .promotion-info p { margin: 10px 0; line-height: 1.5; color: #555; }
-        .duration-options { margin: 20px 0; padding: 15px; border: 1px solid #eee; border-radius: 5px; background-color: #f9f9f9; }
-        .duration-options label { display: block; margin-bottom: 10px; cursor: pointer; font-size: 1.05em; }
-        .duration-options label:last-child { margin-bottom: 0; }
-        .duration-options input[type="radio"] { margin-right: 10px; vertical-align: middle; }
-        .duration-options .duration-price { font-weight: bold; color: #28a745; margin-left: 5px; }
-        .email-input-group { margin-top: 20px; margin-bottom: 15px; }
-        .email-input-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #495057; }
-        .email-input-group input[type="email"] { width: 80%; max-width: 350px; padding: 10px 12px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; font-size: 1em; line-height: 1.5; text-align: center; margin-bottom: 10px; }
-        #payment-button { background-color: #28a745; border-color: #28a745; color: white; padding: 12px 25px; font-size: 1.1em; margin-top: 25px; }
-        #payment-button:hover { background-color: #218838; border-color: #1e7e34; }
-        #payment-button:disabled { background-color: #6c757d; border-color: #6c757d; cursor: not-allowed; }
-        #message-area { padding: 10px; margin-top: 15px; border: 1px solid #ccc; border-radius: 4px; display: none; text-align: center; font-weight: bold; }
-        #message-area.error-message { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
-        #message-area.info-message { color: #383d41; background-color: #e2e3e5; border-color: #d6d8db; }
-        .back-link { margin-top: 30px; font-size: 0.9em; }
+        /* Modern Styles for Promote Page */
+        .promote-container {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 30px;
+            border-radius: 12px;
+            background-color: #ffffff;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        /* Listing Preview Container */
+        .listing-preview-container {
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            margin-bottom: 30px;
+            background-color: #f9f9f9;
+            text-align: left;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+
+        .listing-preview-container h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #333;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .listing-preview-container ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .listing-preview-container .directory-entry {
+            margin-bottom: 0 !important;
+            border-bottom: none !important;
+            padding: 15px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        /* Promotion Info Section */
+        .promotion-info {
+            margin: 25px 0;
+        }
+
+        .promotion-info p {
+            margin: 12px 0;
+            line-height: 1.6;
+            color: #555;
+            font-size: 1.05em;
+        }
+
+        /* Duration Options - Modern Radio Buttons */
+        .duration-options {
+            margin: 25px 0;
+            padding: 0;
+            text-align: left;
+        }
+
+        .duration-options h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            color: #333;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .duration-options .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .duration-options label {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.05em;
+            transition: all 0.2s ease;
+            background-color: #fff;
+        }
+
+        .duration-options label:hover {
+            border-color: #b0b0b0;
+            background-color: #f8f8f8;
+        }
+
+        .duration-options input[type="radio"] {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .duration-options .duration-price {
+            font-weight: bold;
+            color: #28a745;
+            margin-left: 8px;
+        }
+
+        /* Selected radio button styling */
+        .duration-options input[type="radio"]:checked + .radio-label {
+            font-weight: bold;
+            color: #1a73e8;
+        }
+
+        .duration-options label.selected {
+            border-color: #1a73e8;
+            background-color: #f0f7ff;
+            box-shadow: 0 2px 8px rgba(26, 115, 232, 0.15);
+        }
+
+        /* Email Input Group */
+        .email-input-group {
+            margin-top: 30px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .email-input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.05em;
+        }
+
+        .email-input-group input[type="email"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .email-input-group input[type="email"]:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+            outline: none;
+        }
+
+        /* Payment Button */
+        #payment-button {
+            background-color: #1a73e8;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            margin-top: 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.2);
+        }
+
+        #payment-button:hover {
+            background-color: #0d62d0;
+            box-shadow: 0 6px 15px rgba(26, 115, 232, 0.3);
+            transform: translateY(-2px);
+        }
+
+        #payment-button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Message Area */
+        #message-area {
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            display: none;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        #message-area.error-message {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        #message-area.info-message {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+        }
+
+        /* Back Link */
+        .back-link {
+            margin-top: 30px;
+            font-size: 0.95em;
+        }
+
+        .back-link a {
+            color: #1a73e8;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .back-link a:hover {
+            color: #0d62d0;
+            text-decoration: underline;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .promote-container {
+                padding: 20px;
+                margin: 15px auto;
+            }
+
+            .listing-preview-container {
+                padding: 15px;
+            }
+
+            .duration-options label {
+                padding: 12px;
+            }
+
+            #payment-button {
+                width: 100%;
+                padding: 12px 20px;
+            }
+        }
     </style>
 
 </head>
@@ -49,7 +268,7 @@
 
     <div class="promote-container">
 
-        <!-- == START: Listing Preview (Cleaned) == -->
+        <!-- == START: Modern Listing Preview == -->
         <div class="listing-preview-container">
              <h3>How Your Listing Will Look When Promoted:</h3>
              <ul id="results">
@@ -57,7 +276,7 @@
                      <div class="entry-details">
                          <span class="name">
                              <span id="listing-name-preview">Loading Name...</span>
-                             <span id="sponsored-label-preview" class="sponsored-label" style="visibility: hidden;">PREVIEW</span>
+                             <span id="sponsored-label-preview" class="sponsored-label" style="visibility: hidden;">SPONSORED</span>
                          </span>
                          <span class="address" id="listing-address-preview" style="display: none;"></span>
                          <span class="notes" id="listing-phone-preview" style="display: none;"></span>
@@ -77,41 +296,43 @@
             <p><small>(Payment is processed securely via Stripe. This is currently a one-time payment.)</small></p>
         </div>
 
-        <hr style="margin: 25px 0;">
+        <hr style="margin: 30px 0; border: none; height: 1px; background-color: #e0e0e0;">
 
-        <!-- Duration Selection (Ensure LIVE price IDs are set) -->
+        <!-- Duration Selection - Modern Radio Buttons -->
         <div class="duration-options">
-            <h3 style="margin-top: 0; margin-bottom: 15px; font-size: 1.1em;">Select Promotion Duration:</h3>
-            <label>
-                <input type="radio" name="promotion_duration" value="1" data-priceid="price_1RGgshKLB1TbvWgCz26985rA" data-tier="bronze" checked>
-                1 Month <span class="duration-price">($4.99 CAD - Try 1 Month)</span>
-            </label>
-            <label>
-                <input type="radio" name="promotion_duration" value="6" data-priceid="price_1RGgvEKLB1TbvWgCJfM5rXcV" data-tier="silver">
-                 6 Months <span class="duration-price">($24.99 CAD - Save 16%)</span>
-            </label>
-            <label>
-                <input type="radio" name="promotion_duration" value="12" data-priceid="price_1RGgyAKLB1TbvWgCTBkRcK7k" data-tier="gold">
-                12 Months <span class="duration-price">($35.99 CAD - Save 40%)</span>
-            </label>
+            <h3>Select Promotion Duration:</h3>
+            <div class="radio-group">
+                <label class="selected">
+                    <input type="radio" name="promotion_duration" value="1" data-priceid="price_1RGgshKLB1TbvWgCz26985rA" data-tier="bronze" checked>
+                    <span class="radio-label">1 Month</span> <span class="duration-price">($4.99 CAD - Try 1 Month)</span>
+                </label>
+                <label>
+                    <input type="radio" name="promotion_duration" value="6" data-priceid="price_1RGgvEKLB1TbvWgCJfM5rXcV" data-tier="silver">
+                    <span class="radio-label">6 Months</span> <span class="duration-price">($24.99 CAD - Save 16%)</span>
+                </label>
+                <label>
+                    <input type="radio" name="promotion_duration" value="12" data-priceid="price_1RGgyAKLB1TbvWgCTBkRcK7k" data-tier="gold">
+                    <span class="radio-label">12 Months</span> <span class="duration-price">($35.99 CAD - Save 40%)</span>
+                </label>
+            </div>
         </div>
 
-        <!-- Email Input Section (Corrected) -->
+        <!-- Email Input Section - Modern Design -->
         <div class="email-input-group">
             <label for="promoter-email">Your Email Address (for receipt):</label>
             <input type="email" id="promoter-email" name="promoter-email" required placeholder="you@example.com">
 
-            <label for="promoter-email-confirm" style="margin-top: 10px;">Confirm Email Address:</label>
+            <label for="promoter-email-confirm">Confirm Email Address:</label>
             <input type="email" id="promoter-email-confirm" name="promoter-email-confirm" required placeholder="Confirm your email">
         </div>
 
         <div id="message-area"></div>
 
-        <button id="payment-button" class="button-style">
+        <button id="payment-button">
             <i class="fa-brands fa-stripe-s"></i> Proceed to Payment
         </button>
 
-        <p class="back-link"><a href="#" id="go-back-link">Cancel and Go Back</a></p>
+        <p class="back-link"><a href="#" id="go-back-link"><i class="fa-solid fa-arrow-left"></i> Cancel and Go Back</a></p>
     </div>
 
     <!-- SCRIPT LOADING ORDER -->

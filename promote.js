@@ -51,11 +51,49 @@ document.addEventListener('DOMContentLoaded', () => {
     goBackLink.addEventListener('click', (event) => { event.preventDefault(); history.back(); });
 
 
-    // Dynamic Preview Update Logic
-    /* ... unchanged ... */
-    const tierClasses = ['promoted-bronze', 'promoted-silver', 'promoted-gold']; const labelClasses = ['bronze', 'silver', 'gold'];
-    function updatePreview() { const selectedInput = durationOptionsContainer.querySelector('input[name="promotion_duration"]:checked'); if (!selectedInput) return; const tier = selectedInput.dataset.tier; listingPreviewItem.classList.remove(...tierClasses); if (tier) { listingPreviewItem.classList.add(`promoted-${tier}`); } sponsoredLabelPreview.classList.remove(...labelClasses); if (tier) { sponsoredLabelPreview.classList.add(tier); sponsoredLabelPreview.textContent = "Sponsored"; sponsoredLabelPreview.style.visibility = 'visible'; } else { sponsoredLabelPreview.style.visibility = 'hidden'; } } // Changed label text here
-    durationRadios.forEach(radio => { radio.addEventListener('change', updatePreview); });
+    // Dynamic Preview Update Logic with Modern Radio Button Styling
+    const tierClasses = ['promoted-bronze', 'promoted-silver', 'promoted-gold'];
+    const labelClasses = ['bronze', 'silver', 'gold'];
+
+    function updatePreview() {
+        const selectedInput = durationOptionsContainer.querySelector('input[name="promotion_duration"]:checked');
+        if (!selectedInput) return;
+
+        const tier = selectedInput.dataset.tier;
+
+        // Update preview styling
+        listingPreviewItem.classList.remove(...tierClasses);
+        if (tier) {
+            listingPreviewItem.classList.add(`promoted-${tier}`);
+        }
+
+        sponsoredLabelPreview.classList.remove(...labelClasses);
+        if (tier) {
+            sponsoredLabelPreview.classList.add(tier);
+            sponsoredLabelPreview.textContent = "SPONSORED";
+            sponsoredLabelPreview.style.visibility = 'visible';
+        } else {
+            sponsoredLabelPreview.style.visibility = 'hidden';
+        }
+
+        // Update radio button styling - remove 'selected' class from all labels
+        const allLabels = durationOptionsContainer.querySelectorAll('label');
+        allLabels.forEach(label => {
+            label.classList.remove('selected');
+        });
+
+        // Add 'selected' class to the parent label of the checked radio
+        const selectedLabel = selectedInput.closest('label');
+        if (selectedLabel) {
+            selectedLabel.classList.add('selected');
+        }
+    }
+
+    durationRadios.forEach(radio => {
+        radio.addEventListener('change', updatePreview);
+    });
+
+    // Initialize preview and styling
     updatePreview();
 
 
