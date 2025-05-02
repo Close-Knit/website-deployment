@@ -470,12 +470,136 @@ async function fetchAndDisplayListings() {
 } // End fetchAndDisplayListings
 
 
-// Initialize Search Functionality (Unchanged)
-function initializeSearch() { /* ... search logic ... */
-     const searchBox = document.getElementById('searchBox'); const resultsList = document.getElementById('results'); if (!searchBox || !resultsList) { console.warn("Search elements not found."); return; }
-    searchBox.addEventListener('input', function() { const searchTerm = this.value.toLowerCase().trim(); const listItems = resultsList.getElementsByClassName('directory-entry'); const categoryHeadings = resultsList.getElementsByClassName('category-heading'); let visibleCategories = new Set(); Array.from(listItems).forEach(item => { const nameElement = item.querySelector('.name'); const nameText = nameElement?.textContent.toLowerCase() || ''; const addressText = item.querySelector('.address')?.textContent.toLowerCase() || ''; const notesText = item.querySelector('.notes')?.textContent.toLowerCase() || ''; const contactPersonText = item.querySelector('.contact-person')?.textContent.toLowerCase() || ''; // Corrected to use contact_person
-        let categoryText = ''; let currentElement = item.previousElementSibling; while (currentElement) { if (currentElement.classList.contains('category-heading')) { categoryText = currentElement.textContent.toLowerCase(); break; } currentElement = currentElement.previousElementSibling; } const matchesSearch = nameText.includes(searchTerm) || addressText.includes(searchTerm) || notesText.includes(searchTerm) || categoryText.includes(searchTerm) || contactPersonText.includes(searchTerm); if (matchesSearch) { item.style.display = ''; if (categoryText) visibleCategories.add(categoryText); } else { item.style.display = 'none'; } }); Array.from(categoryHeadings).forEach(heading => { const categoryText = heading.textContent.toLowerCase(); if (categoryText.includes(searchTerm) || visibleCategories.has(categoryText)) { heading.style.display = ''; } else { heading.style.display = 'none'; } }); });
- }
+// Initialize Search Functionality with Category Filter
+function initializeSearch() {
+    const searchBox = document.getElementById('searchBox');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const resultsList = document.getElementById('results');
+
+    if (!searchBox || !resultsList) {
+        console.warn("Search elements not found.");
+        return;
+    }
+
+    // Populate category dropdown from existing category headings
+    function populateCategoryDropdown() {
+        const categoryHeadings = resultsList.getElementsByClassName('category-heading');
+        const categories = new Set();
+
+        // Extract unique categories
+        Array.from(categoryHeadings).forEach(heading => {
+            categories.add(heading.textContent);
+        });
+
+        // Sort categories alphabetically
+        const sortedCategories = Array.from(categories).sort((a, b) => {
+            if (a === 'Uncategorized') return 1;
+            if (b === 'Uncategorized') return -1;
+            return a.localeCompare(b);
+        });
+
+        // Add options to dropdown
+        if (categoryFilter) {
+            // Keep the "All Categories" option and add the rest
+            const currentOptions = categoryFilter.querySelectorAll('option');
+            if (currentOptions.length <= 1) { // Only has the default option
+                sortedCategories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    categoryFilter.appendChild(option);
+                });
+                console.log(`Populated category filter with ${sortedCategories.length} categories`);
+            }
+        }
+    }
+
+    // Filter listings based on search term and selected category
+    function filterListings() {
+        const searchTerm = searchBox.value.toLowerCase().trim();
+        const selectedCategory = categoryFilter ? categoryFilter.value : '';
+
+        const listItems = resultsList.getElementsByClassName('directory-entry');
+        const categoryHeadings = resultsList.getElementsByClassName('category-heading');
+        let visibleCategories = new Set();
+
+        // Filter list items
+        Array.from(listItems).forEach(item => {
+            const nameElement = item.querySelector('.name');
+            const nameText = nameElement?.textContent.toLowerCase() || '';
+            const addressText = item.querySelector('.address')?.textContent.toLowerCase() || '';
+            const notesText = item.querySelector('.notes')?.textContent.toLowerCase() || '';
+            const contactPersonText = item.querySelector('.contact-person')?.textContent.toLowerCase() || '';
+
+            // Get the category for this item
+            let categoryText = '';
+            let currentElement = item.previousElementSibling;
+            while (currentElement) {
+                if (currentElement.classList.contains('category-heading')) {
+                    categoryText = currentElement.textContent;
+                    break;
+                }
+                currentElement = currentElement.previousElementSibling;
+            }
+
+            // Check if item matches both search term and category filter
+            const matchesSearch = searchTerm === '' ||
+                nameText.includes(searchTerm) ||
+                addressText.includes(searchTerm) ||
+                notesText.includes(searchTerm) ||
+                categoryText.toLowerCase().includes(searchTerm) ||
+                contactPersonText.includes(searchTerm);
+
+            const matchesCategory = selectedCategory === '' || categoryText === selectedCategory;
+
+            // Show/hide based on both filters
+            if (matchesSearch && matchesCategory) {
+                item.style.display = '';
+                if (categoryText) visibleCategories.add(categoryText);
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        // Show/hide category headings based on visible items
+        Array.from(categoryHeadings).forEach(heading => {
+            const headingText = heading.textContent;
+            const categoryMatchesSearch = searchTerm === '' || headingText.toLowerCase().includes(searchTerm);
+            const categoryIsSelected = selectedCategory === '' || headingText === selectedCategory;
+
+            if ((categoryMatchesSearch && categoryIsSelected) || visibleCategories.has(headingText)) {
+                heading.style.display = '';
+            } else {
+                heading.style.display = 'none';
+            }
+        });
+    }
+
+    // Add event listeners
+    searchBox.addEventListener('input', filterListings);
+
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', filterListings);
+    }
+
+    // Initialize dropdown after listings are loaded
+    // Use MutationObserver to detect when listings are added to the DOM
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                // Check if any category headings exist
+                if (resultsList.getElementsByClassName('category-heading').length > 0) {
+                    populateCategoryDropdown();
+                    observer.disconnect(); // Stop observing once categories are populated
+                    break;
+                }
+            }
+        }
+    });
+
+    // Start observing the results list for changes
+    observer.observe(resultsList, { childList: true });
+}
 
 
 // Initialize Popup Interactivity (Includes Base64, but not single-popup or QR fix)

@@ -60,7 +60,14 @@
 
     <!-- Search Container -->
     <div class="search-container">
-        <input type="text" id="searchBox" placeholder="Search by Name or Category...">
+        <div class="search-inputs">
+            <input type="text" id="searchBox" placeholder="Search by Name or Keyword...">
+            <select id="categoryFilter" aria-label="Filter by category">
+                <option value="">All Categories</option>
+                <!-- Categories will be populated by JavaScript -->
+            </select>
+            <label for="categoryFilter" class="sr-only">Filter by category</label>
+        </div>
     </div>
 
     <!-- Action Buttons Container -->
