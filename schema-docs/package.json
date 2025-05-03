@@ -1,0 +1,12 @@
+{
+  "name": "schema-docs-generator",
+  "version": "1.0.0",
+  "description": "Generate documentation for Supabase database schema",
+  "main": "update_schema_docs.js",
+  "scripts": {
+    "update-schema": "node update_schema_docs.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0"
+  }
+}
