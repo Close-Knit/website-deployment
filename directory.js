@@ -127,8 +127,8 @@ async function fetchAndDisplayWeather(communityName, provinceName) {
 
     // 2. Fetch Weather & Set Background
     try {
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current_weather=true`;
-        console.log("Attempting Weather Fetch URL:", weatherUrl); // Log the CORRECT URL
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current_weather=true&daily=temperature_2m_max,temperature_2m_min`;
+        console.log("Attempting Weather Fetch URL:", weatherUrl);
 
         const weatherResponse = await fetch(weatherUrl);
 
@@ -139,19 +139,21 @@ async function fetchAndDisplayWeather(communityName, provinceName) {
         }
 
         const weatherData = await weatherResponse.json();
-        console.log("Weather API Response Data:", weatherData); // Keep this log
+        console.log("Weather API Response Data:", weatherData);
 
         // --- Extract Weather Code and Temperature ---
         let weatherCode = null;
         let temperature = null;
+        let tempHigh = null;
+        let tempLow = null;
         let backgroundImage = 'url(/images/weather-bgs/default.webp)'; // Default path
 
         if (weatherData && weatherData.current_weather) {
-            console.log("Checking for current_weather object:", weatherData.current_weather); // DEBUG LOG
+            console.log("Checking for current_weather object:", weatherData.current_weather);
 
             // Get temperature
             if (weatherData.current_weather.temperature !== undefined) {
-                 console.log("Checking for temperature within current_weather:", weatherData.current_weather.temperature); // DEBUG LOG
+                 console.log("Checking for temperature within current_weather:", weatherData.current_weather.temperature);
                 temperature = weatherData.current_weather.temperature;
             } else {
                  console.warn("Temperature value missing in current_weather object.");
@@ -185,25 +187,56 @@ async function fetchAndDisplayWeather(communityName, provinceName) {
                 console.warn("Weather code missing in current_weather object.");
                  backgroundImage = 'url(/images/weather-bgs/default.webp)'; // Use default if code missing
             }
+        }
+
+        // --- Extract High/Low Temperatures ---
+        if (weatherData && weatherData.daily) {
+            console.log("Checking for daily forecast data:", weatherData.daily);
+            
+            // Check if arrays exist and have at least one element (for today)
+            if (weatherData.daily.temperature_2m_max && weatherData.daily.temperature_2m_max.length > 0) {
+                tempHigh = weatherData.daily.temperature_2m_max[0];
+                console.log("Today's high temperature:", tempHigh);
+            }
+            
+            if (weatherData.daily.temperature_2m_min && weatherData.daily.temperature_2m_min.length > 0) {
+                tempLow = weatherData.daily.temperature_2m_min[0];
+                console.log("Today's low temperature:", tempLow);
+            }
         } else {
-             console.warn("Current_weather object not found in API response.");
-             backgroundImage = 'url(/images/weather-bgs/default.webp)'; // Use default if structure wrong
+            console.warn("Daily forecast data not found in API response.");
         }
 
         // --- Apply Background Image ---
-        if (containerElement) { // Check again
+        if (containerElement) {
             containerElement.style.backgroundImage = backgroundImage;
             console.log("Applied background image to #weather-box:", backgroundImage);
         }
 
         // --- Display Temperature ---
         if (temperature !== null && !isNaN(parseFloat(temperature))) {
-            tempElement.textContent = `${Math.round(parseFloat(temperature))}°C`;
+            tempElement.innerHTML = `${Math.round(parseFloat(temperature))}<sup>°C</sup>`;
             tempElement.title = `Current temperature in ${communityName}`;
         } else {
-             tempElement.textContent = "N/A";
-             tempElement.title = `Temperature data unavailable for ${communityName}`;
-             console.warn("Final temperature value was null or not a number:", temperature); // Added log
+            tempElement.innerHTML = `N/A`;
+            tempElement.title = `Temperature data unavailable for ${communityName}`;
+            console.warn("Final temperature value was null or not a number:", temperature);
+        }
+        
+        // --- Display High/Low Temperatures ---
+        const highElement = document.getElementById('temp-high');
+        const lowElement = document.getElementById('temp-low');
+        
+        if (highElement) {
+            highElement.textContent = (tempHigh !== null && !isNaN(parseFloat(tempHigh))) 
+                ? `H: ${Math.round(parseFloat(tempHigh))}°` 
+                : 'H: N/A';
+        }
+        
+        if (lowElement) {
+            lowElement.textContent = (tempLow !== null && !isNaN(parseFloat(tempLow))) 
+                ? `L: ${Math.round(parseFloat(tempLow))}°` 
+                : 'L: N/A';
         }
 
     } catch (error) {
@@ -211,9 +244,15 @@ async function fetchAndDisplayWeather(communityName, provinceName) {
         tempElement.textContent = "N/A";
         tempElement.title = `Could not fetch weather data for ${communityName}. ${error.message}`;
         // Set default background on fetch/processing failure
-        if (containerElement) { // Check again
+        if (containerElement) {
              containerElement.style.backgroundImage = 'url(/images/weather-bgs/default.webp)';
         }
+        
+        // Clear high/low elements on error
+        const highElement = document.getElementById('temp-high');
+        const lowElement = document.getElementById('temp-low');
+        if (highElement) highElement.textContent = 'H: --';
+        if (lowElement) lowElement.textContent = 'L: --';
     }
 }
 // === END: Weather Functionality ===

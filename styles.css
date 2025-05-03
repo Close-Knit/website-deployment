@@ -777,22 +777,17 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 
 /* Styles for the dedicated Weather Box */
 #weather-box {
-    position: relative;      /* Needed for overlay and absolute positioning of temperature */
-    overflow: hidden;        /* Keep overlay contained */
-    box-sizing: border-box;  /* Include padding/border in size */
-
-    /* --- Sizing to match logo --- */
-    width: 150px;           /* Set a width matching logo's max-width */
-    max-width: 150px;       /* Explicit max-width */
-    aspect-ratio: 1 / 1;    /* Make it square */
-
-    padding: 10px;           /* Padding inside the box */
-    border-radius: 8px;      /* Rounded corners */
-
-    /* Background Image Properties */
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+    width: 150px;
+    max-width: 150px;
+    aspect-ratio: 1 / 1;
+    padding: 10px;
+    border-radius: 8px;
     background-image: none; /* Set via JS */
-    background-size: cover;
-    background-position: center;
+    background-size: cover; /* Restore to cover */
+    background-position: center; /* Restore to center */
     background-repeat: no-repeat;
     transition: background-image 0.5s ease-in-out;
 }
@@ -809,20 +804,29 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 
 /* Temperature Text Styling (inside #weather-box) */
 .weather-temp {
-    position: absolute; /* Position absolutely within the weather box */
-    z-index: 2;         /* Position above overlay */
-    font-size: 2.3em;   /* Slightly smaller font size */
+    position: absolute;
+    z-index: 2;
+    font-size: 2.3em;
     font-weight: bold;
-    color: #ffffff;     /* White text */
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 5px rgba(0, 0, 0, 0.5); /* Enhanced shadow for better readability */
+    color: #ffffff;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 5px rgba(0, 0, 0, 0.5);
     line-height: 1;
     white-space: nowrap;
     margin: 0;
     padding: 0;
-    text-align: center; /* Ensure centered if flex fails */
-    bottom: 10px;       /* Position at bottom */
-    left: 0;            /* Stretch across full width */
-    right: 0;           /* Stretch across full width */
+    text-align: right; /* Changed from center to right */
+    bottom: 2px; /* Changed from 0 to 2px to move it down */
+    right: 8px; /* Added right padding */
+    left: auto; /* Remove left positioning to allow right alignment */
+}
+
+/* Add new style for the Celsius symbol */
+.weather-temp sup {
+    font-size: 0.6em;
+    position: relative;
+    top: -0.3em; /* Changed from -0.5em to -0.3em to bring it down */
+    font-weight: normal;
+    padding-left: 2px;
 }
 
 /* Community Name below the wrapper */
@@ -861,5 +865,60 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 
     #community-name {
          font-size: 1.5em;
+    }
+}
+
+/* High/Low temperature container - moved to top center */
+.high-low-temps {
+    position: absolute;
+    z-index: 2;
+    top: 8px; /* Position at top instead of bottom */
+    left: 0;
+    right: 0; /* Stretch across to enable centering */
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    gap: 12px; /* Slightly larger gap between high and low */
+    font-size: 0.9em;
+    color: #ffffff;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Individual high/low temperature spans */
+.temp-detail {
+    font-weight: 500;
+    white-space: nowrap;
+    background-color: rgba(0, 0, 0, 0.2); /* Optional: slight background for better readability */
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+/* Adjust the main temperature - slightly smaller */
+.weather-temp {
+    position: absolute;
+    z-index: 2;
+    font-size: 2.1em; /* Reduced from 2.3em */
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9), 0 0 5px rgba(0, 0, 0, 0.5);
+    line-height: 1;
+    white-space: nowrap;
+    margin: 0;
+    padding: 0;
+    text-align: right;
+    bottom: 2px;
+    right: 8px;
+    left: auto;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 600px) {
+    .high-low-temps {
+        font-size: 0.8em;
+        top: 6px; /* Adjusted for top positioning */
+        gap: 8px;
+    }
+    
+    .weather-temp {
+        font-size: 1.9em; /* Even smaller on mobile */
     }
 }
