@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="canonical" href="https://bizly.ca/" />
     <title>Bizly.ca - Canada's business directory</title> <!-- You might want a more engaging title here too -->
 
     <!-- ********** START: Open Graph Meta Tags for Link Previews ********** -->
@@ -43,6 +44,26 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174"
          crossorigin="anonymous"></script>
 
+    <!-- Add these new meta tags -->
+    <meta name="description" content="Find local businesses and services across Canada. Bizly.ca is your comprehensive community-based business directory." />
+    <meta name="keywords" content="Canada business directory, local businesses, community directory, Canadian businesses" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Bizly.ca" />
+    
+    <!-- Schema.org markup for search engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Bizly.ca",
+      "url": "https://bizly.ca/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://bizly.ca/community.html?search={search_term}",
+        "query-input": "required name=search_term"
+      }
+    }
+    </script>
 </head>
 <body>
 
@@ -60,9 +81,11 @@
     <h1>Canada's Business Directory</h1>
 
     <!-- This is the container home.js will populate -->
-    <div id="province-list">
-        <p>Loading business directories...</p> <!-- Initial loading message -->
-    </div>
+    <main role="main">
+        <section id="province-list" aria-label="Provinces and Territories">
+            <p>Loading business directories...</p> <!-- Initial loading message -->
+        </section>
+    </main>
 
     <!-- ====================================================== -->
     <!-- SCRIPT LOADING ORDER - CRITICAL FOR CENTRALIZED CLIENT -->
@@ -77,5 +100,10 @@
     <!-- Load Home page script THIRD (uses supabaseClient from common.js) -->
     <script src="home.js" defer></script>
 
+    <footer>
+        <p>&copy; 2024 Bizly.ca - Canada's Business Directory</p>
+    </footer>
 </body>
 </html>
+
+

@@ -922,3 +922,21 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
         font-size: 1.9em; /* Even smaller on mobile */
     }
 }
+
+/* AI Summary Section Styling */
+.ai-summary {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    border-top: 1px solid #eee;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.ai-summary h2 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.ai-summary ul {
+    margin-left: 1.5rem;
+}

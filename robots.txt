@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /schema-docs/
+Disallow: /supabase/
+
+Sitemap: https://bizly.ca/sitemap.xml
