@@ -3,10 +3,6 @@
 // ======================================================================
 // NO Supabase Client Initialization HERE - Assumes 'supabaseClient' is globally available from common.js
 // ======================================================================
-// const supabaseUrl = '...'; // REMOVED
-// const supabaseKey = '...'; // REMOVED
-// const { createClient } = supabase; // REMOVED
-// const supabaseClient = createClient(supabaseUrl, supabaseKey); // REMOVED
 
 // ======================================================================
 // Helper to display error messages
@@ -120,31 +116,29 @@ async function populateHomePage() {
                     const communityItemContainer = document.createElement('div');
                     communityItemContainer.className = 'community-item-container';
 
-                    const communityLink = document.createElement("a");
-                    communityLink.className = 'community-link';
-                    communityLink.href = `community.html?province=${encodeURIComponent(regionName)}&community=${encodeURIComponent(community.name)}`;
-                    communityLink.textContent = community.name;
+                    const communityLink = createCommunityLink(community.name, regionName);
                     communityItemContainer.appendChild(communityLink);
 
                     if (community.status === 'NEW') {
-                        const statusSpan = document.createElement('span');
-                        statusSpan.className = 'status-label status-new';
-                        statusSpan.textContent = ' New!';
-                        communityItemContainer.appendChild(statusSpan);
+                        const statusLabel = document.createElement("span");
+                        statusLabel.className = 'status-label status-new';
+                        statusLabel.textContent = 'New!';
+                        communityItemContainer.appendChild(statusLabel);
                     } else if (community.status === 'COMING_SOON') {
-                        const statusSpan = document.createElement('span');
-                        statusSpan.className = 'status-label status-coming-soon';
-                        statusSpan.textContent = ' Coming Soon';
-                        communityItemContainer.appendChild(statusSpan);
+                        const statusLabel = document.createElement("span");
+                        statusLabel.className = 'status-label status-coming-soon';
+                        statusLabel.textContent = 'Coming Soon';
+                        communityItemContainer.appendChild(statusLabel);
                     }
+
                     communityListContainer.appendChild(communityItemContainer);
                 });
             } else {
-                 const noCommunitiesMsg = document.createElement('p');
-                 noCommunitiesMsg.className = 'no-communities-message';
-                 noCommunitiesMsg.textContent = 'No communities listed yet.';
-                 communityListContainer.appendChild(noCommunitiesMsg);
+                const noCommunitiesMsg = document.createElement("p");
+                noCommunitiesMsg.textContent = "No communities available yet.";
+                communityListContainer.appendChild(noCommunitiesMsg);
             }
+
             regionSection.appendChild(communityListContainer);
 
             if (communities.length > 0) {
@@ -152,7 +146,11 @@ async function populateHomePage() {
                 buttonContainer.className = 'view-all-button-container';
                 const viewAllLink = document.createElement("a");
                 viewAllLink.className = 'button-style view-all-button';
-                viewAllLink.href = `province_page.html?province=${encodeURIComponent(regionName)}`;
+                
+                // Create the URL using the slug format
+                const provinceSlug = createSlug(regionName);
+                viewAllLink.href = `/${provinceSlug}/`;
+                
                 viewAllLink.textContent = "View All";
                 viewAllLink.title = `View all communities in ${regionName}`;
                 buttonContainer.appendChild(viewAllLink);
@@ -178,14 +176,64 @@ async function populateHomePage() {
 // Main Execution
 // ======================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // *** REMOVED Supabase library check here - assume common.js handled it ***
-    // if (typeof supabase === 'undefined' || typeof supabase.createClient !== 'function') {
-    //     displayHomeError("Supabase library not loaded.");
-    //     return;
-    // }
-
     // Call populate function directly
     populateHomePage();
+    
+    // Setup search functionality
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+    
+    if (searchInput && searchButton) {
+        searchButton.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    }
 });
+
+// ======================================================================
+// Search Functionality
+// ======================================================================
+function performSearch() {
+    const searchInput = document.getElementById('search-input');
+    if (!searchInput) return;
+    
+    const searchTerm = searchInput.value.trim();
+    if (searchTerm.length < 2) {
+        alert('Please enter at least 2 characters to search');
+        return;
+    }
+    
+    // Redirect to search results page
+    window.location.href = `/search.html?q=${encodeURIComponent(searchTerm)}`;
+}
+
+// Helper function to create slug from name
+function createSlug(name) {
+    return name
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')     // Replace spaces with hyphens
+        .replace(/--+/g, '-')     // Replace multiple hyphens with single hyphen
+        .trim();                  // Trim leading/trailing spaces
+}
+
+// When creating community links on the homepage
+function createCommunityLink(communityName, provinceName) {
+    const communityLink = document.createElement("a");
+    communityLink.className = 'community-link';
+    
+    // Create the URL using the slug format
+    const provinceSlug = createSlug(provinceName);
+    const communitySlug = createSlug(communityName);
+    
+    // Use the new static URL format
+    communityLink.href = `/${provinceSlug}/${communitySlug}/`;
+    communityLink.textContent = communityName;
+    
+    return communityLink;
+}
 
 // --- END OF home.js ---

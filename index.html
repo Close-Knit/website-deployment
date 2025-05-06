@@ -3,32 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canadian Local Business Directory | Bizly.ca</title>
     <link rel="canonical" href="https://bizly.ca/" />
-    <title>Bizly.ca - Canada's business directory</title> <!-- You might want a more engaging title here too -->
-    
-    <!-- Ahrefs Web Analytics -->
-    <script src="https://analytics.ahrefs.com/analytics.js" data-key="xHgwmgxFTCLoO/gG1rfDoQ" async></script>
-    <!-- End Ahrefs Web Analytics -->
-    
-    <!-- ********** START: Open Graph Meta Tags for Link Previews ********** -->
-    <meta property="og:title" content="Bizly.ca - Your Local Community Directory" />
-    <meta property="og:description" content="Find local businesses, services, and resources easily. Select your community on Bizly.ca to get started!" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://bizly.ca/" /> <!-- Use your main domain URL -->
-    <meta property="og:image" content="https://bizly.ca/images/Bizly_Logo_150px.webp" /> <!-- Absolute URL to your logo -->
-    <meta property="og:image:width" content="150" /> <!-- Specify width (optional but good) -->
-    <!-- <meta property="og:image:height" content="XXX" /> --> <!-- Add height if known -->
-    <meta property="og:site_name" content="Bizly.ca" />
-    <!-- ********** END: Open Graph Meta Tags ********** -->
-
-    <!-- You might also want Twitter Card tags (optional but recommended) -->
-    <meta name="twitter:card" content="summary" /> <!-- Use "summary_large_image" if you have a larger preview image -->
-    <meta name="twitter:title" content="Bizly.ca - Your Local Community Directory" />
-    <meta name="twitter:description" content="Find local businesses, services, and resources easily. Select your community on Bizly.ca to get started!" />
-    <meta name="twitter:image" content="https://bizly.ca/images/Bizly_Logo_150px.webp" />
-    <!-- <meta name="twitter:site" content="@YourTwitterHandle"> --> <!-- Add if you have a Twitter handle -->
-    <!-- End Twitter Card tags -->
-
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-QV1M0QM38B"></script>
@@ -41,19 +17,21 @@
     </script>
     <!-- End Google tag -->
 
-    <!-- Link to the central stylesheet -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- Ahrefs Web Analytics -->
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="xHgwmgxFTCLoO/gG1rfDoQ" async></script>
+    <!-- End Ahrefs Web Analytics -->
 
-    <!-- AdSense Script -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174"
-         crossorigin="anonymous"></script>
-
-    <!-- Add these new meta tags -->
-    <meta name="description" content="Find local businesses and services across Canada. Bizly.ca is your comprehensive community-based business directory." />
-    <meta name="keywords" content="Canada business directory, local businesses, community directory, Canadian businesses" />
-    <meta name="robots" content="index, follow" />
-    <meta name="author" content="Bizly.ca" />
+    <!-- Meta description for SEO -->
+    <meta name="description" content="Find local businesses and services in communities across Canada. Browse our comprehensive directory of Canadian towns and cities." />
     
+    <!-- Open Graph tags for social sharing -->
+    <meta property="og:title" content="Canadian Local Business Directory | Bizly.ca" />
+    <meta property="og:description" content="Find local businesses and services in communities across Canada. Browse our comprehensive directory of Canadian towns and cities." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://bizly.ca/" />
+    <meta property="og:image" content="https://bizly.ca/images/Bizly_Logo_150px.webp" />
+    <meta property="og:site_name" content="Bizly.ca" />
+
     <!-- Schema.org markup for search engines -->
     <script type="application/ld+json">
     {
@@ -61,54 +39,58 @@
       "@type": "WebSite",
       "name": "Bizly.ca",
       "url": "https://bizly.ca/",
+      "description": "Canadian local business directory",
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://bizly.ca/community.html?search={search_term}",
-        "query-input": "required name=search_term"
+        "target": "https://bizly.ca/search.html?q={search_term_string}",
+        "query-input": "required name=search_term_string"
       }
     }
     </script>
+
+    <!-- Link CSS and Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="/styles.css">
+
+    <!-- AdSense Script (Consistency) -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174"
+         crossorigin="anonymous"></script>
 </head>
 <body>
+    <!-- Site Logo Link -->
+    <a href="/" id="site-logo-link" title="Go to Home Page">
+       <img src="/images/Bizly_Logo_150px.webp" alt="Bizly Logo - Go to Home" id="site-logo">
+    </a>
 
-  <!-- Start: Site Logo Link -->
-  <a href="index.html" id="site-logo-link" title="Go to Home Page">
-    <!-- The src here is relative, which is fine for the page display -->
-    <img src="images/Bizly_Logo_150px.webp" alt="Bizly Logo - Go to Home" id="site-logo">
-  </a>
-  <!-- End: Site Logo Link -->
+    <h1>Canadian Local Business Directory</h1>
+    
+    <div class="home-intro">
+        <p>Welcome to Bizly.ca, your comprehensive directory of local businesses across Canada.</p>
+        <p>Select a province or territory below to explore communities and find local businesses.</p>
+    </div>
 
-  <!-- START: Beta Indicator -->
-  <span class="beta-indicator">Beta - Eat Lots, Grow Big</span>
-  <!-- END: Beta Indicator -->
-
-    <h1>Canada's Business Directory</h1>
-
-    <!-- This is the container home.js will populate -->
-    <main role="main">
-        <section id="province-list" aria-label="Provinces and Territories">
-            <p>Loading business directories...</p> <!-- Initial loading message -->
-        </section>
-    </main>
-
-    <!-- ====================================================== -->
-    <!-- SCRIPT LOADING ORDER - CRITICAL FOR CENTRALIZED CLIENT -->
-    <!-- ====================================================== -->
+    <!-- Provinces List -->
+    <div id="province-list" class="provinces-container">
+        <!-- Provinces will be loaded here by JS -->
+        <p>Loading provinces...</p>
+    </div>
 
     <!-- Load Supabase library FIRST -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Load Common JS SECOND (initializes supabaseClient) -->
-    <script src="common.js"></script>
+    <!-- Load the specific JS for this page -->
+    <script src="/common.js"></script>
+    <script src="/home.js"></script>
 
-    <!-- Load Home page script THIRD (uses supabaseClient from common.js) -->
-    <script src="home.js" defer></script>
-
-    <footer>
-        <p>&copy; 2024 Bizly.ca - Canada's Business Directory</p>
-    </footer>
+    <!-- Back to Top Button -->
+    <button id="backToTopBtn" title="Go to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
 </body>
 </html>
-
-
-

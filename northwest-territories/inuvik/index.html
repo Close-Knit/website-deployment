@@ -1,0 +1,291 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inuvik, Northwest Territories Business Directory | Bizly.ca</title>
+    
+    <!-- Meta description for SEO -->
+    <meta name="description" content="Find local businesses and services in Inuvik, Northwest Territories. Browse the Bizly.ca directory.">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Open Graph tags for social sharing -->
+    <meta property="og:title" content="Inuvik, Northwest Territories Business Directory | Bizly.ca">
+    <meta property="og:description" content="Find local businesses and services in Inuvik, Northwest Territories. Browse the Bizly.ca directory.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://bizly.ca/northwest-territories/inuvik/">
+    <meta property="og:image" content="https://bizly.ca/images/Bizly_Logo_150px.webp">
+    <meta property="og:site_name" content="Bizly.ca">
+
+    <!-- Schema.org markup for search engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "{{COMMUNITY_NAME}} Business Directory",
+      "description": "Directory of businesses and services in {{COMMUNITY_NAME}}, {{PROVINCE_NAME}}",
+      "url": "https://bizly.ca/{{PROVINCE_SLUG}}/{{COMMUNITY_SLUG}}/",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "{{COMMUNITY_NAME}}",
+        "addressRegion": "{{PROVINCE_NAME}}",
+        "addressCountry": "CA"
+      },
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "Bizly.ca",
+        "url": "https://bizly.ca/"
+      }
+    }
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <a href="../../" class="site-logo">
+                <img src="../../images/Bizly_Logo_150px.webp" alt="Bizly.ca Logo">
+            </a>
+            <nav class="main-nav">
+                <!-- Navigation links removed -->
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Community Header - SIMPLIFIED -->
+        <div class="community-header">
+            <!-- NEW: Wrapper to hold logo and weather box side-by-side -->
+            <div id="logo-and-weather-wrapper">
+                <!-- Box 1: Actual Logo Image (src set by generation script) -->
+                <img id="logo" src="../../images/logos/inuvik-nt.webp" alt="Inuvik Logo" style="display: block; width: 150px; height: 150px; padding: 0; border: none; box-shadow: none; object-fit: cover; box-sizing: border-box; margin: 0; background-color: #f8f9fa;">
+
+                <!-- Box 2: Weather Box (background and text set by client-side JS) -->
+                <div id="weather-box">
+                     <span id="community-temp" class="weather-temp" title="Loading weather...">--°C</span>
+                     <div class="high-low-temps">
+                        <span id="temp-high" class="temp-detail">H: --</span>
+                        <span id="temp-low" class="temp-detail">L: --</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Community name remains below -->
+            <h1 id="community-name">Inuvik, Northwest Territories</h1>
+            <div class="directory-subtitle">Business Directory (<span id="listing-count">0</span> listings)</div>
+        </div>
+
+        <!-- Search Container -->
+        <div class="search-container">
+            <!-- Search inputs remain unchanged -->
+            <form id="search-form" class="search-form">
+                <input type="text" id="search-input" placeholder="Search by Name or Keyword..." class="search-input">
+                <select id="category-filter" class="category-filter">
+                    <option value="">All Categories</option>
+                </select>
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+        </div> <!-- End of search-container -->
+
+        <!-- Action Buttons Container -->
+        <div class="action-buttons">
+            <button id="shareButton" class="button-style" title="Share this directory page">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span class="share-text">Share Page</span>
+            </button>
+            <a href="../../suggest_change.html?cid=57&amp;prov=Northwest+Territories&amp;comm=Inuvik" id="suggestChangeLink" class="button-style" title="Suggest an addition or change" target="_blank" rel="noopener noreferrer">
+                 <i class="fa-solid fa-plus-circle"></i>
+                 <span>Suggest Change</span>
+            </a>
+        </div>
+
+        <!-- Breadcrumb navigation -->
+        <nav aria-label="breadcrumb" id="breadcrumb-container" class="breadcrumb-nav">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="../../">Home</a></li>
+                    <li class="breadcrumb-item"><a href="../../northwest-territories/">Northwest Territories</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Inuvik</li>
+                </ol></nav>
+
+        <!-- Business listings section -->
+        <section class="listings-section">
+            <!-- Business listings container -->
+            <ul id="results" class="business-listings"><li class="no-results">No business listings found for this community.</li></ul>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>About Bizly.ca</h3>
+                <p>Bizly.ca is a comprehensive directory of local businesses across Canada, helping connect communities with the services they need.</p>
+            </div>
+        </div>
+        <div class="copyright">
+            © <span id="current-year">2023</span> Bizly.ca. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="modal-overlay hidden"></div>
+
+    <!-- Start: Phone Reveal Popup (Updated Structure) -->
+    <div id="phonePopup" class="popup hidden">
+      <div class="popup-content">
+        <!-- Close button with the ID the JS looks for -->
+        <span id="closePopup" class="close-button" title="Close">×</span>
+        <h4>Phone Number:</h4>
+        <!-- Paragraph to display the number -->
+        <p id="phoneNumber" class="popup-phone-number">...</p>
+        <!-- Copy button structure from original example -->
+        <button id="copyPhoneBtn" class="copy-button" title="Copy phone number">
+            <i class="fa-regular fa-copy"></i> <span class="copy-text">Copy</span>
+        </button>
+        <!-- Notice text -->
+        <p class="popup-notice">This pop-up is an Anti-Spam feature. Tell your friends you saw this listing on Bizly.ca!</p>
+        <!-- Optional Ad Container (Keep if needed) -->
+        <div id="adContainer" class="popup-ad-container">
+             <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-6284081740274174" data-ad-slot="9857272744" data-ad-format="auto" data-full-width-responsive="true"></ins>
+             <script>
+                  (adsbygoogle = window.adsbygoogle || []).push({});
+             </script>
+        </div>
+      </div>
+    </div>
+    <!-- End: Phone Reveal Popup -->
+
+    <!-- *** Virtual Card Popup Structure (Enhanced for Styling) *** -->
+    <div id="virtualCardPopup" class="popup hidden">
+        <div class="popup-content vcard-content">
+            <span id="closeVCardPopup" class="close-button" title="Close">×</span>
+
+            <div class="vcard-header">
+                 <!-- Logo placeholder - src set by JS if available -->
+                 <img id="vcard-logo" src="../../images/Bizly_Logo_150px.webp" alt="Business Logo" class="vcard-logo" style="display: none;">
+                 <h3 id="vcard-name" class="vcard-name">Business Name</h3>
+            </div>
+
+            <div class="vcard-details">
+                 <!-- Detail items - populated and shown/hidden by JS -->
+                 <p id="vcard-contact-person" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-user fa-fw"></i> <span></span></p>
+                 <p id="vcard-phone" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-phone fa-fw"></i> <a href="#"><span></span></a></p>
+                 <p id="vcard-email" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-envelope fa-fw"></i> <a href="#"><span></span></a></p>
+                 <p id="vcard-website" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-globe fa-fw"></i> <a href="#" target="_blank" rel="noopener noreferrer"><span></span></a></p>
+                 <p id="vcard-address" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-location-dot fa-fw"></i> <span></span></p>
+                 <!-- Notes might need different styling, added for completeness -->
+                 <p id="vcard-notes" class="vcard-detail-item" style="display: none;"><i class="fa-solid fa-clipboard fa-fw"></i> <span></span></p>
+            </div>
+
+            <div class="vcard-actions">
+                <!-- Action buttons - href/functionality set by JS -->
+                <a id="vcard-download-link" href="#" download="contact.vcf" class="button-style vcard-button" title="Save contact to phone">
+                    <i class="fa-solid fa-address-card"></i> Save Contact
+                </a>
+                 <button id="vcard-show-qr-button" class="button-style vcard-button" title="Show/Hide QR Code">
+                     <i class="fa-solid fa-qrcode"></i> Show QR
+                 </button>
+                <a id="vcard-sms-link" href="#" class="button-style vcard-button" title="Share contact via SMS">
+                    <i class="fa-solid fa-comment-sms"></i> Share SMS
+                </a>
+                <button id="vcard-share-button" class="button-style vcard-button" title="More sharing options">
+                     <i class="fa-solid fa-share-nodes"></i> Share...
+                </button>
+            </div>
+
+            <!-- QR Code Container (Initially hidden) -->
+            <div id="vcard-qrcode-container" class="vcard-qrcode-container" style="display: none;">
+                <p><small>Scan QR to save contact:</small></p>
+                <canvas id="vcard-qr"></canvas> <!-- Canvas for QRious -->
+            </div>
+
+        </div>
+    </div>
+    <!-- End: Virtual Card Popup -->
+
+    <!-- Promote Business Popup -->
+    <div id="promotePopup" class="popup hidden">
+        <div class="popup-header">
+            <h3>Promote Your Business</h3>
+            <button class="close-popup">×</button>
+        </div>
+        <div class="popup-content">
+            <p>Enhance your business visibility with premium features:</p>
+            <ul class="promote-features">
+                <li>Featured placement at the top of search results</li>
+                <li>Highlighted listing with custom branding</li>
+                <li>Additional photos and detailed business description</li>
+                <li>Special offers and promotions section</li>
+            </ul>
+            <button id="learnMoreButton" class="promote-button">Learn More</button>
+        </div>
+    </div>
+
+    <!-- Community metadata for JS -->
+    <meta id="community-data" data-province="Northwest Territories" data-community="Inuvik" data-province-slug="northwest-territories" data-community-slug="inuvik">
+
+    <!-- Supabase Library FIRST (NO defer) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    
+    <!-- Your Common JS (deferred is fine now) -->
+    <script src="../../common.js" defer=""></script>
+    
+    <!-- Your Directory JS (deferred is fine now) -->
+    <script src="../../directory.js" defer=""></script>
+    
+    <!-- Add this section for AI crawlers -->
+    <div class="ai-summary" aria-hidden="true">
+        <h2>About Inuvik, Northwest Territories</h2>
+        <p id="ai-community-description">This page contains a comprehensive business directory for Inuvik, Northwest Territories. Users can find local businesses, contact information, and services available in this community.</p>
+        <p>Key features include:</p>
+        <ul>
+            <li>Searchable business listings</li>
+            <li>Contact information for local services</li>
+            <li>Category filtering</li>
+            <li>Business promotion opportunities</li>
+        </ul>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="backToTopBtn" title="Go to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body></html>

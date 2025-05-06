@@ -1,122 +1,131 @@
-// --- START OF common.js (Refactored for Central Supabase Init) ---
+// common.js - Centralized Supabase client initialization and shared functions
 
 // ======================================================================
-//  SHARED CONFIGURATION & INITIALIZATION
+// Supabase Client Initialization - GLOBAL
 // ======================================================================
+const supabaseUrl = 'https://czcpgjcstkfngyzbpaer.supabase.co'; // Replace with your actual Supabase URL
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q'; // Replace with your actual public anon key
 
-// Define Supabase credentials ONCE here
-const SUPABASE_URL = 'https://czcpgjcstkfngyzbpaer.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Y3BnamNzdGtmbmd5emJwYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MzAwMDksImV4cCI6MjA1OTEwNjAwOX0.oJJL0i_Hetf3Yn8p8xBdNXLNS4oeY9_MJO-LBj4Bk8Q';
+// Initialize the Supabase client immediately
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-// Declare supabaseClient globally within this script's scope
-// Other scripts will access this variable IF common.js is loaded first.
-let supabaseClient;
-
-// Initialize Supabase client immediately when this script loads
-// Assumes the main Supabase library (<script src="...supabase-js@2">) is loaded BEFORE this script.
-if (typeof supabase !== 'undefined' && supabase.createClient) {
-    try {
-        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        console.log("Supabase client initialized centrally in common.js");
-    } catch (error) {
-        console.error("Error initializing Supabase client in common.js:", error);
-        // You could potentially display an error on the page here if critical
+// ======================================================================
+// Back to Top Button Functionality
+// ======================================================================
+function setupBackToTopButton() {
+    const backToTopBtn = document.getElementById('backToTopBtn');
+    
+    if (!backToTopBtn) {
+        console.warn("Back to top button not found on page");
+        return;
     }
-} else {
-    console.error("Supabase library (supabase-js@2) not found or failed to load before common.js!");
-    // Display error or disable features that depend on Supabase
+    
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', () => {
+        if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+            backToTopBtn.style.display = "block";
+        } else {
+            backToTopBtn.style.display = "none";
+        }
+    });
+    
+    // Scroll to top when button clicked
+    backToTopBtn.addEventListener('click', () => {
+        document.body.scrollTop = 0; // For Safari
+        document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+    });
 }
 
 // ======================================================================
-//  DOM CONTENT LOADED FEATURES (Run after HTML is parsed)
+// Shared Utility Functions
 // ======================================================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("Common.js DOMContentLoaded event fired.");
-
-    // --- Back to Top Button Logic ---
-    const backToTopButton = document.getElementById("backToTopBtn");
-    const scrollThreshold = 200; // Pixels scrolled down before button appears
-
-    if (backToTopButton) {
-        const toggleVisibility = () => {
-            if (window.scrollY > scrollThreshold) {
-                backToTopButton.classList.add("show");
-            } else {
-                backToTopButton.classList.remove("show");
-            }
-        };
-        const scrollToTop = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); };
-        window.addEventListener('scroll', toggleVisibility);
-        backToTopButton.addEventListener('click', scrollToTop);
-        toggleVisibility(); // Initial check
-    } else {
-        // console.warn("Back to Top button element not found.");
+// Format a phone number as (XXX) XXX-XXXX
+function formatPhoneNumber(phoneNumberString) {
+    const cleaned = ('' + phoneNumberString).replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+        return '(' + match[1] + ') ' + match[2] + '-' + match[3];
     }
+    return phoneNumberString; // Return original if formatting fails
+}
 
-    // --- Share Page Button Logic ---
-    const shareButton = document.getElementById("shareButton");
-    if (shareButton) {
-        const pageTitle = document.title;
-        const pageUrl = window.location.href;
-        const shareTextElement = shareButton.querySelector('.share-text');
-        const shareIconElement = shareButton.querySelector('i');
-        const originalShareText = shareTextElement ? shareTextElement.textContent : 'Share Page';
-        const originalShareIconClass = shareIconElement ? shareIconElement.className : 'fa-solid fa-share-nodes';
+// Escape HTML to prevent XSS
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
-        shareButton.addEventListener('click', async () => {
-            const shareData = {
-                title: pageTitle,
-                text: `Check out this directory on Bizly: ${pageTitle}`,
-                url: pageUrl,
-            };
-
-            let sharedNatively = false;
-
-            // Try Native Web Share API
-            if (navigator.share) {
-                try {
-                    await navigator.share(shareData);
-                    console.log('Page shared successfully via Web Share API');
-                    sharedNatively = true;
-                } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        console.error('Error using Web Share API:', err);
-                    } else {
-                        console.log('Web Share cancelled by user.');
-                    }
-                }
-            }
-
-            // Fallback to Clipboard API
-            if (!sharedNatively && navigator.clipboard) {
-                try {
-                    await navigator.clipboard.writeText(pageUrl);
-                    console.log('Page URL copied to clipboard');
-                    if (shareTextElement) shareTextElement.textContent = 'Link Copied!';
-                    if (shareIconElement) shareIconElement.className = 'fa-solid fa-check';
-                    shareButton.disabled = true;
-
-                    setTimeout(() => {
-                        if (shareTextElement) shareTextElement.textContent = originalShareText;
-                        if (shareIconElement) shareIconElement.className = originalShareIconClass;
-                        shareButton.disabled = false;
-                    }, 2000);
-                } catch (err) {
-                    console.error('Failed to copy page URL:', err);
-                    alert("Could not copy link. Please copy it manually from the address bar.");
-                    if (shareTextElement) shareTextElement.textContent = originalShareText;
-                    if (shareIconElement) shareIconElement.className = originalShareIconClass;
-                    shareButton.disabled = false;
-                }
-            } else if (!sharedNatively) {
-                 console.warn("Web Share and Clipboard API not supported or available.");
-                 alert("Sharing/Copying is not supported by your browser. Please copy the link manually.");
-            }
-        });
-    } else {
-         console.warn("Share button element (#shareButton) not found.");
+// Get URL parameters as an object
+function getUrlParams() {
+    const params = {};
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    
+    for (const [key, value] of urlParams.entries()) {
+        params[key] = value;
     }
+    
+    return params;
+}
 
-}); // End DOMContentLoaded
-// --- END OF common.js ---
+// Function to generate breadcrumbs
+function generateBreadcrumbs(currentPage, provinceName, communityName) {
+    const breadcrumbContainer = document.getElementById('breadcrumb-container');
+    if (!breadcrumbContainer) return;
+    
+    breadcrumbContainer.innerHTML = '';
+    
+    // Create Home link
+    const homeLink = document.createElement('a');
+    homeLink.href = '/';
+    homeLink.textContent = 'Home';
+    breadcrumbContainer.appendChild(homeLink);
+    
+    // Add separator
+    const separator1 = document.createElement('span');
+    separator1.className = 'breadcrumb-separator';
+    separator1.innerHTML = ' &gt; ';
+    breadcrumbContainer.appendChild(separator1);
+    
+    if (currentPage === 'province' && provinceName) {
+        // On province page, add province as current
+        const provinceSpan = document.createElement('span');
+        provinceSpan.className = 'current-page';
+        provinceSpan.textContent = provinceName;
+        breadcrumbContainer.appendChild(provinceSpan);
+    } else if (currentPage === 'community' && provinceName && communityName) {
+        // On community page, add province link and community as current
+        const provinceSlug = createSlug(provinceName);
+        const provinceLink = document.createElement('a');
+        provinceLink.href = `/${provinceSlug}/`;
+        provinceLink.textContent = provinceName;
+        breadcrumbContainer.appendChild(provinceLink);
+        
+        // Add separator
+        const separator2 = document.createElement('span');
+        separator2.className = 'breadcrumb-separator';
+        separator2.innerHTML = ' &gt; ';
+        breadcrumbContainer.appendChild(separator2);
+        
+        // Add community as current
+        const communitySpan = document.createElement('span');
+        communitySpan.className = 'current-page';
+        communitySpan.textContent = communityName;
+        breadcrumbContainer.appendChild(communitySpan);
+    }
+}
+
+// Helper function to create slug from name
+function createSlug(name) {
+    return name
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')     // Replace spaces with hyphens
+        .replace(/--+/g, '-')     // Replace multiple hyphens with single hyphen
+        .trim();                  // Trim leading/trailing spaces
+}

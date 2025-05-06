@@ -1,0 +1,2 @@
+# Redirect old dynamic URLs to new static URLs
+/community.html?province=:province&community=:community /:provinceSlug/:communitySlug/ 301
