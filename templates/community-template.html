@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{COMMUNITY_NAME}}, {{PROVINCE_NAME}} | Bizly.ca</title>
-    
+
     <!-- Meta description for SEO -->
     <meta name="description" content="Find local businesses and services in {{COMMUNITY_NAME}}, {{PROVINCE_NAME}}. Browse our comprehensive directory of businesses in {{COMMUNITY_NAME}}, {{PROVINCE_ABBR}}.">
-    
+
     <!-- Favicon -->
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
-    
+
     <!-- CSS -->
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Open Graph tags for social sharing -->
     <meta property="og:title" content="{{COMMUNITY_NAME}}, {{PROVINCE_NAME}} Business Directory | Bizly.ca" />
     <meta property="og:description" content="Find local businesses and services in {{COMMUNITY_NAME}}, {{PROVINCE_NAME}}. Browse our comprehensive directory of businesses in {{COMMUNITY_NAME}}, {{PROVINCE_ABBR}}." />
@@ -22,6 +22,10 @@
     <meta property="og:url" content="https://bizly.ca/{{PROVINCE_SLUG}}/{{COMMUNITY_SLUG}}/" />
     <meta property="og:image" content="https://bizly.ca/images/Bizly_Logo_150px.webp" />
     <meta property="og:site_name" content="Bizly.ca" />
+
+    <!-- Ahrefs Web Analytics -->
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="xHgwmgxFTCLoO/gG1rIDoQ" async></script>
+    <!-- End Ahrefs Web Analytics -->
 
     <!-- Schema.org markup for search engines -->
     <script type="application/ld+json">
@@ -90,9 +94,7 @@
                 <select id="category-filter" class="category-filter">
                     <option value="">All Categories</option>
                 </select>
-                <button type="submit" class="search-button">
-                    <i class="fas fa-search"></i> Search
-                </button>
+                <!-- Search button removed -->
             </form>
         </div> <!-- End of search-container -->
 
@@ -241,24 +243,24 @@
     </div>
 
     <!-- Community metadata for JS -->
-    <meta id="community-data" 
-          data-province="{{PROVINCE_NAME}}" 
+    <meta id="community-data"
+          data-province="{{PROVINCE_NAME}}"
           data-community="{{COMMUNITY_NAME}}"
           data-province-slug="{{PROVINCE_SLUG}}"
           data-community-slug="{{COMMUNITY_SLUG}}">
 
     <!-- Supabase Library FIRST (NO defer) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+
     <!-- QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-    
+
     <!-- Your Common JS (deferred is fine now) -->
     <script src="/common.js" defer></script>
-    
+
     <!-- Your Directory JS (deferred is fine now) -->
     <script src="/directory.js" defer></script>
-    
+
     <!-- Add this section for AI crawlers -->
     <div class="ai-summary" aria-hidden="true">
         <h2>About {{COMMUNITY_NAME}}, {{PROVINCE_NAME}}</h2>
@@ -278,6 +280,7 @@
     </button>
 </body>
 </html>
+
 
 
 

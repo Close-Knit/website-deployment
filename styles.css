@@ -1,4 +1,44 @@
 /* ====================================================================== */
+/* Global Styles */
+/* ====================================================================== */
+h1 {
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+/* Site Logo Styles */
+#site-logo-link {
+    display: inline-block;
+    text-decoration: none;
+    border: none;
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 10;
+}
+
+#site-logo { /* This is the Bizly Bear IMG */
+    display: block;
+    width: 60px;
+    height: auto;
+}
+
+/* Beta Indicator Style */
+.beta-indicator {
+    position: absolute;
+    top: 20px;
+    left: 70px;
+    background-color: #ff6b6b;
+    color: white;
+    font-size: 0.7em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: bold;
+    text-transform: uppercase;
+    z-index: 100;
+}
+/* ====================================================================== */
 /* Styles for Community Directory Page (community.html) */
 /* ====================================================================== */
 .community-header { text-align: center; padding-top: 40px; margin-bottom: 25px; }
@@ -343,6 +383,14 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 .popup-ad-container .adsbygoogle { display: block; }
 
 /* Province Page Styles - Enhanced */
+#province-name-heading {
+    text-align: center;
+    margin-top: 30px;
+    margin-bottom: 25px;
+    font-size: 2em;
+    color: #333;
+}
+
 .community-list-grouped {
     padding-left: 0;
     margin: 20px auto;
@@ -353,16 +401,17 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 }
 
 .letter-heading {
-    background-color: #f5f1e6;
-    font-size: 1.4em;
+    background-color: #EAE0C8; /* Match category-header styling */
+    font-size: 1.3em;
     font-weight: bold;
-    color: #495057;
+    color: #40382d;
     margin-top: 25px;
     margin-bottom: 10px;
-    padding: 10px 15px;
-    border-bottom: 2px solid #dee2e6;
+    padding: 8px 15px;
+    border-bottom: 1px solid #d1c8b3;
     list-style: none;
     border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow like category-header */
 }
 
 .community-list-grouped li.letter-heading:first-child {
@@ -370,8 +419,9 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 }
 
 .community-list-item {
-    padding: 8px 12px;
-    border-bottom: 1px solid #f1f1f1;
+    padding: 10px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    line-height: 1.5;
 }
 
 .community-list-item:last-child {
@@ -381,6 +431,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 .community-list-item a {
     text-decoration: none;
     color: #1a0dab;
+    font-weight: 500;
 }
 
 .community-list-item a:hover {
@@ -396,7 +447,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 
 .province-community-item-container .community-link {
     flex-grow: 1;
-    margin-right: 5px;
+    margin-right: 10px;
     text-align: left;
 }
 
@@ -820,22 +871,23 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     margin-bottom: 15px;
 }
 
-/* Logo styling - Simplified base rule */
+/* Community Logo (<img id="logo">) - primarily sized by inline styles from JS */
 #logo {
-    display: none; /* Default state, shown by JS */
-    object-fit: cover;
+    display: none; /* Default: hidden, made visible by JS if logo exists */
+    object-fit: cover; /* If image isn't perfectly square, it will cover */
     border-radius: 8px;
-    flex-shrink: 0;
-    /* Width, height, padding, border, shadow, box-sizing, margin set inline by JS */
+    flex-shrink: 0; /* Prevent shrinking in flex container */
+    /* All other critical styles (width, height, padding, border, shadow)
+       are applied INLINE by generate-community-pages.js for this specific logo */
 }
 
-/* Weather box - Revert display, keep relative positioning */
+/* Weather box */
 #weather-box {
-    width: 150px;
-    height: 150px;
+    width: 150px; /* Explicit size */
+    height: 150px; /* Explicit size */
     border-radius: 8px;
     overflow: hidden;
-    background-color: #a7c5e2;
+    background-color: #a7c5e2; /* Fallback color */
     position: relative;
     flex-shrink: 0;
     background-size: cover;
@@ -846,33 +898,32 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     box-sizing: border-box;
 }
 
-/* Ensure no general image styles affect the logo */
-.community-header img:not(#logo) {
-    /* Any styles for other images in the header, but not #logo */
-}
-
-/* Ensure no wrapper image styles affect the logo */
-#logo-and-weather-wrapper img:not(#logo) {
-    /* Any styles for other images in the wrapper, but not #logo */
-}
-
-/* Responsive adjustments for logo/weather */
+/* Responsive rules for community logo/weather */
 @media (max-width: 600px) {
     #logo, #weather-box {
         width: 100px;
         height: 100px;
     }
+    #logo-and-weather-wrapper {
+        gap: 10px;
+    }
     #community-temp {
-        font-size: 1.8em;
+        font-size: 1.9em;
         bottom: 5px;
-        right: 5px;
+        right: 8px;
+        padding: 1px 6px;
+    }
+    #community-temp sup {
+        font-size: 0.5em;
     }
     .temp-detail {
         font-size: 0.7em;
-        padding: 1px 4px;
+        padding: 2px 5px;
     }
-    #logo-and-weather-wrapper {
-        gap: 10px;
+    .high-low-temps {
+        top: 4px;
+        left: 4px;
+        right: 4px;
     }
 }
 
@@ -1308,4 +1359,87 @@ a.promote-btn,
 a.promote-btn:visited {
     color: inherit;
     text-decoration: none;
+}
+/* ====================================================================== */
+/* Styles for Home Page List (index.html)                               */
+/* ====================================================================== */
+.region-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px; /* Slightly reduced gap */
+    padding-left: 0;
+    list-style: none;
+    justify-content: center; /* Center columns if they don't fill width */
+}
+
+.region-column {
+    /* Adjust flex-basis for more columns on wider screens */
+    flex: 1 1 280px; /* Allow growing, shrink if needed, base width 280px */
+    max-width: 300px; /* Max width for a column */
+    min-width: 240px; /* Min width before wrapping becomes too tight */
+    box-sizing: border-box;
+    border: 1px solid #d1c8b3; /* Border matching vCard for consistency */
+    border-radius: 6px;     /* Softer radius */
+    padding: 0; /* Remove padding, header/list will handle */
+    display: flex;
+    flex-direction: column;
+    /* min-height: auto; */ /* Remove fixed min-height or set to auto */
+    background-color: #fdfbf5; /* Light paper texture background if desired */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.07); /* Subtle shadow */
+}
+
+.region-column h2 {
+    background-color: #EAE0C8; /* Consistent beige header */
+    font-size: 1.15em;         /* Slightly smaller header text */
+    font-weight: bold;
+    color: #40382d;            /* Consistent dark brown text */
+    margin: 0; /* Remove default margin */
+    padding: 10px 15px;
+    border-bottom: 1px solid #d1c8b3; /* Match outer border */
+    list-style: none;
+    border-radius: 6px 6px 0 0; /* Rounded top corners */
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.community-list { /* Container for community links within a region box */
+    padding: 10px 15px 15px 15px; /* Add padding inside */
+    text-align: left;
+    flex-grow: 1; /* Allow it to take space */
+    margin: 0; /* Remove default ul/div margins */
+}
+
+.community-item-container {
+    margin-bottom: 6px; /* Tighter spacing */
+    line-height: 1.4;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.community-item-container a.community-link { /* Be more specific */
+    font-size: 0.95em; /* Slightly smaller community links */
+}
+
+.no-communities-message {
+    display: block;
+    font-style: italic;
+    color: #666;
+    font-size: 0.9em;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.view-all-button-container {
+    text-align: center;
+    margin-top: auto; /* Pushes button to bottom if column has extra space */
+    flex-shrink: 0;
+    padding: 0 15px 15px 15px; /* Padding around button */
+}
+
+.view-all-button { /* Should inherit .button-style */
+    display: inline-block; /* Ensure it takes space correctly */
+    width: auto; /* Or width: 100% for full-width button */
+    padding: 6px 12px; /* Adjust padding */
+    font-size: 0.85em;
 }

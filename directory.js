@@ -8,11 +8,17 @@ function getCommunityData() {
         return null;
     }
     
+    // Ensure lat/lon are parsed as numbers, default to 0 if missing/invalid
+    const lat = parseFloat(communityDataElement.getAttribute('data-latitude'));
+    const lon = parseFloat(communityDataElement.getAttribute('data-longitude'));
+    
     return {
         province: communityDataElement.getAttribute('data-province'),
         community: communityDataElement.getAttribute('data-community'),
         provinceSlug: communityDataElement.getAttribute('data-province-slug'),
-        communitySlug: communityDataElement.getAttribute('data-community-slug')
+        communitySlug: communityDataElement.getAttribute('data-community-slug'),
+        latitude: !isNaN(lat) ? lat : 0,    // Parse and provide default
+        longitude: !isNaN(lon) ? lon : 0    // Parse and provide default
     };
 }
 
@@ -333,7 +339,7 @@ function initPage() {
         return;
     }
     
-    // Fetch and display weather data
+    // Fetch and display weather data CLIENT-SIDE
     fetchAndDisplayWeather();
     
     // Set up search functionality
@@ -764,75 +770,101 @@ function setupPromoteButton() {
 async function fetchAndDisplayWeather() {
     console.log("Fetching weather data client-side...");
     const communityData = getCommunityData();
-    if (!communityData) {
-        console.error('Cannot fetch weather: community data not available');
+    if (!communityData || !communityData.community || !communityData.province) { // Check for names
+        console.error('Cannot fetch weather: community/province names not available from meta tag');
+        // Optionally hide or show error state in weather box here
+        const weatherBox = document.getElementById('weather-box');
+        if (weatherBox) {
+            weatherBox.innerHTML = '<span style="color: white; padding: 5px; font-size: 0.8em; text-align: center; display: block;">Weather N/A</span>';
+            weatherBox.style.backgroundColor = '#888'; // Grey fallback
+        }
         return;
     }
-    
+
     const weatherBox = document.getElementById('weather-box');
     const tempElement = document.getElementById('community-temp');
     const highElement = document.getElementById('temp-high');
     const lowElement = document.getElementById('temp-low');
-    
-    // --- ADD DEBUG LOGS ---
-    console.log("Debug Weather Elements:", {
-        weatherBoxExists: !!weatherBox,
-        tempElementExists: !!tempElement,
-        highElementExists: !!highElement,
-        lowElementExists: !!lowElement
-    });
-    
-    if (weatherBox) console.log("weatherBox parent:", weatherBox.parentElement?.tagName);
-    if (tempElement) console.log("tempElement parent:", tempElement.parentElement?.tagName);
-    // --- END DEBUG LOGS ---
-    
+
     if (!weatherBox || !tempElement || !highElement || !lowElement) {
-        console.error('Weather elements not found in DOM');
+        console.error('Weather display elements not found in DOM');
         return;
     }
-    
+
+    // --- Clear previous weather display / show loading ---
+    tempElement.innerHTML = '--<sup>°C</sup>';
+    highElement.textContent = 'H: --';
+    lowElement.textContent = 'L: --';
+    weatherBox.style.backgroundImage = 'none';
+    weatherBox.style.backgroundColor = '#a7c5e2'; // Default blue background during load
+    // ---
+
     try {
-        // Construct API URL with community data
-        const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${communityData.latitude || 0}&longitude=${communityData.longitude || 0}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
-        
-        console.log("Fetching weather from API:", apiUrl);
-        
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error('Weather API response not OK');
-        
-        const data = await response.json();
-        console.log("Weather API response:", data);
-        
-        // Extract current temperature and round to nearest integer
-        const currentTemp = Math.round(data.current.temperature_2m);
-        const weatherCode = data.current.weather_code;
-        const highTemp = Math.round(data.daily.temperature_2m_max[0]);
-        const lowTemp = Math.round(data.daily.temperature_2m_min[0]);
-        
-        console.log("Parsed weather data:", { currentTemp, weatherCode, highTemp, lowTemp });
-        
-        // Update DOM elements
-        // Use innerHTML for the main temperature to add the sup tag
+        // === STEP 1: Geocode community name to get Lat/Lon ===
+        const geocodeQuery = `${communityData.community}, ${communityData.province}`;
+        const geocodeApiUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(geocodeQuery)}&count=1&language=en&format=json`;
+
+        console.log("Fetching coordinates from Geocoding API:", geocodeApiUrl);
+        const geocodeResponse = await fetch(geocodeApiUrl);
+        if (!geocodeResponse.ok) {
+            throw new Error(`Geocoding API response not OK: ${geocodeResponse.statusText}`);
+        }
+        const geocodeData = await geocodeResponse.json();
+
+        // Check if geocoding returned results
+        if (!geocodeData.results || geocodeData.results.length === 0) {
+             throw new Error(`Could not find coordinates for "${geocodeQuery}"`);
+        }
+
+        const location = geocodeData.results[0];
+        const latitude = location.latitude;
+        const longitude = location.longitude;
+        console.log(`Geocoding successful: Lat=${latitude}, Lon=${longitude} for ${location.name}`);
+
+        // === STEP 2: Fetch Forecast using obtained Lat/Lon ===
+        const forecastApiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=${location.timezone || 'auto'}`; // Use timezone from geocoding if available
+
+        console.log("Fetching forecast from API:", forecastApiUrl);
+        const forecastResponse = await fetch(forecastApiUrl);
+        if (!forecastResponse.ok) {
+            throw new Error(`Forecast API response not OK: ${forecastResponse.statusText}`);
+        }
+        const forecastData = await forecastResponse.json();
+        console.log("Forecast API response:", forecastData);
+
+        // Extract and display weather data (same as before)
+        const currentTemp = Math.round(forecastData.current.temperature_2m);
+        const weatherCode = forecastData.current.weather_code;
+        const highTemp = Math.round(forecastData.daily.temperature_2m_max[0]);
+        const lowTemp = Math.round(forecastData.daily.temperature_2m_min[0]);
+
+        console.log("Parsed forecast data:", { currentTemp, weatherCode, highTemp, lowTemp });
+
         tempElement.innerHTML = `${currentTemp}<sup>°C</sup>`;
         tempElement.title = `Current temperature in ${communityData.community}`;
         highElement.textContent = `H: ${highTemp}°`;
         lowElement.textContent = `L: ${lowTemp}°`;
-        
-        // Set background based on weather code
-        setWeatherBackground(weatherBox, weatherCode, currentTemp);
-        
+
+        setWeatherBackground(weatherBox, weatherCode, currentTemp); // Background setting uses the same logic
+
     } catch (error) {
-        console.error('Error fetching weather data:', error);
-        // Set fallback background
+        console.error('Error fetching or processing weather data:', error);
+        // Set fallback display on error (e.g., geocoding failed)
+        tempElement.innerHTML = '--'; // Simpler error display
+        tempElement.title = 'Weather data unavailable';
+        highElement.textContent = '';
+        lowElement.textContent = '';
         weatherBox.style.backgroundImage = 'none';
-        weatherBox.style.backgroundColor = '#a7c5e2'; // Default blue background
+        weatherBox.style.backgroundColor = '#888'; // Grey fallback on error
+        // Add specific text for error state
+        weatherBox.innerHTML = '<span style="color: white; padding: 5px; font-size: 0.8em; text-align: center; display: block; line-height: 1.2;">Weather<br>Error</span>';
     }
 }
 
 // Function to set weather background based on weather code
 function setWeatherBackground(weatherBox, weatherCode, temp) {
     let backgroundImage = ''; // Initialize
-    const basePath = '/images/weather-bgs/'; // Define base path
+    const basePath = '/images/weather-bgs/'; // Use absolute path from site root
 
     // Map WMO Weather Code to a background image category
     switch (true) {
@@ -882,8 +914,17 @@ function setWeatherBackground(weatherBox, weatherCode, temp) {
 
 // Set weather background by temperature as fallback
 function setWeatherBackgroundByTemp(weatherBox, temp) {
-    const basePath = '/images/weather-bgs/'; // Define base path
+    const basePath = '/images/weather-bgs/'; // Use absolute path from site root
     let tempImage = '';
+    
+    // Add a check for null temp
+    if (temp === null || isNaN(temp)) {
+        console.warn("Cannot set temp-based background: Temperature is invalid.");
+        // Optionally set a truly generic default image or color
+        weatherBox.style.backgroundImage = `url('${basePath}mild.webp')`; // Default to mild if temp unknown
+        weatherBox.style.backgroundColor = 'transparent';
+        return;
+    }
     
     if (temp >= 30) {
         tempImage = `${basePath}hot.webp`;
@@ -898,4 +939,42 @@ function setWeatherBackgroundByTemp(weatherBox, temp) {
     weatherBox.style.backgroundImage = `url('${tempImage}')`;
     weatherBox.style.backgroundColor = 'transparent';
     console.log("Set temp-based weather background image:", weatherBox.style.backgroundImage);
+}
+
+// Function to set background on page load based on embedded weather data
+function setInitialWeatherBackground() {
+    const weatherBox = document.getElementById('weather-box');
+    if (!weatherBox) {
+        console.warn("Weather box not found for initial background setting.");
+        return;
+    }
+
+    const weatherCodeStr = weatherBox.getAttribute('data-weather-code');
+    console.log("Read data-weather-code:", weatherCodeStr); // Debug log
+
+    if (weatherCodeStr !== null && weatherCodeStr !== "") {
+        const weatherCode = parseInt(weatherCodeStr, 10);
+        if (!isNaN(weatherCode)) {
+            // We need the temperature for the fallback function setWeatherBackgroundByTemp
+            // Let's try to read it from the #community-temp element generated server-side
+            const tempElement = document.getElementById('community-temp');
+            let currentTemp = null;
+            if (tempElement) {
+                const tempMatch = tempElement.textContent.match(/^(-?\d+)/); // Extract digits
+                if (tempMatch) {
+                    currentTemp = parseInt(tempMatch[1], 10);
+                }
+            }
+            console.log("Read currentTemp from HTML:", currentTemp); // Debug log
+
+            // Call the existing background function
+            setWeatherBackground(weatherBox, weatherCode, currentTemp); // Pass temp too
+        } else {
+            console.warn("Invalid weather code found in data-attribute:", weatherCodeStr);
+            weatherBox.style.backgroundColor = '#a7c5e2'; // Default blue if code invalid
+        }
+    } else {
+        console.log("No weather code found in data-attribute. Leaving default background.");
+        weatherBox.style.backgroundColor = '#a7c5e2'; // Default blue if no code attribute
+    }
 }

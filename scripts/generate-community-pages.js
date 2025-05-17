@@ -18,9 +18,12 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function generateCommunityPages() {
-    console.log('Starting community page generation...');
+    // --- Dynamic import for node-fetch ---
+    // Ensure you have node-fetch installed (npm install node-fetch)
+    const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+    // ---
 
-    // --- Configuration ---
+    console.log('Starting community page generation...');
     const templateHtmlPath = path.resolve(__dirname, '../templates/community-template.html');
     const outputBaseDir = path.resolve(__dirname, '..');
 
@@ -28,23 +31,17 @@ async function generateCommunityPages() {
         // 1. Fetch necessary data from Supabase (Provinces, Communities)
         console.log('Fetching provinces and communities from Supabase...');
 
-        // Fetch all provinces (we need their names for paths/titles)
+        // Fetch all provinces
         const { data: provincesData, error: provinceError } = await supabase
             .from('provinces')
             .select('id, province_name');
 
-        if (provinceError) {
-            console.error('Error fetching provinces:', provinceError);
-            throw new Error(`Failed to fetch provinces: ${provinceError.message}`);
-        }
-        if (!provincesData || provincesData.length === 0) {
-            throw new Error('No provinces found in the database.');
-        }
-        // Create a map for easy lookup: provinceId -> provinceName
+        if (provinceError) throw new Error(`Failed to fetch provinces: ${provinceError.message}`);
+        if (!provincesData || provincesData.length === 0) throw new Error('No provinces found.');
         const provinceMap = new Map(provincesData.map(p => [p.id, p.province_name]));
         console.log(`Fetched ${provincesData.length} provinces.`);
 
-        // Fetch all communities, including their province details
+        // Fetch all communities (NO latitude/longitude selected from DB)
         const { data: communitiesData, error: communityError } = await supabase
             .from('communities')
             .select(`
@@ -53,15 +50,12 @@ async function generateCommunityPages() {
                 province_id,
                 status,
                 logo_filename
-            `); // Select necessary fields
+            `); // <<< CORRECT: No lat/lon here
 
-        if (communityError) {
-            console.error('Error fetching communities:', communityError);
-            throw new Error(`Failed to fetch communities: ${communityError.message}`);
-        }
+        if (communityError) throw new Error(`Failed to fetch communities: ${communityError.message}`);
         if (!communitiesData || communitiesData.length === 0) {
-            console.log('No communities found in the database. Exiting generation.');
-            return; // Exit gracefully if no communities
+             console.log('No communities found. Exiting generation.');
+             return;
         }
         console.log(`Fetched ${communitiesData.length} communities.`);
 
@@ -161,7 +155,9 @@ async function generateCommunityPages() {
                 .attr('data-community', communityName)
                 .attr('data-province', provinceName)
                 .attr('data-community-slug', communitySlug)
-                .attr('data-province-slug', provinceSlug);
+                .attr('data-province-slug', provinceSlug)
+                .attr('data-latitude', community.latitude || '')   // Added latitude
+                .attr('data-longitude', community.longitude || ''); // Added longitude
 
             // --- Update AI Summary Placeholders ---
             // Target the H2 inside .ai-summary

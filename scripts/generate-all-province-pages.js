@@ -20,7 +20,7 @@ function createSlug(name) {
 // Generate HTML for a province page
 function generateProvincePageHTML(province) {
   const provinceSlug = createSlug(province.province_name);
-  
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,12 +41,12 @@ function generateProvincePageHTML(province) {
     <!-- End Google tag -->
 
     <!-- Ahrefs Web Analytics -->
-    <script src="https://analytics.ahrefs.com/analytics.js" data-key="xHgwmgxFTCLoO/gG1rfDoQ" async></script>
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="xHgwmgxFTCLoO/gG1rIDoQ" async></script>
     <!-- End Ahrefs Web Analytics -->
 
     <!-- Meta description for SEO -->
     <meta name="description" content="Find local businesses and services in ${province.province_name} communities. Browse our comprehensive directory of ${province.province_name} towns and cities." />
-    
+
     <!-- Open Graph tags for social sharing -->
     <meta property="og:title" content="${province.province_name} Communities | Bizly.ca" />
     <meta property="og:description" content="Find local businesses and services in ${province.province_name} communities. Browse our comprehensive directory of ${province.province_name} towns and cities." />
@@ -122,40 +122,40 @@ function generateProvincePageHTML(province) {
 // Main function to generate all province pages
 async function generateAllProvincePages() {
   console.log('Starting province pages generation...');
-  
+
   try {
     // Get all provinces
     const { data: provinces, error: provincesError } = await supabase
       .from('provinces')
       .select('id, province_name')
       .order('province_name');
-    
+
     if (provincesError) {
       throw new Error(`Error fetching provinces: ${provincesError.message}`);
     }
-    
+
     console.log(`Found ${provinces.length} provinces/territories`);
-    
+
     // Create province pages
     for (const province of provinces) {
       const provinceSlug = createSlug(province.province_name);
       const provinceDirPath = path.join('..', provinceSlug);
-      
+
       // Create province directory if it doesn't exist
       await fs.ensureDir(provinceDirPath);
-      
+
       // Generate HTML content
       const htmlContent = generateProvincePageHTML(province);
-      
+
       // Write HTML file
       const htmlFilePath = path.join(provinceDirPath, 'index.html');
       await fs.writeFile(htmlFilePath, htmlContent);
-      
+
       console.log(`Generated page for ${province.province_name}`);
     }
-    
+
     console.log('All province pages generated successfully!');
-    
+
   } catch (error) {
     console.error('Error generating province pages:', error);
   }

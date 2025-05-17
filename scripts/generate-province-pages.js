@@ -47,7 +47,7 @@ function generateProvinceHTML(province, provinceSlug) {
     <!-- End Google tag -->
 
     <!-- Ahrefs Web Analytics -->
-    <script src="https://analytics.ahrefs.com/analytics.js" data-key="xHgwmgxFTCLoO/gG1rfDoQ" async></script>
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="xHgwmgxFTCLoO/gG1rIDoQ" async></script>
     <!-- End Ahrefs Web Analytics -->
 
     <!-- Meta description for SEO -->
@@ -176,3 +176,4 @@ async function generateProvincePages() {
 
 // Run the main function
 generateProvincePages();
+
