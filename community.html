@@ -7,9 +7,9 @@
   <link rel="canonical" id="canonicalLink" href="https://bizly.ca/community.html" />
 
   <!-- Ahrefs Web Analytics -->
-  <script src="https://analytics.ahrefs.com/analytics.js" data-key="xHgwmgxFTCLoO/gG1rfDoQ" async></script>
+  <script src="https://analytics.ahrefs.com/analytics.js" data-key="xHgwmgxFTCLoO/gG1rIDoQ" async></script>
   <!-- End Ahrefs Web Analytics -->
-  
+
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-QV1M0QM38B"></script>
   <script>
@@ -47,69 +47,55 @@
     <span class="beta-indicator">Beta</span>
     <!-- END: Beta Indicator -->
 
-    <!-- Wrapper for Community Logo, Weather, and Heading -->
-<div class="community-header">
-    <!-- NEW: Wrapper to hold logo and weather box side-by-side -->
-    <div id="logo-and-weather-wrapper">
-        <!-- Box 1: Logo -->
-        <img id="logo" src="" alt="Community Logo" style="display: none;">
+    <!-- Main Content Container -->
+    <div class="container">
+        <!-- Community name heading -->
+        <h1 id="community-name">Community Directory</h1>
+        <div class="directory-subtitle">Business Directory (<span id="listing-count">0</span> listings)</div>
 
-        <!-- Box 2: Weather (Temp + Background) -->
-        <div id="weather-box">
-            <span id="community-temp" class="weather-temp">--°C</span>
-            <!-- NEW: High/Low elements -->
-            <div class="high-low-temps">
-                <span id="temp-high" class="temp-detail">H: --</span>
-                <span id="temp-low" class="temp-detail">L: --</span>
+        <!-- Search Container -->
+        <div class="search-container">
+            <div class="search-inputs">
+                <input type="text" id="searchBox" placeholder="Search by Name or Keyword...">
+                <select id="categoryFilter" aria-label="Filter by category">
+                    <option value="">All Categories</option>
+                    <!-- Categories will be populated by JavaScript -->
+                </select>
+                <label for="categoryFilter" class="sr-only">Filter by category</label>
+                <button id="searchButton" class="search-button" type="button">
+                    <i class="fa-solid fa-search"></i> Search
+                </button>
             </div>
         </div>
-    </div>
-    <!-- Community name remains below -->
-    <h1 id="community-name">Community Directory</h1>
-</div>
 
-    <!-- Search Container -->
-    <div class="search-container">
-        <div class="search-inputs">
-            <input type="text" id="searchBox" placeholder="Search by Name or Keyword...">
-            <select id="categoryFilter" aria-label="Filter by category">
-                <option value="">All Categories</option>
-                <!-- Categories will be populated by JavaScript -->
-            </select>
-            <label for="categoryFilter" class="sr-only">Filter by category</label>
-            <button id="searchButton" class="search-button" type="button">
-                <i class="fa-solid fa-search"></i> Search
+        <!-- Action Buttons Container -->
+        <div class="action-buttons">
+            <button id="shareButton" class="button-style" title="Share this directory page">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span class="share-text">Share Page</span>
             </button>
+            <a href="#" id="suggestChangeLink" class="button-style" title="Suggest an addition or change">
+                <i class="fa-solid fa-plus-circle"></i>
+                <span>Suggest Change</span>
+            </a>
         </div>
+
+        <!-- Breadcrumb Placeholder -->
+        <nav aria-label="breadcrumb" id="breadcrumb-container" class="breadcrumb-nav">
+            <!-- Breadcrumbs will be loaded here by JS -->
+        </nav>
+
+        <!-- Results container -->
+        <ul id="results">
+            <!-- Directory listings will appear here -->
+        </ul>
+
+        <!-- Notice text -->
+        <p class="notice">
+            Home-based business information included with consent, by request, or provided directly by the business itself.
+            To Add, Change, or Remove your listing, please see the "Suggest Change" button at the top.
+        </p>
     </div>
-
-    <!-- Action Buttons Container -->
-    <div class="action-buttons">
-        <button id="shareButton" class="button-style" title="Share this directory page">
-            <i class="fa-solid fa-share-nodes"></i>
-            <span class="share-text">Share Page</span>
-        </button>
-        <a href="#" id="suggestChangeLink" class="button-style" title="Suggest an addition or change">
-             <i class="fa-solid fa-plus-circle"></i>
-             <span>Suggest Change</span>
-        </a>
-    </div>
-
-    <!-- Breadcrumb Placeholder -->
-    <nav aria-label="breadcrumb" id="breadcrumb-container" class="breadcrumb-nav">
-        <!-- Breadcrumbs will be loaded here by JS -->
-    </nav>
-
-    <!-- Results container -->
-    <ul id="results">
-        <!-- Directory listings will appear here -->
-    </ul>
-
-    <!-- Notice text -->
-    <p class="notice">
-        Home-based business information included with consent, by request, or provided directly by the business itself.
-        To Add, Change, or Remove your listing, please see the "Suggest Change" button at the top.
-    </p>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

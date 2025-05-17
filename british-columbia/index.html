@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>British Columbia Communities | Bizly.ca</title>
+    <link rel="canonical" href="https://bizly.ca/british-columbia/" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QV1M0QM38B"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-QV1M0QM38B');
+    </script>
+    <!-- End Google tag -->
+
+    <!-- Ahrefs Web Analytics -->
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="xHgwmgxFTCLoO/gG1rIDoQ" async></script>
+    <!-- End Ahrefs Web Analytics -->
+
+    <!-- Meta description for SEO -->
+    <meta name="description" content="Find local businesses and services in British Columbia communities. Browse our comprehensive directory of British Columbia towns and cities." />
+    
+    <!-- Open Graph tags for social sharing -->
+    <meta property="og:title" content="British Columbia Communities | Bizly.ca" />
+    <meta property="og:description" content="Find local businesses and services in British Columbia communities. Browse our comprehensive directory of British Columbia towns and cities." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://bizly.ca/british-columbia/" />
+    <meta property="og:image" content="https://bizly.ca/images/Bizly_Logo_150px.webp" />
+    <meta property="og:site_name" content="Bizly.ca" />
+
+    <!-- Schema.org markup for search engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "British Columbia Communities",
+      "description": "Directory of communities in British Columbia with local business listings",
+      "url": "https://bizly.ca/british-columbia/",
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "Bizly.ca",
+        "url": "https://bizly.ca/"
+      }
+    }
+    </script>
+
+    <!-- Link CSS and Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="/styles.css">
+
+    <!-- AdSense Script (Consistency) -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6284081740274174"
+         crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- Site Logo Link -->
+    <a href="/" id="site-logo-link" title="Go to Home Page">
+       <img src="/images/Bizly_Logo_150px.webp" alt="Bizly Logo - Go to Home" id="site-logo">
+    </a>
+
+    <h1 id="province-name-heading">Loading Province...</h1>
+
+    <!-- Breadcrumb Placeholder -->
+    <nav aria-label="breadcrumb" id="breadcrumb-container" class="breadcrumb-nav">
+        <!-- Breadcrumbs will be loaded here by JS -->
+    </nav>
+
+    <!-- Container for the list of communities -->
+    <ul id="community-list-province" class="community-list-grouped">
+        <!-- Communities will be loaded here by JS -->
+        <li>Loading communities...</li>
+    </ul>
+
+    <!-- Load Supabase library FIRST -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Load the specific JS for this page IN CORRECT ORDER -->
+    <script src="/common.js"></script>
+    <script src="/province_page.js"></script>
+
+    <!-- Back to Top Button -->
+    <button id="backToTopBtn" title="Go to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
+
+    <!-- Phone Reveal Popup -->
+    <div id="phonePopup" class="popup hidden">
+        <div class="popup-content">
+            <span id="closePopup" class="close-button" title="Close">×</span>
+            <h3>Phone Number</h3>
+            <p id="phoneNumber" class="phone-number">555-555-5555</p>
+            <button id="copyPhoneBtn" class="copy-button" title="Copy phone number">Copy</button>
+        </div>
+    </div>
+</body>
+</html>
