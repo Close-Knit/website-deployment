@@ -896,6 +896,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     border: none;
     padding: 0;
     box-sizing: border-box;
+    max-width: 100%;
 }
 
 /* Responsive rules for community logo/weather */
@@ -1106,6 +1107,7 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
     background-repeat: no-repeat;
     border: none;
     padding: 0;
+    max-width: 100%;
 }
 
 /* Temperature display */
@@ -1309,22 +1311,22 @@ a.button-style:visited { color: #333; background-color: #ffffff; }
 
 /* Remove specific color overrides for buttons within listing */
 /*
-.business-listing .show-phone-btn { 
+.business-listing .show-phone-btn {
     background-color: #3498db;
     color: white;
     border: none;
 }
-.business-listing .vcard-btn { 
+.business-listing .vcard-btn {
     background-color: #9b59b6;
     color: white;
     border: none;
 }
-.business-listing .promote-btn { 
+.business-listing .promote-btn {
     background-color: #f39c12;
     color: white;
     border: none;
 }
-.business-listing .contact-link { 
+.business-listing .contact-link {
     background-color: #2ecc71;
     color: white;
 }

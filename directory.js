@@ -7,11 +7,11 @@ function getCommunityData() {
         console.error('Community data element not found');
         return null;
     }
-    
+
     // Ensure lat/lon are parsed as numbers, default to 0 if missing/invalid
     const lat = parseFloat(communityDataElement.getAttribute('data-latitude'));
     const lon = parseFloat(communityDataElement.getAttribute('data-longitude'));
-    
+
     return {
         province: communityDataElement.getAttribute('data-province'),
         community: communityDataElement.getAttribute('data-community'),
@@ -28,20 +28,20 @@ function showError(message) {
     if (resultsContainer) {
         resultsContainer.innerHTML = `<li class="error-message">Error: ${message}</li>`;
     }
-    
+
     // Also update the page title to show error
     document.title = 'Error Loading Directory | Bizly.ca';
-    
+
     // Update the community name heading
     const communityNameElement = document.getElementById('community-name');
     if (communityNameElement) {
         communityNameElement.textContent = 'Error Loading Directory';
     }
-    
+
     console.error(message);
 }
 
-/* 
+/*
 // REMOVED: Dynamic data loading functions are no longer needed as content is generated statically
 // Load community data and business listings
 async function loadCommunityData(province, community) {
@@ -79,7 +79,7 @@ function showPhonePopup(phoneNumber) {
     const phonePopup = document.getElementById('phonePopup');
     const phoneNumberElement = document.getElementById('phoneNumber');
     const modalOverlay = document.getElementById('modalOverlay');
-    
+
     if (phonePopup && phoneNumberElement) {
         phoneNumberElement.textContent = phoneNumber;
         phonePopup.classList.remove('hidden');
@@ -130,13 +130,13 @@ function showVCardPopup(businessData) {
                     href = 'https://' + value; // Assume https for websites
                 }
                 anchor.href = href;
-                
+
                 // Ensure website links open in new tab
                 if (id === 'vcard-website') {
                     anchor.target = '_blank';
                     anchor.rel = 'noopener noreferrer';
                 }
-                
+
                 pElement.style.display = 'flex'; // Show element
             } else {
                 pElement.style.display = 'flex'; // Show non-link element
@@ -331,38 +331,38 @@ function generateVCF(data) {
 // Function to initialize the page
 function initPage() {
     console.log('Initializing directory page...');
-    
+
     // Get community data from meta tag
     const communityData = getCommunityData();
     if (!communityData) {
         console.error('Failed to get community data from meta tag');
         return;
     }
-    
+
     // Fetch and display weather data CLIENT-SIDE
     fetchAndDisplayWeather();
-    
+
     // Set up search functionality
     setupSearch();
-    
+
     // Set up category filter
     setupCategoryFilter();
-    
+
     // Set up share button
     setupShareButton();
-    
+
     // Set up back to top button
     setupBackToTopButton();
-    
+
     // Set up phone reveal functionality
     setupPhoneReveal();
-    
+
     // Set up virtual card functionality
     setupVirtualCard();
-    
+
     // Set up promote functionality
     setupPromoteButton();
-    
+
     // Setup popup close buttons
     setupPopupCloseButtons();
 }
@@ -384,7 +384,7 @@ function getProvinceCode(province) {
         'Saskatchewan': 'sk',
         'Yukon': 'yt'
     };
-    
+
     return provinceCodeMap[province] || '';
 }
 
@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize the page AFTER DOM is ready
     initPage();
-    
+
     // Log dimensions shortly after init
     setTimeout(logElementDimensions, 100); // Delay slightly (100ms)
 });
@@ -470,14 +470,14 @@ function setupPopupCloseButtons() {
             if (modalOverlay) modalOverlay.classList.add('hidden');
         });
     }
-    
+
     if (closeVCardBtn && vCardPopup) {
         closeVCardBtn.addEventListener('click', function() {
             vCardPopup.classList.add('hidden');
             if (modalOverlay) modalOverlay.classList.add('hidden');
         });
     }
-    
+
     console.log("Popup close listeners attached.");
 }
 
@@ -583,18 +583,18 @@ function setupCategoryFilter() {
         console.error("Category filter element not found (#category-filter)");
         return;
     }
-    
+
     // Get all unique categories from the DOM
     const categories = new Set();
     document.querySelectorAll('.category-header').forEach(header => {
         categories.add(header.textContent.trim());
     });
-    
+
     // Clear existing options except the first "All Categories" option
     while (categoryFilter.options.length > 1) {
         categoryFilter.remove(1);
     }
-    
+
     // Add options to dropdown
     const sortedCategories = Array.from(categories).sort();
     sortedCategories.forEach(category => {
@@ -603,7 +603,7 @@ function setupCategoryFilter() {
         option.textContent = category;
         categoryFilter.appendChild(option);
     });
-    
+
     // Add change event listener
     categoryFilter.addEventListener('change', performSearch);
 }
@@ -651,7 +651,7 @@ function setupSearch() {
 function setupShareButton() {
     const shareButton = document.getElementById('shareButton');
     if (!shareButton) return;
-    
+
     shareButton.addEventListener('click', function() {
         if (navigator.share) {
             navigator.share({
@@ -669,7 +669,7 @@ function setupShareButton() {
 function setupBackToTopButton() {
     const backToTopButton = document.getElementById('backToTopBtn');
     if (!backToTopButton) return;
-    
+
     // Show button when user scrolls down
     window.addEventListener('scroll', function() {
         if (window.pageYOffset > 300) {
@@ -678,7 +678,7 @@ function setupBackToTopButton() {
             backToTopButton.classList.remove('visible');
         }
     });
-    
+
     // Scroll to top when button is clicked
     backToTopButton.addEventListener('click', function() {
         window.scrollTo({
@@ -697,12 +697,12 @@ function setupPhoneReveal() {
             showPhonePopup(phone);
         });
     });
-    
+
     // Close phone popup
     const closePopupBtn = document.getElementById('closePopup');
     const phonePopup = document.getElementById('phonePopup');
     const modalOverlay = document.getElementById('modalOverlay');
-    
+
     if (closePopupBtn && phonePopup) {
         closePopupBtn.addEventListener('click', function() {
             phonePopup.classList.add('hidden');
@@ -728,12 +728,12 @@ function setupVirtualCard() {
             showVCardPopup(data);
         });
     });
-    
+
     // Close vCard popup
     const closeVCardBtn = document.getElementById('closeVCardPopup');
     const vCardPopup = document.getElementById('virtualCardPopup');
     const modalOverlay = document.getElementById('modalOverlay');
-    
+
     if (closeVCardBtn && vCardPopup) {
         closeVCardBtn.addEventListener('click', function() {
             vCardPopup.classList.add('hidden');
@@ -801,28 +801,35 @@ async function fetchAndDisplayWeather() {
 
     try {
         // === STEP 1: Geocode community name to get Lat/Lon ===
-        const geocodeQuery = `${communityData.community}, ${communityData.province}`;
-        const geocodeApiUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(geocodeQuery)}&count=1&language=en&format=json`;
+        let latitude, longitude, locationName;
 
-        console.log("Fetching coordinates from Geocoding API:", geocodeApiUrl);
-        const geocodeResponse = await fetch(geocodeApiUrl);
-        if (!geocodeResponse.ok) {
-            throw new Error(`Geocoding API response not OK: ${geocodeResponse.statusText}`);
-        }
-        const geocodeData = await geocodeResponse.json();
+        // Try with full location name first (community + province)
+        const fullGeoQuery = `${communityData.community}, ${communityData.province}`;
+        let coordinates = await tryGeocodingLocation(fullGeoQuery);
 
-        // Check if geocoding returned results
-        if (!geocodeData.results || geocodeData.results.length === 0) {
-             throw new Error(`Could not find coordinates for "${geocodeQuery}"`);
+        // If full name fails, try with just the community name
+        if (!coordinates && communityData.community) {
+            console.log(`Full location geocoding failed. Trying with just community name: "${communityData.community}"`);
+            coordinates = await tryGeocodingLocation(communityData.community);
         }
 
-        const location = geocodeData.results[0];
-        const latitude = location.latitude;
-        const longitude = location.longitude;
-        console.log(`Geocoding successful: Lat=${latitude}, Lon=${longitude} for ${location.name}`);
+        // If both attempts fail, throw an error
+        if (!coordinates) {
+            throw new Error(`Could not find coordinates for location: "${fullGeoQuery}" or "${communityData.community}"`);
+        }
+
+        // Extract coordinates from successful geocoding
+        latitude = coordinates.latitude;
+        longitude = coordinates.longitude;
+        locationName = coordinates.name;
+        const isHardcoded = coordinates.hasOwnProperty('timezone'); // Check if it came from hardcoded data
+        console.log(`Geocoding successful: Lat=${latitude}, Lon=${longitude} for ${locationName} ${isHardcoded ? '(using hardcoded data)' : '(using API data)'}`);
 
         // === STEP 2: Fetch Forecast using obtained Lat/Lon ===
-        const forecastApiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=${location.timezone || 'auto'}`; // Use timezone from geocoding if available
+        // Use the timezone from our hardcoded data or fall back to 'auto'
+        const timezone = coordinates.timezone || 'auto';
+        console.log(`Using timezone: ${timezone} for forecast API call`);
+        const forecastApiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=${timezone}`;
 
         console.log("Fetching forecast from API:", forecastApiUrl);
         const forecastResponse = await fetch(forecastApiUrl);
@@ -845,97 +852,338 @@ async function fetchAndDisplayWeather() {
         highElement.textContent = `H: ${highTemp}°`;
         lowElement.textContent = `L: ${lowTemp}°`;
 
-        setWeatherBackground(weatherBox, weatherCode, currentTemp); // Background setting uses the same logic
+        setWeatherBackground(weatherBox, weatherCode); // Set background based on weather code
 
     } catch (error) {
         console.error('Error fetching or processing weather data:', error);
-        // Set fallback display on error (e.g., geocoding failed)
+
+        // Set fallback display on error with more user-friendly message
         tempElement.innerHTML = '--'; // Simpler error display
         tempElement.title = 'Weather data unavailable';
         highElement.textContent = '';
         lowElement.textContent = '';
         weatherBox.style.backgroundImage = 'none';
         weatherBox.style.backgroundColor = '#888'; // Grey fallback on error
-        // Add specific text for error state
-        weatherBox.innerHTML = '<span style="color: white; padding: 5px; font-size: 0.8em; text-align: center; display: block; line-height: 1.2;">Weather<br>Error</span>';
+
+        // Add more user-friendly error message
+        weatherBox.innerHTML = '<span style="color: white; padding: 5px; font-size: 0.8em; text-align: center; display: block; line-height: 1.2;">Weather<br>Unavailable</span>';
+    }
+}
+
+// Hardcoded coordinates data with IANA timezones for reliable geocoding
+const hardcodedCoordinates = {
+  // British Columbia (BC)
+  "Cluculz Lake, BC": { latitude: 53.8833, longitude: -123.5667, timezone: "America/Vancouver" },
+  "Dease Lake, BC": { latitude: 58.4374, longitude: -130.0002, timezone: "America/Vancouver" },
+  "Fort St. James, BC": { latitude: 54.4431, longitude: -124.2542, timezone: "America/Vancouver" },
+  "Houston, BC": { latitude: 54.3972, longitude: -126.6750, timezone: "America/Vancouver" },
+  "Vanderhoof, BC": { latitude: 54.0144, longitude: -124.0089, timezone: "America/Vancouver" },
+
+  // Alberta (AB)
+  "Barrhead, AB": { latitude: 54.1231, longitude: -114.4017, timezone: "America/Edmonton" },
+  "Devon, AB": { latitude: 53.3667, longitude: -113.7333, timezone: "America/Edmonton" },
+  "Peace River, AB": { latitude: 56.2358, longitude: -117.2986, timezone: "America/Edmonton" },
+  "Vermilion, AB": { latitude: 53.3500, longitude: -110.8500, timezone: "America/Edmonton" },
+  "Westlock, AB": { latitude: 54.1556, longitude: -113.8465, timezone: "America/Edmonton" },
+
+  // Saskatchewan (SK) - Does not observe DST
+  "Estevan, SK": { latitude: 49.1367, longitude: -102.9910, timezone: "America/Regina" },
+  "Moose Jaw, SK": { latitude: 50.3933, longitude: -105.5519, timezone: "America/Regina" },
+  "North Battleford, SK": { latitude: 52.7797, longitude: -108.2967, timezone: "America/Regina" },
+  "Swift Current, SK": { latitude: 50.2881, longitude: -107.7939, timezone: "America/Regina" },
+  "Yorkton, SK": { latitude: 51.2139, longitude: -102.4628, timezone: "America/Regina" },
+
+  // Manitoba (MB)
+  "Boissevain, MB": { latitude: 49.2306, longitude: -100.0559, timezone: "America/Winnipeg" },
+  "Gillam, MB": { latitude: 56.3472, longitude: -94.7078, timezone: "America/Winnipeg" },
+  "Lac du Bonnet, MB": { latitude: 50.2536, longitude: -96.0606, timezone: "America/Winnipeg" },
+  "Snow Lake, MB": { latitude: 54.8814, longitude: -100.0227, timezone: "America/Winnipeg" },
+  "St. Pierre-Jolys, MB": { latitude: 49.4403, longitude: -96.9851, timezone: "America/Winnipeg" },
+
+  // Ontario (ON)
+  "Bala, ON": { latitude: 45.0167, longitude: -79.6167, timezone: "America/Toronto" },
+  "Cornwall, ON": { latitude: 45.0167, longitude: -74.7167, timezone: "America/Toronto" },
+  "Creemore, ON": { latitude: 44.3167, longitude: -80.1000, timezone: "America/Toronto" },
+  "Elora, ON": { latitude: 43.6833, longitude: -80.4333, timezone: "America/Toronto" },
+  "Lion's Head, ON": { latitude: 44.9833, longitude: -81.2500, timezone: "America/Toronto" },
+  "Port Carling, ON": { latitude: 45.1167, longitude: -79.5667, timezone: "America/Toronto" },
+  "Stratford, ON": { latitude: 43.3668, longitude: -80.9497, timezone: "America/Toronto" },
+
+  // Quebec (QC)
+  "Knowlton (Lac-Brome), QC": { latitude: 45.2167, longitude: -72.5167, timezone: "America/Toronto" },
+  "Percé, QC": { latitude: 48.5222, longitude: -64.2139, timezone: "America/Toronto" },
+  "Saint-Siméon, QC": { latitude: 47.8167, longitude: -69.8667, timezone: "America/Toronto" },
+  "Tadoussac, QC": { latitude: 48.1417, longitude: -69.7139, timezone: "America/Toronto" },
+  "Wakefield, QC": { latitude: 45.6167, longitude: -75.9167, timezone: "America/Toronto" },
+
+  // New Brunswick (NB)
+  "Bathurst, NB": { latitude: 47.6167, longitude: -65.6500, timezone: "America/Moncton" },
+  "Campbellton, NB": { latitude: 48.0050, longitude: -66.6731, timezone: "America/Moncton" },
+  "Caraquet, NB": { latitude: 47.7940, longitude: -64.9386, timezone: "America/Moncton" },
+  "Edmundston, NB": { latitude: 47.3765, longitude: -68.3253, timezone: "America/Moncton" },
+  "Grand Manan, NB": { latitude: 44.6900, longitude: -66.8200, timezone: "America/Moncton" },
+  "Miramichi, NB": { latitude: 47.0327, longitude: -65.4950, timezone: "America/Moncton" },
+  "Oromocto, NB": { latitude: 45.8488, longitude: -66.4788, timezone: "America/Moncton" },
+  "Sackville, NB": { latitude: 45.8979, longitude: -64.3683, timezone: "America/Moncton" },
+  "St. Martins, NB": { latitude: 45.3500, longitude: -65.5333, timezone: "America/Moncton" },
+  "Sussex, NB": { latitude: 45.7167, longitude: -65.5167, timezone: "America/Moncton" },
+
+  // Nova Scotia (NS)
+  "Amherst, NS": { latitude: 45.8167, longitude: -64.2000, timezone: "America/Halifax" },
+  "Bridgewater, NS": { latitude: 44.3778, longitude: -64.5178, timezone: "America/Halifax" },
+  "New Glasgow, NS": { latitude: 45.5830, longitude: -62.6330, timezone: "America/Halifax" },
+  "Truro, NS": { latitude: 45.3647, longitude: -63.2797, timezone: "America/Halifax" },
+  "Yarmouth, NS": { latitude: 43.8333, longitude: -66.1167, timezone: "America/Halifax" },
+
+  // Prince Edward Island (PE)
+  "Montague, PE": { latitude: 46.1698, longitude: -62.6538, timezone: "America/Halifax" },
+  "Souris, PE": { latitude: 46.3500, longitude: -62.2500, timezone: "America/Halifax" },
+  "Summerside, PE": { latitude: 46.3971, longitude: -63.8090, timezone: "America/Halifax" },
+
+  // Newfoundland and Labrador (NL)
+  "Bay Roberts, NL": { latitude: 47.5847, longitude: -53.2783, timezone: "America/St_Johns" },
+  "Carbonear, NL": { latitude: 47.7361, longitude: -53.2250, timezone: "America/St_Johns" },
+  "Corner Brook, NL": { latitude: 48.9490, longitude: -57.9503, timezone: "America/St_Johns" },
+  "Forteau, NL": { latitude: 51.4733, longitude: -56.9573, timezone: "America/Goose_Bay" }, // Forteau is on AST, which America/Goose_Bay often reflects (Atlantic Time without DST for some periods, or with it) - verify API output
+  "Gander, NL": { latitude: 48.9569, longitude: -54.6089, timezone: "America/St_Johns" },
+  "Grand Falls-Windsor, NL": { latitude: 48.9167, longitude: -55.6500, timezone: "America/St_Johns" },
+  "Harbour Breton, NL": { latitude: 47.4833, longitude: -55.8000, timezone: "America/St_Johns" },
+  "Musgravetown, NL": { latitude: 48.4167, longitude: -53.8833, timezone: "America/St_Johns" },
+  "St. Alban's, NL": { latitude: 47.8667, longitude: -55.8333, timezone: "America/St_Johns" },
+  "Triton, NL": { latitude: 49.5167, longitude: -55.6167, timezone: "America/St_Johns" },
+
+  // Yukon Territory (YT) - Does not observe DST, stays on MST (UTC-7)
+  "Carmacks, YT": { latitude: 62.0889, longitude: -136.2889, timezone: "America/Whitehorse" },
+  "Dawson City, YT": { latitude: 64.0601, longitude: -139.4333, timezone: "America/Whitehorse" },
+  "Haines Junction, YT": { latitude: 60.7517, longitude: -137.5040, timezone: "America/Whitehorse" },
+  "Mayo, YT": { latitude: 63.5917, longitude: -135.8958, timezone: "America/Whitehorse" },
+  "Watson Lake, YT": { latitude: 60.0635, longitude: -128.7089, timezone: "America/Whitehorse" },
+
+  // Northwest Territories (NT)
+  "Behchokǫ̀, NT": { latitude: 62.8025, longitude: -116.0464, timezone: "America/Yellowknife" },
+  "Fort Simpson, NT": { latitude: 61.8603, longitude: -121.3531, timezone: "America/Yellowknife" },
+  "Fort Smith, NT": { latitude: 60.0053, longitude: -111.8906, timezone: "America/Yellowknife" },
+  "Hay River, NT": { latitude: 60.8164, longitude: -115.7994, timezone: "America/Yellowknife" },
+  "Inuvik, NT": { latitude: 68.3607, longitude: -133.7230, timezone: "America/Inuvik" }, // Uses its own specific IANA zone
+
+  // Nunavut (NU)
+  "Arviat, NU": { latitude: 61.1083, longitude: -94.0583, timezone: "America/Rankin_Inlet" },
+  "Baker Lake, NU": { latitude: 64.3203, longitude: -96.0253, timezone: "America/Rankin_Inlet" },
+  "Cambridge Bay, NU": { latitude: 69.1169, longitude: -105.0597, timezone: "America/Cambridge_Bay" },
+  "Igloolik, NU": { latitude: 69.3761, longitude: -81.7994, timezone: "America/Iqaluit" },
+  "Rankin Inlet, NU": { latitude: 62.8084, longitude: -92.0853, timezone: "America/Rankin_Inlet" }
+};
+
+// Helper function to try geocoding a location
+async function tryGeocodingLocation(locationQuery) {
+    // First check if we have hardcoded coordinates for this location
+    // Try exact match first
+    if (hardcodedCoordinates[locationQuery]) {
+        console.log(`Using hardcoded coordinates for "${locationQuery}"`);
+        const coords = hardcodedCoordinates[locationQuery];
+        // Return in the same format as the API would
+        return {
+            name: locationQuery,
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            timezone: coords.timezone
+        };
+    }
+
+    // Try to match with province abbreviation conversion
+    // Convert full province names to abbreviations if present
+    const provinceMap = {
+        'Alberta': 'AB',
+        'British Columbia': 'BC',
+        'Manitoba': 'MB',
+        'New Brunswick': 'NB',
+        'Newfoundland and Labrador': 'NL',
+        'Northwest Territories': 'NT',
+        'Nova Scotia': 'NS',
+        'Nunavut': 'NU',
+        'Ontario': 'ON',
+        'Prince Edward Island': 'PE',
+        'Quebec': 'QC',
+        'Saskatchewan': 'SK',
+        'Yukon': 'YT'
+    };
+
+    // Try to extract community name and province from the query
+    const parts = locationQuery.split(',').map(part => part.trim());
+    if (parts.length === 2) {
+        const community = parts[0];
+        const province = parts[1];
+
+        // If province is a full name, try to convert it to abbreviation
+        const provinceAbbr = provinceMap[province] || province;
+
+        // Check for hardcoded entry with the abbreviation
+        const hardcodedKey = `${community}, ${provinceAbbr}`;
+        if (hardcodedCoordinates[hardcodedKey]) {
+            console.log(`Using hardcoded coordinates for "${hardcodedKey}" (converted from "${locationQuery}")`);
+            const coords = hardcodedCoordinates[hardcodedKey];
+            return {
+                name: hardcodedKey,
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+                timezone: coords.timezone
+            };
+        }
+
+        // Try to find a match by checking if any hardcoded key contains this community name
+        // and has the same province abbreviation
+        const possibleMatches = Object.keys(hardcodedCoordinates).filter(key => {
+            const keyParts = key.split(',').map(part => part.trim());
+            if (keyParts.length === 2) {
+                const keyProvince = keyParts[1];
+                // Check if the province matches and the community name is similar
+                return keyProvince === provinceAbbr &&
+                       (keyParts[0].includes(community) || community.includes(keyParts[0]));
+            }
+            return false;
+        });
+
+        if (possibleMatches.length > 0) {
+            // Use the first match (could be enhanced to find the best match)
+            const matchKey = possibleMatches[0];
+            console.log(`Found similar hardcoded match: "${matchKey}" for "${locationQuery}"`);
+            const coords = hardcodedCoordinates[matchKey];
+            return {
+                name: matchKey,
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+                timezone: coords.timezone
+            };
+        }
+    }
+
+    // If no hardcoded match found, proceed with API call
+    try {
+        const geocodeApiUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(locationQuery)}&count=1&language=en&format=json`;
+        console.log("Fetching coordinates from Geocoding API:", geocodeApiUrl);
+
+        const geocodeResponse = await fetch(geocodeApiUrl);
+        if (!geocodeResponse.ok) {
+            console.warn(`Geocoding API response not OK: ${geocodeResponse.statusText}`);
+            return null;
+        }
+
+        const geocodeData = await geocodeResponse.json();
+        console.log("Geocoding API response:", geocodeData);
+
+        // Check if geocoding returned results
+        if (!geocodeData.results || geocodeData.results.length === 0) {
+            console.warn(`No geocoding results found for "${locationQuery}". API response:`, geocodeData);
+            return null;
+        }
+
+        // Return the location data
+        return geocodeData.results[0];
+    } catch (error) {
+        console.warn(`Error during geocoding for "${locationQuery}":`, error);
+        return null;
     }
 }
 
 // Function to set weather background based on weather code
-function setWeatherBackground(weatherBox, weatherCode, temp) {
-    let backgroundImage = ''; // Initialize
-    const basePath = '/images/weather-bgs/'; // Use absolute path from site root
+function setWeatherBackground(weatherBox, weatherCode) {
+    console.log("Mapping WMO Code:", weatherCode); // For debugging
 
-    // Map WMO Weather Code to a background image category
-    switch (true) {
-        // Clear
-        case (weatherCode === 0 || weatherCode === 1):
-            backgroundImage = `${basePath}sunny.webp`; 
+    const basePath = '../../images/weather-bgs/'; // Use relative path for local development
+    let backgroundImageFile = '';
+
+    // Map WMO Weather Code to available background image files
+    // Based on Open-Meteo WMO codes: https://open-meteo.com/en/docs
+    // Available images: cloudy.webp, default.webp, fog.webp, freezing-rain.webp,
+    // partly-cloudy.webp, rain.webp, snow.webp, storm.webp, sunny.webp
+
+    switch (weatherCode) {
+        case 0: // Clear sky
+            backgroundImageFile = 'sunny.webp';
             break;
-        // Partly cloudy
-        case (weatherCode >= 2 && weatherCode <= 3):
-            backgroundImage = `${basePath}partly-cloudy.webp`; 
+        case 1: // Mainly clear
+        case 2: // Partly cloudy
+            backgroundImageFile = 'partly-cloudy.webp';
             break;
-        // Fog
-        case (weatherCode >= 45 && weatherCode <= 49):
-            backgroundImage = `${basePath}fog.webp`; 
+        case 3: // Overcast
+            backgroundImageFile = 'cloudy.webp';
             break;
-        // Drizzle or light rain
-        case ((weatherCode >= 51 && weatherCode <= 57) || 
-              (weatherCode >= 61 && weatherCode <= 63) || 
-              (weatherCode >= 80 && weatherCode <= 81)):
-            backgroundImage = `${basePath}light-rain.webp`; 
+        case 45: // Fog
+        case 48: // Depositing rime fog
+            backgroundImageFile = 'fog.webp';
             break;
-        // Rain
-        case (weatherCode >= 64 && weatherCode <= 67) || (weatherCode === 82):
-            backgroundImage = `${basePath}rain.webp`; 
+        case 51: // Drizzle: Light
+        case 53: // Drizzle: Moderate
+        case 55: // Drizzle: Dense
+        case 61: // Rain: Slight
+        case 63: // Rain: Moderate
+        case 65: // Rain: Heavy
+        case 80: // Rain showers: Slight
+        case 81: // Rain showers: Moderate
+            backgroundImageFile = 'rain.webp';
             break;
-        // Snow
-        case (weatherCode >= 71 && weatherCode <= 77) || 
-             (weatherCode >= 85 && weatherCode <= 86):
-            backgroundImage = `${basePath}snow.webp`; 
+        case 56: // Freezing Drizzle: Light
+        case 57: // Freezing Drizzle: Dense
+        case 66: // Freezing Rain: Light
+        case 67: // Freezing Rain: Heavy
+            backgroundImageFile = 'freezing-rain.webp';
             break;
-        // Thunderstorm
-        case (weatherCode >= 95 && weatherCode <= 99):
-            backgroundImage = `${basePath}storm.webp`; 
+        case 71: // Snow fall: Slight
+        case 73: // Snow fall: Moderate
+        case 75: // Snow fall: Heavy
+        case 77: // Snow grains
+        case 85: // Snow showers slight
+        case 86: // Snow showers heavy
+            backgroundImageFile = 'snow.webp';
+            break;
+        case 82: // Rain showers: Violent
+        case 95: // Thunderstorm: Slight or moderate
+        case 96: // Thunderstorm with slight hail
+        case 99: // Thunderstorm with heavy hail
+            backgroundImageFile = 'storm.webp';
             break;
         default:
-            // Use temperature fallback if code unknown or no specific image
-            console.log(`No specific image for code ${weatherCode}, using temp fallback.`);
-            setWeatherBackgroundByTemp(weatherBox, temp);
-            return; // Exit function early
+            // If no specific mapping, use default image instead of temperature fallback
+            console.log(`WMO Code ${weatherCode} not specifically mapped, using default.`);
+            backgroundImageFile = 'default.webp';
     }
 
     // Apply the background image
+    const backgroundImage = `${basePath}${backgroundImageFile}`;
     weatherBox.style.backgroundImage = `url('${backgroundImage}')`;
     weatherBox.style.backgroundColor = 'transparent'; // Remove default blue when image loads
-    console.log("Set weather background image:", weatherBox.style.backgroundImage);
+    console.log("Set weather background image:", backgroundImage);
 }
 
 // Set weather background by temperature as fallback
 function setWeatherBackgroundByTemp(weatherBox, temp) {
-    const basePath = '/images/weather-bgs/'; // Use absolute path from site root
+    const basePath = '../../images/weather-bgs/'; // Use relative path for local development
     let tempImage = '';
-    
+
     // Add a check for null temp
     if (temp === null || isNaN(temp)) {
         console.warn("Cannot set temp-based background: Temperature is invalid.");
-        // Optionally set a truly generic default image or color
-        weatherBox.style.backgroundImage = `url('${basePath}mild.webp')`; // Default to mild if temp unknown
+        // Use default.webp which is known to exist
+        weatherBox.style.backgroundImage = `url('${basePath}default.webp')`;
         weatherBox.style.backgroundColor = 'transparent';
         return;
     }
-    
+
+    // Map temperature ranges to existing weather background images
     if (temp >= 30) {
-        tempImage = `${basePath}hot.webp`;
+        // Hot weather - use sunny.webp
+        tempImage = `${basePath}sunny.webp`;
     } else if (temp >= 20) {
-        tempImage = `${basePath}warm.webp`;
+        // Warm weather - use partly-cloudy.webp
+        tempImage = `${basePath}partly-cloudy.webp`;
     } else if (temp <= 0) {
-        tempImage = `${basePath}cold.webp`;
-    } else { // Mild temperatures
-        tempImage = `${basePath}mild.webp`;
+        // Cold weather - use snow.webp
+        tempImage = `${basePath}snow.webp`;
+    } else {
+        // Mild temperatures - use default.webp
+        tempImage = `${basePath}default.webp`;
     }
-    
+
     weatherBox.style.backgroundImage = `url('${tempImage}')`;
     weatherBox.style.backgroundColor = 'transparent';
     console.log("Set temp-based weather background image:", weatherBox.style.backgroundImage);
@@ -955,20 +1203,8 @@ function setInitialWeatherBackground() {
     if (weatherCodeStr !== null && weatherCodeStr !== "") {
         const weatherCode = parseInt(weatherCodeStr, 10);
         if (!isNaN(weatherCode)) {
-            // We need the temperature for the fallback function setWeatherBackgroundByTemp
-            // Let's try to read it from the #community-temp element generated server-side
-            const tempElement = document.getElementById('community-temp');
-            let currentTemp = null;
-            if (tempElement) {
-                const tempMatch = tempElement.textContent.match(/^(-?\d+)/); // Extract digits
-                if (tempMatch) {
-                    currentTemp = parseInt(tempMatch[1], 10);
-                }
-            }
-            console.log("Read currentTemp from HTML:", currentTemp); // Debug log
-
-            // Call the existing background function
-            setWeatherBackground(weatherBox, weatherCode, currentTemp); // Pass temp too
+            // Call the weather background function with the weather code
+            setWeatherBackground(weatherBox, weatherCode);
         } else {
             console.warn("Invalid weather code found in data-attribute:", weatherCodeStr);
             weatherBox.style.backgroundColor = '#a7c5e2'; // Default blue if code invalid
